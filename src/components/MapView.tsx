@@ -14,6 +14,8 @@ interface MapViewProps {
   /** 상단 검색바 등이 가리는 높이(px) */
   obscuredTop?: number;
   onMarkerClick?: (id: string) => void;
+  /** 이 장소 마커에만 이름표를 띄운다 (탭한 장소) */
+  selectedId?: string;
   label: string;
 }
 

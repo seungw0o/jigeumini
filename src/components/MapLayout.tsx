@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { LayersIcon, LocateIcon } from "@/assets/icons";
+import { LayersIcon, LocateIcon, StarIcon } from "@/assets/icons";
 
 /**
  * 지도 화면 공통 골격.
@@ -69,15 +69,22 @@ export function DefaultMapControls({
   onLocate,
   onLayers,
   layersOn,
+  onFavorites,
+  favoritesOn,
 }: {
   onLocate?: () => void;
   onLayers?: () => void;
   layersOn?: boolean;
+  onFavorites?: () => void;
+  favoritesOn?: boolean;
 }) {
   return (
     <>
       <MapControlButton label="지도 레이어" pressed={layersOn} onClick={onLayers}>
         <LayersIcon />
+      </MapControlButton>
+      <MapControlButton label="즐겨찾기 표시" pressed={favoritesOn} onClick={onFavorites}>
+        <StarIcon />
       </MapControlButton>
       <MapControlButton label="현재 위치로 이동" onClick={onLocate}>
         <LocateIcon />

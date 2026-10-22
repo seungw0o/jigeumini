@@ -9,6 +9,10 @@ interface BottomSheetProps {
   initialSnap?: number;
   label: string;
   className?: string;
+  /** 시트 아래에 고정되는 영역 (lg에서는 좌측 패널 맨 아래) */
+  footer?: ReactNode;
+  /** 모바일에서 화면 바닥과 시트 사이 간격(px). 하단 탭 바 높이 */
+  bottomOffset?: number;
 }
 
 /**
@@ -21,6 +25,8 @@ export function BottomSheet({
   initialSnap = 1,
   label,
   className = "",
+  footer,
+  bottomOffset = 0,
 }: BottomSheetProps) {
   const [snap, setSnap] = useState(initialSnap);
   const [dragHeight, setDragHeight] = useState<number | null>(null);
@@ -68,8 +74,8 @@ export function BottomSheet({
     <section
       ref={sheetRef}
       aria-label={label}
-      style={{ "--sheet-h": height } as CSSProperties}
-      className={`fixed inset-x-0 bottom-0 z-30 flex h-(--sheet-h) flex-col rounded-t-lg bg-surface shadow-sheet ${
+      style={{ "--sheet-h": height, "--sheet-offset": `${bottomOffset}px` } as CSSProperties}
+      className={`fixed inset-x-0 bottom-(--sheet-offset) z-30 flex h-(--sheet-h) flex-col rounded-t-lg bg-surface shadow-sheet ${
         dragHeight === null ? "transition-[height] duration-300 ease-out motion-reduce:transition-none" : ""
       } lg:static lg:z-auto lg:h-auto lg:min-h-0 lg:flex-1 lg:rounded-none lg:shadow-none ${className}`}
     >
@@ -87,6 +93,7 @@ export function BottomSheet({
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
         {children}
       </div>
+      {footer && <div className="shrink-0">{footer}</div>}
     </section>
   );
 }
