@@ -3,20 +3,21 @@
 @theme {
   --font-sans: var(--font-pretendard), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 
-  --color-ink: #191b1f;
-  --color-ink-2: #43474e;
-  --color-muted: #6e737c;
-  --color-subtle: #9a9fa7;
-  --color-line: #ebedf0;
-  --color-line-strong: #d5d8dd;
-  --color-canvas: #f2f3f5;
-  --color-fill: #f6f7f8;
+  --color-ink: #1d1b18;
+  --color-ink-2: #45413b;
+  --color-muted: #6d685f;
+  --color-subtle: #9b958b;
+  --color-line: #ece9e3;
+  --color-line-strong: #d8d3ca;
+  --color-canvas: #f3f1ec;
+  --color-fill: #f8f6f2;
   --color-surface: #ffffff;
 
-  /* 브랜드 포인트: "N분 뒤 출발"과 주요 버튼에만 */
-  --color-accent: #1e5eff;
-  --color-accent-strong: #1748cc;
-  --color-accent-soft: #ebf1ff;
+  /* 브랜드 골드(시간은 금). 면/하이라이트 전용, 위 글자는 항상 ink. 흰 바탕 글자·외곽선은 brand-ink */
+  --color-brand: #f5a524;
+  --color-brand-strong: #e4900f;
+  --color-brand-soft: #fff3d6;
+  --color-brand-ink: #8a5300;
 
   --color-live: #e5372c;
 
@@ -30,8 +31,8 @@
   --color-bus-branch: #1f9a45;
   --color-bus-village: #5f8f0e;
   --color-bus-outer: #c77300;
-  --color-walk: #e3e6ea;
-  --color-walk-text: #8b919b;
+  --color-walk: #ece8e1;
+  --color-walk-text: #615c54;
 
   --color-pin-origin: #1f9a45;
   --color-pin-destination: #e2382f;
@@ -74,7 +75,7 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-brand-ink);
   outline-offset: 2px;
 }
 

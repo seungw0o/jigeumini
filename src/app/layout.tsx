@@ -15,6 +15,13 @@ export const metadata: Metadata = {
   description: "기다림까지 더한 진짜 도착 시간과, 집에서 나설 시간을 알려주는 대전 버스 길찾기",
   applicationName: "지금이니?",
   appleWebApp: { capable: true, title: "지금이니?", statusBarStyle: "default" },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "48x48" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {

@@ -61,7 +61,7 @@ export function StateButton({
       onClick={onClick}
       className={`inline-flex h-10 shrink-0 items-center justify-center rounded-md px-4 text-sm font-semibold ${
         variant === "primary"
-          ? "bg-accent text-white hover:bg-accent-strong"
+          ? "bg-brand text-ink hover:bg-brand-strong"
           : "border border-line-strong bg-surface text-ink-2 hover:bg-fill"
       }`}
     >
