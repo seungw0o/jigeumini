@@ -67,7 +67,20 @@ export interface BusLeg {
   /** 이 버스 탑승 예정 시각 */
   boardAt: string;
   alightAt: string;
+  /** 실시간 기준이 아닌 구간이면 그 이유. 없으면 실시간(목 데이터 포함). boardAt은 정류장 도착 시각(대기 0)으로 둠다 */
+  liveIssue?: LegLiveIssue;
 }
+
+/** unavailable: 도착 정보를 못 받음(실패, 정류장 매칭 실패) / noBus: 받았지만 탈 수 있는 이 노선 버스가 목록에 없음 */
+export type LegLiveIssue = "unavailable" | "noBus";
+
+/**
+ * 경로 전체의 실시간 상태. 없으면 "live"(목 데이터).
+ * live: 모든 버스가 실시간 기준 / partial: 첫 버스는 실시간, 환승 버스 대기를 모름(도착은 그보다 늦을 수 있음)
+ * loading: 도착 정보 받는 중 / unavailable: 첫 버스 도착 정보를 못 받음 / noBus: 첫 버스 다음 차 정보 없음.
+ * live/partial이 아니면 leaveAt·leaveInMinutes는 의미가 없고, totalMinutes·arriveAt은 대기 없는 이동 시간 기준이다.
+ */
+export type RealtimeState = "live" | "partial" | "loading" | "unavailable" | "noBus";
 
 export type Leg = WalkLeg | BusLeg;
 
@@ -93,6 +106,8 @@ export interface TransitRoute {
   quickTransferChance?: number;
   /** 지도에 그릴 좌표열. legs와 같은 순서, leg마다 하나 */
   path: LatLng[][];
+  /** 없으면 "live" */
+  realtime?: RealtimeState;
 }
 
 export interface RouteSearch {
