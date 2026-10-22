@@ -11,17 +11,8 @@ export function RoutesFallback() {
     <RoutesLayout
       header={
         <>
-          <div className="px-4 pt-3" aria-hidden="true">
-            <div className={`h-[88px] rounded-lg ${pulse}`} />
-          </div>
-          <div aria-hidden="true" className="flex h-14 items-center gap-2 border-b border-line px-4">
-            <div className={`h-9 w-[88px] rounded-full ${pulse}`} />
-            <div className={`h-9 w-[72px] rounded-full ${pulse}`} />
-          </div>
-          <div aria-hidden="true" className="flex h-12 items-center gap-5 border-b border-line px-4">
-            {[44, 44, 52, 84].map((w, i) => (
-              <div key={i} className={`h-4 rounded-sm ${pulse}`} style={{ width: w }} />
-            ))}
+          <div className="px-4 pt-3 pb-1 lg:pt-0" aria-hidden="true">
+            <div className={`h-[90px] rounded-lg ${pulse}`} />
           </div>
           <RoutesToolbar
             baseTime={mockRouteSearch.baseTime}
