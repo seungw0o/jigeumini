@@ -10,7 +10,7 @@ import { MapView } from "@/components/MapView";
 import { NotifyDeniedHint } from "@/components/NotifyButton";
 import { RouteCard } from "@/components/RouteCard";
 import { RouteSearchBar } from "@/components/RouteSearchBar";
-import { EmptyState, ErrorState, RouteListSkeleton, StateButton } from "@/components/StateViews";
+import { EmptyState, ErrorState, RouteListSkeleton } from "@/components/StateViews";
 import { ESTIMATE_NOTE, isLiveTimed } from "@/utils/format";
 import { routeMarkers, routePaths } from "@/utils/mapData";
 import {
@@ -68,6 +68,11 @@ const LIVE_COMPARE: Record<RouteSortKey, (a: TransitRoute, b: TransitRoute) => n
 };
 
 const noop = () => {};
+
+const STATE_CARD = "mx-4 overflow-hidden rounded-lg bg-surface shadow-card";
+const NOTICE = "mx-4 mb-3 rounded-lg bg-surface px-4 py-3 shadow-card";
+const NOTE = "px-5 pb-3 text-xs text-fg-muted";
+const LIST = "flex flex-col gap-3 px-4";
 
 export function RoutesScreen() {
   const params = useSearchParams();
@@ -141,15 +146,15 @@ function MockRoutesScreen() {
         }
         map={<MapView label="경로 지도" paths={paths} markers={markers} obscuredTop={0} obscuredBottom={0} />}
       >
-        <section aria-label="검색된 경로" className="pt-2">
+        <section aria-label="검색된 경로" className="pt-3">
           {demo === "loading" && <RouteListSkeleton count={3} />}
           {demo === "error" && (
-            <div className="bg-surface">
+            <div className={STATE_CARD}>
               <ErrorState onRetry={() => router.replace("/routes?mock=1")} />
             </div>
           )}
           {demo === "empty" && (
-            <div className="bg-surface">
+            <div className={STATE_CARD}>
               <EmptyState
                 title="경로가 없습니다"
                 message="출발지나 도착지를 바꿔 보세요. 대전 시내버스 경로만 찾을 수 있어요."
@@ -159,12 +164,12 @@ function MockRoutesScreen() {
           {ready && visible.length > 0 && (
             <>
               {notifyDenied && (
-                <div className="mb-2 bg-surface px-4 py-2.5">
+                <div className={NOTICE}>
                   <NotifyDeniedHint />
                 </div>
               )}
-              <p className="px-4 pb-2 text-xs text-fg-muted">{ESTIMATE_NOTE}</p>
-              <ul className="flex flex-col gap-2">
+              <p className={NOTE}>{ESTIMATE_NOTE}</p>
+              <ul className={LIST}>
                 {visible.map((route, i) => (
                   <li
                     key={route.id}
@@ -286,15 +291,15 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
         }
         map={<MapView label="경로 지도" paths={map.paths} markers={map.markers} obscuredTop={0} obscuredBottom={0} />}
       >
-        <section aria-label="검색된 경로" className="pt-2">
+        <section aria-label="검색된 경로" className="pt-3">
           {(live.status === "loading" || live.status === "idle") && <RouteListSkeleton count={3} />}
           {live.status === "error" && (
-            <div className="bg-surface">
+            <div className={STATE_CARD}>
               <ErrorState title="경로를 불러오지 못했어요" message="잠시 후 다시 시도해 주세요." onRetry={live.refresh} />
             </div>
           )}
           {live.status === "ready" && visible.length === 0 && (
-            <div className="bg-surface">
+            <div className={STATE_CARD}>
               <EmptyState
                 title="경로가 없습니다"
                 message="출발지나 도착지를 바꿔 보세요. 대전 시내버스 경로만 찾을 수 있어요."
@@ -304,20 +309,24 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
           {visible.length > 0 && (
             <>
               {realtimeFailed && (
-                <div role="status" className="mb-2 flex items-center gap-3 bg-surface px-4 py-2.5">
-                  <p className="min-w-0 flex-1 text-xs text-fg-secondary">실시간 정보를 못 받았어요. 이동 시간만 보여 드려요</p>
-                  <StateButton variant="secondary" onClick={live.refresh}>
+                <div role="status" className={`${NOTICE} flex items-center gap-3`}>
+                  <p className="min-w-0 flex-1 text-sm text-fg-secondary">실시간 정보를 못 받았어요. 이동 시간만 보여 드려요</p>
+                  <button
+                    type="button"
+                    onClick={live.refresh}
+                    className="h-11 shrink-0 rounded-md bg-action-secondary px-4 text-sm font-semibold text-action-secondary-fg hover:bg-action-secondary-pressed"
+                  >
                     다시 시도
-                  </StateButton>
+                  </button>
                 </div>
               )}
               {notifyDenied && (
-                <div className="mb-2 bg-surface px-4 py-2.5">
+                <div className={NOTICE}>
                   <NotifyDeniedHint />
                 </div>
               )}
-              <p className="px-4 pb-2 text-xs text-fg-muted">{ESTIMATE_NOTE}</p>
-              <ul className="flex flex-col gap-2">
+              {!realtimeFailed && <p className={NOTE}>{ESTIMATE_NOTE}</p>}
+              <ul className={LIST}>
                 {visible.map((route, i) => (
                   <li
                     key={route.id}

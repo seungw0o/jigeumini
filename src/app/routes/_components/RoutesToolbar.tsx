@@ -29,12 +29,12 @@ export function RoutesToolbar({
   onSortChange?: (next: RouteSortKey) => void;
 }) {
   return (
-    <div className="flex h-11 items-center justify-between gap-2 border-b border-border px-4">
-      <div className="flex min-w-0 items-center gap-2.5">
+    <div className="flex h-14 items-center justify-between gap-2 border-b border-divider px-4">
+      <div className="flex min-w-0 items-center gap-2">
         <button
           type="button"
           aria-label={baseTime ? `출발 시각 지금 ${formatShortClock(baseTime)}` : "출발 시각 지금"}
-          className="-ml-1 inline-flex h-11 shrink-0 items-center gap-1 rounded-md px-1 text-sm whitespace-nowrap focus-visible:outline-offset-[-2px]"
+          className="inline-flex h-11 shrink-0 items-center gap-1 rounded-md bg-action-secondary px-2.5 text-sm whitespace-nowrap text-action-secondary-fg hover:bg-action-secondary-pressed"
         >
           <span className="font-bold text-fg">지금</span>
           <span className="font-medium text-fg-secondary tabular">
@@ -48,7 +48,7 @@ export function RoutesToolbar({
           </span>
         )}
       </div>
-      <label className="relative -mr-1 inline-flex h-11 shrink-0 items-center">
+      <label className="relative inline-flex h-11 shrink-0 items-center">
         <span className="sr-only">정렬</span>
         <select
           value={sort}
@@ -56,7 +56,7 @@ export function RoutesToolbar({
           onChange={(e) => {
             if (isSortKey(e.target.value)) onSortChange?.(e.target.value);
           }}
-          className="h-11 cursor-pointer appearance-none rounded-md bg-transparent pr-6 pl-1 text-xs font-medium text-fg-secondary focus-visible:outline-offset-[-2px] disabled:cursor-default"
+          className="h-11 cursor-pointer appearance-none rounded-md bg-transparent pr-7 pl-2.5 text-sm font-medium text-fg-secondary hover:bg-action-secondary disabled:cursor-default"
         >
           {SORT_OPTIONS.map((o) => (
             <option key={o.key} value={o.key}>
@@ -64,7 +64,7 @@ export function RoutesToolbar({
             </option>
           ))}
         </select>
-        <ChevronDownIcon size={15} className="pointer-events-none absolute right-1 text-fg-muted" />
+        <ChevronDownIcon size={16} className="pointer-events-none absolute right-2 text-fg-muted" />
       </label>
     </div>
   );

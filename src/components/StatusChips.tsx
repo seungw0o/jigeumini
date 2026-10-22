@@ -25,10 +25,10 @@ export function BusNumber({
   const meta = BUS_TYPE_META[busType];
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-[3px] border-[1.5px] bg-surface font-bold tabular ${
-        size === "sm" ? "h-[18px] min-w-[18px] px-1 text-2xs" : "h-[22px] min-w-[22px] px-1.5 text-xs"
+      className={`inline-flex shrink-0 items-center justify-center rounded-sm font-bold text-fg-inverse tabular ${
+        size === "sm" ? "h-5 min-w-5 px-1.5 text-xs" : "h-5.5 min-w-8 px-1.5 text-xs"
       }`}
-      style={{ borderColor: meta.color, color: meta.color }}
+      style={{ backgroundColor: meta.color }}
     >
       <span className="sr-only">{meta.label} </span>
       {routeNo}
@@ -60,8 +60,8 @@ export function BusTypeLabel({ busType }: { busType: BusType }) {
 export function RunLabelBadge({ runLabel }: { runLabel: "first" | "last" }) {
   return (
     <span
-      className={`inline-flex h-[18px] shrink-0 items-center rounded-[3px] px-1 text-2xs font-semibold ${
-        runLabel === "last" ? "bg-danger-soft text-danger" : "bg-bg text-fg-secondary"
+      className={`inline-flex h-5 shrink-0 items-center rounded-full px-2 text-xs font-semibold ${
+        runLabel === "last" ? "bg-danger-soft text-danger" : "bg-surface-muted text-fg-secondary"
       }`}
     >
       {runLabel === "last" ? "막차" : "첫차"}
@@ -73,7 +73,7 @@ export function ArrivalText({ arrival, missed = false }: { arrival: BusArrival; 
   const { status } = arrival;
   if (missed) {
     const text = status.kind === "live" ? `${status.minutes}분 ${status.stopsAway}정류장 전` : "놓침";
-    return <span className="text-xs text-fg-subtle line-through tabular">{text}</span>;
+    return <span className="text-xs text-fg-muted line-through tabular">{text}</span>;
   }
   return (
     <span className="inline-flex min-w-0 items-center gap-1.5 text-xs tabular">
@@ -88,7 +88,7 @@ export function ArrivalText({ arrival, missed = false }: { arrival: BusArrival; 
       {status.kind === "garage" && (
         <span className="truncate font-semibold text-status-tight">{garageDepartLabel(status.departAt)}</span>
       )}
-      {status.kind === "ended" && <span className="text-fg-subtle">운행 종료</span>}
+      {status.kind === "ended" && <span className="text-fg-muted">운행 종료</span>}
       {arrival.runLabel && <RunLabelBadge runLabel={arrival.runLabel} />}
     </span>
   );
@@ -96,7 +96,7 @@ export function ArrivalText({ arrival, missed = false }: { arrival: BusArrival; 
 
 export function ArrivalChip({ arrival, missed = false }: { arrival: BusArrival; missed?: boolean }) {
   return (
-    <span className="inline-flex h-6 max-w-full items-center rounded-full bg-surface-muted px-2">
+    <span className="inline-flex h-7 max-w-full items-center rounded-full bg-surface-muted px-2.5">
       <ArrivalText arrival={arrival} missed={missed} />
     </span>
   );
@@ -129,14 +129,14 @@ export function StaleBadge({
   const stale = secondsAgo >= 60;
   const label = secondsAgo < 60 ? `${secondsAgo}초 전 정보` : `${Math.floor(secondsAgo / 60)}분 전 정보`;
   return (
-    <span className={`inline-flex items-center gap-0.5 text-xs tabular ${stale ? "text-status-tight" : "text-fg-subtle"}`}>
+    <span className={`inline-flex items-center gap-0.5 text-xs whitespace-nowrap tabular ${stale ? "text-status-tight" : "text-fg-muted"}`}>
       <span>{label}</span>
       {onRefresh && (
         <button
           type="button"
           onClick={onRefresh}
           aria-label="실시간 정보 새로고침"
-          className="-my-2.5 -mr-2 inline-flex size-10 items-center justify-center rounded-full text-fg-muted hover:bg-surface-muted"
+          className="-my-3 -mr-2 inline-flex size-11 items-center justify-center rounded-full text-fg-muted hover:bg-action-secondary"
         >
           <RefreshIcon size={15} />
         </button>

@@ -31,7 +31,7 @@ function CatchArrival({ arrival }: { arrival: BusArrival }) {
   return (
     <span className="inline-flex min-w-0 items-center gap-1.5">
       <span className="truncate">
-        <span className="font-semibold text-realtime">{status.minutes <= 1 ? "곧 도착" : `${status.minutes}분`}</span>
+        <span className="font-semibold text-realtime tabular">{status.minutes <= 1 ? "곧 도착" : `${status.minutes}분`}</span>
         <span className="text-fg-muted"> · {status.stopsAway}정류장 전</span>
       </span>
       {arrival.runLabel && <RunLabelBadge runLabel={arrival.runLabel} />}
@@ -64,19 +64,19 @@ function BoardRow({
   const statusText = leg.liveIssue ? LIVE_ISSUE_LABEL[leg.liveIssue] : !catchArrival && pending ? "실시간 확인 중" : null;
 
   return (
-    <li className="grid grid-cols-[44px_minmax(0,1fr)] gap-y-0.5">
-      <div className="pt-px">
+    <li className="grid grid-cols-[48px_minmax(0,1fr)]">
+      <div>
         <BusNumber routeNo={leg.routeNo} busType={leg.busType} />
       </div>
       <div className="min-w-0">
-        <div className="flex h-6 min-w-0 items-center gap-1 text-sm">
-          <span className="min-w-0 truncate font-medium text-fg">{leg.boardStop.name}</span>
+        <div className="flex h-5.5 min-w-0 items-center gap-1 text-xs">
+          <span className="min-w-0 truncate font-semibold text-fg-secondary">{leg.boardStop.name}</span>
           <span className="shrink-0 text-fg-muted">승차</span>
           {quickTransferChance !== undefined && (
-            <span className="ml-auto shrink-0 pl-2 text-xs text-fg-muted tabular">바로 환승 {quickTransferChance}%</span>
+            <span className="ml-auto shrink-0 pl-2 text-fg-muted tabular">바로 환승 {quickTransferChance}%</span>
           )}
         </div>
-        {statusText && <p className="flex h-5 min-w-0 items-center text-xs whitespace-nowrap text-fg-muted">{statusText}</p>}
+        {statusText && <p className="flex h-5 min-w-0 items-center text-xs whitespace-nowrap text-realtime-missing">{statusText}</p>}
         {catchArrival && (
           <p className="flex h-5 min-w-0 items-center gap-2 text-xs whitespace-nowrap tabular">
             <CatchArrival arrival={catchArrival} />
@@ -118,37 +118,39 @@ export function RouteCard({
   const arriveSpoken = live ? `도착 예상 ${arrive}${arriveSuffix}` : (note ?? "도착 예상 확인 중");
 
   return (
-    <article className="relative bg-surface px-4 pt-3 pb-3">
-      {badge && <p className="mb-1.5 text-xs leading-4 font-bold text-brand-ink">{badge}</p>}
+    <article className="relative rounded-lg bg-surface p-4 shadow-card">
+      {badge && <p className="mb-2 text-xs font-semibold text-brand-ink">{badge}</p>}
       <Link
         href={href}
         aria-label={`${totalLabel(route)}, ${arriveSpoken}, ${realtimeBadgeLabel(route) ?? leaveLabel(route)}`}
-        className="flex items-center justify-between gap-3 rounded-sm after:absolute after:inset-0"
+        className="flex items-center justify-between gap-3 rounded-md after:absolute after:inset-0 after:rounded-lg"
       >
-        <span className="shrink-0 text-[24px] leading-7 font-bold text-fg tabular">{totalLabel(route)}</span>
+        <span className="min-w-0 truncate text-xl font-bold text-fg tabular">{totalLabel(route)}</span>
         <LeaveBadge route={route} size="lg" />
       </Link>
-      <p className="mt-1 flex min-w-0 items-baseline text-xs whitespace-nowrap text-fg-muted tabular">
-        <span className="shrink-0">
+      {(live || pending) && (
+        <p className="mt-0.5 text-sm text-fg-secondary tabular">
           {live ? (
             <>
-              <span className="text-fg-secondary">도착 예상</span>{" "}
-              <span className="text-sm font-semibold text-fg">{arrive}</span>
-              {arriveSuffix && <span className="text-fg-secondary">{arriveSuffix}</span>} ·{" "}
+              도착 예상 <span className="font-semibold text-fg">{arrive}</span>
+              {arriveSuffix}
             </>
           ) : (
-            pending && <span className="text-fg-secondary">도착 예상 확인 중 · </span>
+            "도착 예상 확인 중"
           )}
-          {formatFare(route.fare)} ·&nbsp;
-        </span>
+        </p>
+      )}
+      {note && <p className="mt-0.5 text-xs text-fg-secondary">{note}</p>}
+
+      <TimeRibbon route={route} now={now} variant="compact" className="mt-4" />
+
+      <p className="mt-3 flex min-w-0 text-xs whitespace-nowrap text-fg-muted tabular">
+        <span className="shrink-0">{formatFare(route.fare)} ·&nbsp;</span>
         <span className="truncate">{transferLabel(route.transferCount)}</span>
       </p>
-      {note && <p className="mt-0.5 text-xs text-fg-muted">{note}</p>}
-
-      <TimeRibbon route={route} now={now} variant="compact" className="mt-3" />
 
       {lastBus && (
-        <ol className="mt-3 flex flex-col gap-1.5 border-t border-border pt-2.5">
+        <ol className="mt-3 flex flex-col gap-2 border-t border-divider pt-3">
           {busLegs.map((leg, i) => (
             <BoardRow
               key={`${leg.routeNo}-${leg.boardStop.id}`}
@@ -158,16 +160,16 @@ export function RouteCard({
               quickTransferChance={i > 0 ? route.quickTransferChance : undefined}
             />
           ))}
-          <li className="grid h-6 grid-cols-[44px_minmax(0,1fr)] items-center text-sm">
-            <span className="text-xs font-semibold text-fg-muted">하차</span>
-            <span className="min-w-0 truncate font-medium text-fg">{lastBus.alightStop.name}</span>
+          <li className="grid h-5.5 grid-cols-[48px_minmax(0,1fr)] items-center text-xs">
+            <span className="font-semibold text-fg-muted">하차</span>
+            <span className="min-w-0 truncate font-semibold text-fg-secondary">{lastBus.alightStop.name}</span>
           </li>
         </ol>
       )}
 
       {(live || pending) && (
         // 확인 중에는 자리만 잡아 두어 실시간이 들어와도 카드 높이가 그대로다
-        <div className={`relative z-10 mt-3 ${live ? "" : "invisible"}`} aria-hidden={live ? undefined : true}>
+        <div className={`relative z-10 mt-4 ${live ? "" : "invisible"}`} aria-hidden={live ? undefined : true}>
           <NotifyButton variant="block" state={notifyState} onChange={onNotifyChange} />
         </div>
       )}
