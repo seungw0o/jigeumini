@@ -70,14 +70,16 @@ export function BottomSheet({
     setDragHeight(null);
   }
 
+  const safeArea = bottomOffset === 0 ? "pb-[env(safe-area-inset-bottom)] lg:pb-0" : "";
+
   return (
     <section
       ref={sheetRef}
       aria-label={label}
       style={{ "--sheet-h": height, "--sheet-offset": `${bottomOffset}px` } as CSSProperties}
-      className={`fixed inset-x-0 bottom-(--sheet-offset) z-30 flex h-(--sheet-h) flex-col rounded-t-lg bg-surface shadow-sheet ${
+      className={`fixed inset-x-0 bottom-(--sheet-offset) z-30 flex h-(--sheet-h) flex-col overflow-hidden rounded-t-2xl bg-surface shadow-sheet ${
         dragHeight === null ? "transition-[height] duration-300 ease-out motion-reduce:transition-none" : ""
-      } lg:static lg:z-auto lg:h-auto lg:min-h-0 lg:flex-1 lg:rounded-none lg:shadow-none ${className}`}
+      } lg:static lg:z-auto lg:h-auto lg:min-h-0 lg:flex-1 lg:overflow-visible lg:rounded-none lg:shadow-none ${className}`}
     >
       <button
         type="button"
@@ -86,14 +88,12 @@ export function BottomSheet({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        className="relative z-10 -mb-4 flex h-11 w-full shrink-0 touch-none cursor-grab items-start justify-center pt-2.5 lg:hidden"
+        className="relative z-10 -mb-5 flex h-10 w-full shrink-0 touch-none cursor-grab items-start justify-center pt-2 active:cursor-grabbing lg:hidden"
       >
-        <span className="h-1 w-10 rounded-full bg-line-strong" />
+        <span className="h-1 w-9 rounded-full bg-line-strong" />
       </button>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
-        {children}
-      </div>
-      {footer && <div className="shrink-0">{footer}</div>}
+      <div className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${footer ? "" : safeArea}`}>{children}</div>
+      {footer && <div className={`shrink-0 border-t border-line bg-surface ${safeArea}`}>{footer}</div>}
     </section>
   );
 }
