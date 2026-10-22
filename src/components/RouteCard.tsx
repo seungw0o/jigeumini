@@ -1,44 +1,84 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { BusGlyph } from "@/assets/icons";
 import { NotifyButton } from "@/components/NotifyButton";
 import { SegmentBar } from "@/components/SegmentBar";
-import { ArrivalChip, BusNumber, MissedBusNotice } from "@/components/StatusChips";
-import { formatFare } from "@/utils/format";
-import type { BusArrival, BusLeg, NotifyState, TransitRoute } from "@/utils/types";
-
-function arrivalPhrase(leg: BusLeg, isFirst: boolean): string {
-  const { status } = leg.arrivals[leg.catchIndex];
-  if (status.kind === "garage") return `${status.departAt} 출발 예정`;
-  if (status.kind === "ended") return "운행 종료";
-  return isFirst ? `버스 도착까지 ${status.minutes}분` : `환승 버스 ${leg.routeNo}번 도착까지 ${status.minutes}분`;
-}
+import { ArrivalText, BusBadge, MissedBusNotice, PillButton } from "@/components/StatusChips";
+import { BUS_TYPE_META, formatClock, formatFare, leaveLabel, transferLabel } from "@/utils/format";
+import type { BusArrival, BusLeg, BusType, NotifyState, TransitRoute } from "@/utils/types";
 
 function liveMinutes(arrival: BusArrival | undefined): number | null {
   return arrival?.status.kind === "live" ? arrival.status.minutes : null;
 }
 
-function BusLegRow({ leg, isFirst, quickTransferChance }: { leg: BusLeg; isFirst: boolean; quickTransferChance?: number }) {
-  const caught = leg.arrivals[leg.catchIndex];
+function LegTypeLabel({ busType }: { busType: BusType }) {
+  const meta = BUS_TYPE_META[busType];
+  return (
+    <span
+      className="relative inline-flex items-center gap-1 bg-surface py-px pr-1 text-13 font-bold"
+      style={{ color: meta.color }}
+    >
+      <BusGlyph size={14} />
+      {meta.label}
+    </span>
+  );
+}
+
+function Separator() {
+  return <span aria-hidden="true" className="mx-2 h-2.5 w-px shrink-0 bg-line-strong" />;
+}
+
+function BoardRow({
+  leg,
+  isFirst,
+  quickTransferChance,
+  onArrivalInfo,
+}: {
+  leg: BusLeg;
+  isFirst: boolean;
+  quickTransferChance?: number;
+  onArrivalInfo: () => void;
+}) {
+  const shown = leg.arrivals.slice(leg.catchIndex, leg.catchIndex + (isFirst ? 2 : 1));
   const missedIn = leg.catchIndex > 0 ? liveMinutes(leg.arrivals[0]) : null;
-  const nextIn = liveMinutes(caught);
+  const nextIn = liveMinutes(leg.arrivals[leg.catchIndex]);
 
   return (
-    <li className="flex flex-col gap-2">
-      <div className="flex min-w-0 items-center gap-2">
-        <BusNumber routeNo={leg.routeNo} busType={leg.busType} />
-        <span className="min-w-0 truncate text-sm text-ink-2">{leg.boardStop.name} 승차</span>
-        <span className="ml-auto shrink-0 text-sm font-semibold text-ink tabular">{arrivalPhrase(leg, isFirst)}</span>
+    <li className="grid grid-cols-[52px_minmax(0,1fr)] pb-1.5">
+      <div>
+        <LegTypeLabel busType={leg.busType} />
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        {caught && <ArrivalChip arrival={caught} />}
-        {quickTransferChance !== undefined && (
-          <span className="inline-flex h-5 shrink-0 items-center rounded-sm border border-line px-1.5 text-xs text-muted tabular">
-            바로 환승 {quickTransferChance}%
+      <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="min-w-0 truncate text-sm text-ink">{leg.boardStop.name}</span>
+          {isFirst && <span className="shrink-0 text-sm text-muted">승차</span>}
+          {quickTransferChance !== undefined && (
+            <span className="shrink-0 text-2xs text-subtle tabular">바로 환승 {quickTransferChance}%</span>
+          )}
+          <span className="relative z-10 -my-1 ml-auto shrink-0 pl-2">
+            <PillButton onClick={onArrivalInfo} label={`${leg.routeNo}번 ${leg.boardStop.name} 도착정보`}>
+              도착정보
+            </PillButton>
           </span>
+        </div>
+        {shown.length > 0 && (
+          <ul className="mt-0.5 flex flex-col">
+            {shown.map((arrival, i) => (
+              <li key={i} className="flex h-5 min-w-0 items-center gap-2">
+                <BusBadge routeNo={arrival.routeNo} busType={arrival.busType} />
+                <ArrivalText arrival={arrival} />
+              </li>
+            ))}
+          </ul>
+        )}
+        {missedIn !== null && nextIn !== null && (
+          <div className="mt-1">
+            <MissedBusNotice routeNo={leg.routeNo} missedInMinutes={missedIn} nextInMinutes={nextIn} />
+          </div>
         )}
       </div>
-      {missedIn !== null && nextIn !== null && (
-        <MissedBusNotice routeNo={leg.routeNo} missedInMinutes={missedIn} nextInMinutes={nextIn} />
-      )}
     </li>
   );
 }
@@ -46,66 +86,71 @@ function BusLegRow({ leg, isFirst, quickTransferChance }: { leg: BusLeg; isFirst
 export function RouteCard({
   route,
   href,
-  rank,
+  badge,
   notifyState,
   onNotifyChange,
 }: {
   route: TransitRoute;
   href: string;
-  rank: number;
+  badge?: string;
   notifyState: NotifyState;
   onNotifyChange: (next: NotifyState) => void;
 }) {
+  const router = useRouter();
   const busLegs = route.legs.filter((leg): leg is BusLeg => leg.kind === "bus");
-  const transfer = route.transferCount > 0 ? `환승 ${route.transferCount}회` : "환승 없음";
+  const lastBus = busLegs[busLegs.length - 1];
+  const openDetail = () => router.push(href);
 
   return (
-    <article className="relative flex flex-col gap-4 bg-surface px-4 py-5">
-      <div className="flex min-h-5 items-center justify-between gap-3">
-        {rank === 0 ? <span className="text-sm font-semibold text-accent">가장 빨리 도착</span> : <span />}
-        <span className="truncate text-sm text-muted tabular">
-          {formatFare(route.fare)} · {transfer}
+    <article className="relative bg-surface px-4 pt-3.5 pb-3">
+      {badge && <p className="text-13 leading-4 font-bold text-ink">{badge}</p>}
+      <Link href={href} className="flex items-baseline gap-2 rounded-sm after:absolute after:inset-0">
+        <span className="text-ink">
+          <span className="sr-only">총 소요 </span>
+          <span className="text-[26px] leading-7 font-bold tabular">{route.totalMinutes}</span>
+          <span className="ml-0.5 text-base font-semibold">분</span>
         </span>
+        <span className="text-15 font-bold whitespace-nowrap text-accent">{leaveLabel(route)}</span>
+      </Link>
+      <p className="flex min-w-0 items-center text-13 leading-4 whitespace-nowrap text-muted tabular">
+        <span className="shrink-0">
+          {formatClock(route.leaveAt)} - {formatClock(route.arriveAt)}
+        </span>
+        <Separator />
+        <span className="shrink-0">{formatFare(route.fare)}</span>
+        <Separator />
+        <span className="truncate">{transferLabel(route.transferCount)}</span>
+      </p>
+
+      <div className="mt-2">
+        <SegmentBar legs={route.legs} />
       </div>
 
-      <Link href={href} className="flex flex-col gap-2 rounded-sm after:absolute after:inset-0">
-        <span className="flex items-end justify-between gap-3">
-          {route.leaveInMinutes <= 0 ? (
-            <span className="text-[32px] leading-none font-bold text-accent">지금 출발</span>
-          ) : (
-            <span className="flex items-baseline gap-1 text-accent">
-              <span className="text-[32px] leading-none font-bold tabular">{route.leaveInMinutes}</span>
-              <span className="text-base font-semibold whitespace-nowrap">분 뒤 출발</span>
-            </span>
-          )}
-          <span className="flex shrink-0 items-baseline gap-1.5">
-            <span className="text-sm text-muted">도착</span>
-            <span className="text-[32px] leading-none font-bold text-ink tabular">{route.arriveAt}</span>
-          </span>
-        </span>
-        <span className="text-sm text-muted tabular">
-          지금 출발 기준 총 {route.totalMinutes}분 · 이동 {route.travelMinutes}분 + 대기{" "}
-          {route.waitMinutes + route.marginMinutes}분
-        </span>
-      </Link>
-
-      <SegmentBar legs={route.legs} showRouteNumbers />
-
-      {busLegs.length > 0 && (
-        <ul className="flex flex-col gap-3">
+      {lastBus && (
+        <ol className="relative mt-2 before:absolute before:top-2 before:bottom-2.5 before:left-[6.5px] before:w-px before:bg-line-strong">
           {busLegs.map((leg, i) => (
-            <BusLegRow
+            <BoardRow
               key={`${leg.routeNo}-${leg.boardStop.id}`}
               leg={leg}
               isFirst={i === 0}
-              quickTransferChance={i === 1 ? route.quickTransferChance : undefined}
+              quickTransferChance={i > 0 ? route.quickTransferChance : undefined}
+              onArrivalInfo={openDetail}
             />
           ))}
-        </ul>
+          <li className="grid grid-cols-[52px_minmax(0,1fr)] items-center">
+            <span className="relative inline-flex items-center gap-1 justify-self-start bg-surface pr-1 text-13 font-bold text-muted">
+              <span className="flex size-3.5 items-center justify-center">
+                <span className="size-2.5 rounded-full border-2 border-subtle bg-surface" />
+              </span>
+              하차
+            </span>
+            <span className="min-w-0 truncate text-sm text-ink">{lastBus.alightStop.name}</span>
+          </li>
+        </ol>
       )}
 
-      <div className="relative z-10 flex justify-end">
-        <NotifyButton state={notifyState} onChange={onNotifyChange} />
+      <div className="relative z-10 mt-2">
+        <NotifyButton variant="block" state={notifyState} onChange={onNotifyChange} />
       </div>
     </article>
   );

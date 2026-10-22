@@ -18,9 +18,9 @@ const NEXT: Record<NotifyState, NotifyState> = { idle: "on", on: "idle", denied:
 
 const TONE: Record<Variant, Record<NotifyState, string>> = {
   block: {
-    idle: "h-10 w-full rounded-md border border-line-strong bg-surface text-accent hover:bg-fill",
-    on: "h-10 w-full rounded-md border border-accent/40 bg-accent-soft text-accent-strong",
-    denied: "h-10 w-full rounded-md border border-line bg-fill text-subtle",
+    idle: "h-9 w-full rounded-md border border-line-strong bg-surface text-accent hover:bg-fill",
+    on: "h-9 w-full rounded-md border border-accent/40 bg-accent-soft text-accent-strong",
+    denied: "h-9 w-full rounded-md border border-line bg-fill text-subtle",
   },
   primary: {
     idle: "h-11 rounded-full bg-accent px-5 text-white hover:bg-accent-strong",

@@ -3,22 +3,43 @@ import { AlertIcon, LocationOffIcon, MapOffIcon } from "@/assets/icons";
 
 const pulse = "rounded-sm bg-canvas animate-pulse motion-reduce:animate-none";
 
+function SkeletonStopRow({ arrivals }: { arrivals: number }) {
+  return (
+    <div className="grid grid-cols-[52px_minmax(0,1fr)] pb-2.5">
+      <div className={`h-4 w-10 ${pulse}`} />
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between">
+          <div className={`h-4 w-28 ${pulse}`} />
+          <div className={`h-6 w-16 rounded-full ${pulse}`} />
+        </div>
+        {Array.from({ length: arrivals }, (_, i) => (
+          <div key={i} className={`h-4 ${i === 0 ? "w-36" : "w-32"} ${pulse}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function RouteListSkeleton({ count = 3 }: { count?: number }) {
   return (
-    <ul aria-busy="true" aria-label="경로를 불러오는 중">
+    <ul aria-busy="true" aria-label="경로를 불러오는 중" className="flex flex-col gap-2">
       {Array.from({ length: count }, (_, i) => (
-        <li key={i} aria-hidden="true" className="border-b border-line px-4 py-5">
-          <div className={`h-4 w-24 ${pulse}`} />
-          <div className="mt-3 flex h-8 items-stretch gap-3">
-            <div className={`w-28 ${pulse}`} />
-            <div className={`w-24 ${pulse}`} />
+        <li key={i} aria-hidden="true" className="bg-surface px-4 pt-4 pb-3">
+          <div className="flex items-end gap-2">
+            <div className={`h-7 w-14 ${pulse}`} />
+            <div className={`h-4 w-20 ${pulse}`} />
           </div>
-          <div className={`mt-3 h-4 w-3/4 ${pulse}`} />
-          <div className={`mt-4 h-6 w-full ${pulse}`} />
-          <div className="mt-4 flex flex-col gap-2">
-            <div className={`h-7 w-2/3 ${pulse}`} />
-            <div className={`h-7 w-1/2 ${pulse}`} />
+          <div className={`mt-1.5 h-3.5 w-56 max-w-full ${pulse}`} />
+          <div className={`mt-2.5 h-[18px] w-full rounded-full ${pulse}`} />
+          <div className="mt-3">
+            <SkeletonStopRow arrivals={2} />
+            {i === 1 && <SkeletonStopRow arrivals={2} />}
+            <div className="grid grid-cols-[52px_minmax(0,1fr)]">
+              <div className={`h-4 w-10 ${pulse}`} />
+              <div className={`h-4 w-32 ${pulse}`} />
+            </div>
           </div>
+          <div className={`mt-3 h-10 w-full rounded-md ${pulse}`} />
         </li>
       ))}
     </ul>
@@ -38,10 +59,10 @@ export function StateButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex h-11 shrink-0 items-center justify-center rounded-md px-4 text-sm font-semibold ${
+      className={`inline-flex h-10 shrink-0 items-center justify-center rounded-md px-4 text-sm font-semibold ${
         variant === "primary"
-          ? "bg-ink text-white hover:bg-ink-2"
-          : "border border-line-strong bg-surface text-ink-2 hover:bg-canvas"
+          ? "bg-accent text-white hover:bg-accent-strong"
+          : "border border-line-strong bg-surface text-ink-2 hover:bg-fill"
       }`}
     >
       {children}
@@ -64,10 +85,10 @@ export function MessageState({
 }) {
   return (
     <section role={role} className="px-4 py-8">
-      <div className="flex size-10 items-center justify-center rounded-lg bg-canvas">{icon}</div>
-      <h2 className="mt-4 text-lg font-semibold text-ink">{title}</h2>
-      {message && <p className="mt-1.5 max-w-[34ch] text-sm text-muted">{message}</p>}
-      {actions && <div className="mt-5 flex flex-wrap gap-2">{actions}</div>}
+      <div className="flex size-10 items-center justify-center rounded-full bg-fill">{icon}</div>
+      <h2 className="mt-3 text-base font-bold text-ink">{title}</h2>
+      {message && <p className="mt-1 max-w-[36ch] text-13 text-muted">{message}</p>}
+      {actions && <div className="mt-4 flex flex-wrap gap-2">{actions}</div>}
     </section>
   );
 }
@@ -101,14 +122,7 @@ export function EmptyState({
   message?: string;
   action?: ReactNode;
 }) {
-  return (
-    <MessageState
-      icon={<SearchOffIcon />}
-      title={title}
-      message={message}
-      actions={action}
-    />
-  );
+  return <MessageState icon={<SearchOffIcon />} title={title} message={message} actions={action} />;
 }
 
 export function LocationDeniedState({
