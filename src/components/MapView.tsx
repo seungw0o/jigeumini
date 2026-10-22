@@ -26,6 +26,7 @@ interface MapViewProps {
   obscuredBottom?: number;
   /** 상단 검색바 등이 가리는 높이(px) */
   obscuredTop?: number;
+  onMarkerClick?: (id: string) => void;
   label: string;
 }
 
@@ -62,7 +63,14 @@ function useSize<T extends HTMLElement>() {
   return [ref, size] as const;
 }
 
-function PlaceholderMap({ paths = [], markers = [], center, obscuredBottom = 0, obscuredTop = 0 }: MapViewProps) {
+function PlaceholderMap({
+  paths = [],
+  markers = [],
+  center,
+  obscuredBottom = 0,
+  obscuredTop = 0,
+  onMarkerClick,
+}: MapViewProps) {
   const [ref, size] = useSize<HTMLDivElement>();
 
   const pts = [...paths.flatMap((p) => p.points), ...markers.map((m) => m.position)];
@@ -147,14 +155,20 @@ function PlaceholderMap({ paths = [], markers = [], center, obscuredBottom = 0, 
               ) : m.tone === "current" ? (
                 <span className="block size-4 rounded-full border-[3px] border-white bg-[#2f6fde] shadow-float" />
               ) : m.tone === "place" ? (
-                <span className="flex flex-col items-center">
+                <button
+                  type="button"
+                  disabled={!onMarkerClick}
+                  onClick={() => onMarkerClick?.(m.id)}
+                  aria-label={m.label ? `${m.label} 정보 보기` : "장소 정보 보기"}
+                  className="pointer-events-auto flex min-h-11 min-w-11 flex-col items-center justify-center"
+                >
                   <span className="block size-4 rounded-full border-[3px] border-white bg-accent shadow-float" />
                   {m.label && (
                     <span className="mt-1 max-w-32 truncate rounded-sm bg-surface px-1.5 py-0.5 text-xs font-semibold shadow-float">
                       {m.label}
                     </span>
                   )}
-                </span>
+                </button>
               ) : (
                 <span className="block size-3 rounded-full border-2 border-ink bg-surface" />
               )}
@@ -216,6 +230,7 @@ function KakaoMap({
   center,
   obscuredBottom = 0,
   obscuredTop = 0,
+  onMarkerClick,
 }: MapViewProps & { appKey: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
@@ -247,6 +262,10 @@ function KakaoMap({
           content.style.cssText = `display:inline-block;padding:2px 6px;border-radius:4px;font:600 12px/1.4 sans-serif;color:${
             m.tone === "stop" ? "#14171c" : "#fff"
           };background:${cssVar(s.fill)};border:1px solid rgba(20,23,28,.2)`;
+          if (m.tone === "place" && onMarkerClick) {
+            content.style.cursor = "pointer";
+            content.addEventListener("click", () => onMarkerClick(m.id));
+          }
           const overlay = new maps.CustomOverlay({ map, position: new maps.LatLng(m.position.lat, m.position.lng), content });
           cleanups.push(() => overlay.setMap(null));
         }
@@ -263,7 +282,7 @@ function KakaoMap({
       disposed = true;
       cleanups.forEach((fn) => fn());
     };
-  }, [appKey, paths, markers, center, obscuredBottom, obscuredTop]);
+  }, [appKey, paths, markers, center, obscuredBottom, obscuredTop, onMarkerClick]);
 
   if (failed) {
     return (
@@ -273,6 +292,7 @@ function KakaoMap({
         center={center}
         obscuredBottom={obscuredBottom}
         obscuredTop={obscuredTop}
+        onMarkerClick={onMarkerClick}
         label="지도"
       />
     );
