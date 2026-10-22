@@ -1,26 +1,62 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --font-sans: var(--font-plex), "Apple SD Gothic Neo", sans-serif;
+
+  --color-ink: #14171c;
+  --color-ink-2: #3a414b;
+  --color-muted: #5b6370;
+  --color-line: #e2e5e9;
+  --color-line-strong: #c9ced5;
+  --color-canvas: #f4f5f7;
+  --color-surface: #ffffff;
+
+  --color-accent: #0a6c74;
+  --color-accent-strong: #075158;
+  --color-accent-soft: #e3f1f2;
+
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+  --color-warn: #8a5300;
+  --color-warn-soft: #fdf3e1;
+
+  --color-bus-express: #c62f28;
+  --color-bus-trunk: #2459c8;
+  --color-bus-branch: #23793a;
+  --color-bus-village: #5f6b12;
+  --color-bus-outer: #9a5b00;
+  --color-walk: #c3c8cf;
+
+  --color-map: #e9ece8;
+  --color-map-road: #ffffff;
+  --color-map-water: #cfe0ea;
+  --color-map-park: #dbe7d6;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  --shadow-float: 0 1px 2px rgb(20 23 28 / 0.08), 0 4px 12px rgb(20 23 28 / 0.08);
+  --shadow-sheet: 0 -2px 16px rgb(20 23 28 / 0.1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
