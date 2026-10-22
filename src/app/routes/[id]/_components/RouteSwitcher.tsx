@@ -41,7 +41,7 @@ export function RouteSwitcher({
         <Link
           href={`/routes${suffix}`}
           aria-label="경로 목록으로"
-          className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-surface text-ink shadow-float hover:bg-fill lg:border lg:border-line lg:shadow-none"
+          className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-surface text-fg shadow-float hover:bg-surface-muted lg:border lg:border-border lg:shadow-none"
         >
           <BackIcon />
         </Link>
@@ -57,15 +57,15 @@ export function RouteSwitcher({
                   ref={active ? activeRef : undefined}
                   href={`/routes/${route.id}${suffix}`}
                   aria-current={active ? "page" : undefined}
-                  className={`relative flex h-10 items-center gap-2 rounded-md border bg-surface pr-3 pl-2.5 text-13 whitespace-nowrap tabular shadow-float lg:shadow-none ${
+                  className={`relative flex h-10 items-center gap-2 rounded-md border bg-surface pr-3 pl-2.5 text-xs whitespace-nowrap tabular shadow-float lg:shadow-none ${
                     active
-                      ? "border-brand-ink text-ink ring-1 ring-brand-ink ring-inset"
-                      : "border-line text-ink-2 hover:bg-fill"
+                      ? "border-brand-ink text-fg ring-1 ring-brand-ink ring-inset"
+                      : "border-border text-fg-secondary hover:bg-surface-muted"
                   }`}
                 >
                   <span
                     aria-hidden="true"
-                    className={`h-4 w-1 shrink-0 rounded-xs ${active ? "bg-brand" : "bg-line-strong"}`}
+                    className={`h-4 w-1 shrink-0 rounded-xs ${active ? "bg-brand" : "bg-border-strong"}`}
                   />
                   <BusSequence route={route} size="sm" />
                   <span>

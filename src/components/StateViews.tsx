@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { LocationOffIcon, MapOffIcon } from "@/assets/icons";
 import { LogoMark } from "@/assets/Logo";
 
-const pulse = "rounded-sm bg-canvas animate-pulse motion-reduce:animate-none";
+const pulse = "rounded-sm bg-bg animate-pulse motion-reduce:animate-none";
 
 function SkeletonBoardRow() {
   return (
@@ -27,7 +27,7 @@ export function RouteListSkeleton({ count = 3 }: { count?: number }) {
           </div>
           <div className={`mt-1.5 h-3.5 w-44 max-w-full ${pulse}`} />
           <div className={`mt-3 h-5.5 w-full ${pulse}`} />
-          <div className="mt-3 flex flex-col gap-2.5 border-t border-line pt-2.5">
+          <div className="mt-3 flex flex-col gap-2.5 border-t border-border pt-2.5">
             <SkeletonBoardRow />
             <div className="grid grid-cols-[44px_minmax(0,1fr)]">
               <div className={`h-3.5 w-6 ${pulse}`} />
@@ -56,8 +56,8 @@ export function StateButton({
       onClick={onClick}
       className={`inline-flex h-11 shrink-0 items-center justify-center rounded-md px-4 text-sm font-semibold ${
         variant === "primary"
-          ? "bg-brand text-ink hover:bg-brand-strong"
-          : "border border-line-strong bg-surface text-ink-2 hover:bg-fill"
+          ? "bg-brand text-fg hover:bg-brand-strong"
+          : "border border-border-strong bg-surface text-fg-secondary hover:bg-surface-muted"
       }`}
     >
       {children}
@@ -81,15 +81,15 @@ export function MessageState({
   return (
     <section role={role} className="px-4 py-8">
       {icon}
-      <h2 className="mt-3 text-base font-bold text-ink">{title}</h2>
-      {message && <p className="mt-1 max-w-[36ch] text-13 text-muted">{message}</p>}
+      <h2 className="mt-3 text-md font-bold text-fg">{title}</h2>
+      {message && <p className="mt-1 max-w-[36ch] text-xs text-fg-muted">{message}</p>}
       {actions && <div className="mt-4 flex flex-wrap gap-2">{actions}</div>}
     </section>
   );
 }
 
 function IconWell({ children }: { children: ReactNode }) {
-  return <div className="flex size-10 items-center justify-center rounded-full bg-fill">{children}</div>;
+  return <div className="flex size-10 items-center justify-center rounded-full bg-surface-muted">{children}</div>;
 }
 
 const brandMark = <LogoMark size={32} tone="light" />;
@@ -138,7 +138,7 @@ export function LocationDeniedState({
     <MessageState
       icon={
         <IconWell>
-          <LocationOffIcon size={20} className="text-ink-2" />
+          <LocationOffIcon size={20} className="text-fg-secondary" />
         </IconWell>
       }
       title="위치 권한이 꺼져 있어요"
@@ -164,7 +164,7 @@ export function OutsideServiceAreaState({ onMoveToDaejeon }: { onMoveToDaejeon?:
     <MessageState
       icon={
         <IconWell>
-          <MapOffIcon size={20} className="text-ink-2" />
+          <MapOffIcon size={20} className="text-fg-secondary" />
         </IconWell>
       }
       title="대전에서만 쓸 수 있어요"

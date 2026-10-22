@@ -31,8 +31,8 @@ function CatchArrival({ arrival }: { arrival: BusArrival }) {
   return (
     <span className="inline-flex min-w-0 items-center gap-1.5">
       <span className="truncate">
-        <span className="font-semibold text-live">{status.minutes <= 1 ? "곧 도착" : `${status.minutes}분`}</span>
-        <span className="text-muted"> · {status.stopsAway}정류장 전</span>
+        <span className="font-semibold text-realtime">{status.minutes <= 1 ? "곧 도착" : `${status.minutes}분`}</span>
+        <span className="text-fg-muted"> · {status.stopsAway}정류장 전</span>
       </span>
       {arrival.runLabel && <RunLabelBadge runLabel={arrival.runLabel} />}
     </span>
@@ -70,17 +70,17 @@ function BoardRow({
       </div>
       <div className="min-w-0">
         <div className="flex h-6 min-w-0 items-center gap-1 text-sm">
-          <span className="min-w-0 truncate font-medium text-ink">{leg.boardStop.name}</span>
-          <span className="shrink-0 text-muted">승차</span>
+          <span className="min-w-0 truncate font-medium text-fg">{leg.boardStop.name}</span>
+          <span className="shrink-0 text-fg-muted">승차</span>
           {quickTransferChance !== undefined && (
-            <span className="ml-auto shrink-0 pl-2 text-xs text-muted tabular">바로 환승 {quickTransferChance}%</span>
+            <span className="ml-auto shrink-0 pl-2 text-xs text-fg-muted tabular">바로 환승 {quickTransferChance}%</span>
           )}
         </div>
-        {statusText && <p className="flex h-5 min-w-0 items-center text-13 whitespace-nowrap text-muted">{statusText}</p>}
+        {statusText && <p className="flex h-5 min-w-0 items-center text-xs whitespace-nowrap text-fg-muted">{statusText}</p>}
         {catchArrival && (
-          <p className="flex h-5 min-w-0 items-center gap-2 text-13 whitespace-nowrap tabular">
+          <p className="flex h-5 min-w-0 items-center gap-2 text-xs whitespace-nowrap tabular">
             <CatchArrival arrival={catchArrival} />
-            {next && <span className="shrink-0 text-muted">{next}</span>}
+            {next && <span className="shrink-0 text-fg-muted">{next}</span>}
           </p>
         )}
         {missedIn !== null && (
@@ -125,30 +125,30 @@ export function RouteCard({
         aria-label={`${totalLabel(route)}, ${arriveSpoken}, ${realtimeBadgeLabel(route) ?? leaveLabel(route)}`}
         className="flex items-center justify-between gap-3 rounded-sm after:absolute after:inset-0"
       >
-        <span className="shrink-0 text-[24px] leading-7 font-bold text-ink tabular">{totalLabel(route)}</span>
+        <span className="shrink-0 text-[24px] leading-7 font-bold text-fg tabular">{totalLabel(route)}</span>
         <LeaveBadge route={route} size="lg" />
       </Link>
-      <p className="mt-1 flex min-w-0 items-baseline text-13 whitespace-nowrap text-muted tabular">
+      <p className="mt-1 flex min-w-0 items-baseline text-xs whitespace-nowrap text-fg-muted tabular">
         <span className="shrink-0">
           {live ? (
             <>
-              <span className="text-ink-2">도착 예상</span>{" "}
-              <span className="text-15 font-semibold text-ink">{arrive}</span>
-              {arriveSuffix && <span className="text-ink-2">{arriveSuffix}</span>} ·{" "}
+              <span className="text-fg-secondary">도착 예상</span>{" "}
+              <span className="text-sm font-semibold text-fg">{arrive}</span>
+              {arriveSuffix && <span className="text-fg-secondary">{arriveSuffix}</span>} ·{" "}
             </>
           ) : (
-            pending && <span className="text-ink-2">도착 예상 확인 중 · </span>
+            pending && <span className="text-fg-secondary">도착 예상 확인 중 · </span>
           )}
           {formatFare(route.fare)} ·&nbsp;
         </span>
         <span className="truncate">{transferLabel(route.transferCount)}</span>
       </p>
-      {note && <p className="mt-0.5 text-xs text-muted">{note}</p>}
+      {note && <p className="mt-0.5 text-xs text-fg-muted">{note}</p>}
 
       <TimeRibbon route={route} now={now} variant="compact" className="mt-3" />
 
       {lastBus && (
-        <ol className="mt-3 flex flex-col gap-1.5 border-t border-line pt-2.5">
+        <ol className="mt-3 flex flex-col gap-1.5 border-t border-border pt-2.5">
           {busLegs.map((leg, i) => (
             <BoardRow
               key={`${leg.routeNo}-${leg.boardStop.id}`}
@@ -159,8 +159,8 @@ export function RouteCard({
             />
           ))}
           <li className="grid h-6 grid-cols-[44px_minmax(0,1fr)] items-center text-sm">
-            <span className="text-xs font-semibold text-muted">하차</span>
-            <span className="min-w-0 truncate font-medium text-ink">{lastBus.alightStop.name}</span>
+            <span className="text-xs font-semibold text-fg-muted">하차</span>
+            <span className="min-w-0 truncate font-medium text-fg">{lastBus.alightStop.name}</span>
           </li>
         </ol>
       )}

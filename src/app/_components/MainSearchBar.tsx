@@ -98,9 +98,9 @@ export function MainSearchBar({
           if (!e.currentTarget.contains(e.relatedTarget as Node | null)) close();
         }}
       >
-        <div className="flex h-12 items-center rounded-lg bg-surface pl-3.5 shadow-pill focus-within:outline-2 focus-within:outline-brand-ink lg:border lg:border-line-strong lg:pl-4 lg:shadow-none">
+        <div className="flex h-12 items-center rounded-lg bg-surface pl-3.5 shadow-float focus-within:outline-2 focus-within:outline-brand-ink lg:border lg:border-border-strong lg:pl-4 lg:shadow-none">
           <LogoMark size={22} className="shrink-0 lg:hidden" />
-          <SearchIcon size={20} className="hidden shrink-0 text-muted lg:block" />
+          <SearchIcon size={20} className="hidden shrink-0 text-fg-muted lg:block" />
           <input
             type="text"
             role="combobox"
@@ -123,7 +123,7 @@ export function MainSearchBar({
               setActiveIndex(-1);
             }}
             onKeyDown={handleKeyDown}
-            className="h-full min-w-0 flex-1 bg-transparent pl-2.5 text-15 text-ink placeholder:text-subtle focus-visible:outline-none"
+            className="h-full min-w-0 flex-1 bg-transparent pl-2.5 text-sm text-fg placeholder:text-fg-subtle focus-visible:outline-none"
           />
           {value !== "" ? (
             <button
@@ -133,7 +133,7 @@ export function MainSearchBar({
                 setValue("");
                 setActiveIndex(-1);
               }}
-              className="mr-1 flex size-10 shrink-0 items-center justify-center rounded-md text-muted hover:text-ink"
+              className="mr-1 flex size-10 shrink-0 items-center justify-center rounded-md text-fg-muted hover:text-fg"
             >
               <CloseIcon size={18} />
             </button>
@@ -150,7 +150,7 @@ export function MainSearchBar({
           className="absolute inset-x-0 top-full z-40 mt-1.5 max-h-[60dvh] overflow-auto rounded-lg bg-surface py-1 shadow-float"
         >
           {!query && options.length > 0 && (
-            <div role="presentation" className="flex h-8 items-end px-4 pb-1 text-xs font-semibold text-muted">
+            <div role="presentation" className="flex h-8 items-end px-4 pb-1 text-xs font-semibold text-fg-muted">
               최근 검색
             </div>
           )}
@@ -159,7 +159,7 @@ export function MainSearchBar({
               role="option"
               aria-selected={false}
               aria-disabled="true"
-              className="flex h-12 items-center px-4 text-13 text-muted"
+              className="flex h-12 items-center px-4 text-xs text-fg-muted"
             >
               {searching ? "찾는 중이에요" : "검색 결과가 없어요"}
             </div>
@@ -175,15 +175,15 @@ export function MainSearchBar({
                 tabIndex={-1}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => select(place)}
-                className="flex h-12 cursor-pointer items-center gap-3 px-4 hover:bg-fill aria-selected:bg-fill"
+                className="flex h-12 cursor-pointer items-center gap-3 px-4 hover:bg-surface-muted aria-selected:bg-surface-muted"
               >
-                <Icon size={18} className="shrink-0 text-muted" />
+                <Icon size={18} className="shrink-0 text-fg-muted" />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-15 font-semibold text-ink">{place.name}</span>
-                  <span className="block truncate text-xs text-muted">{place.address}</span>
+                  <span className="block truncate text-sm font-semibold text-fg">{place.name}</span>
+                  <span className="block truncate text-xs text-fg-muted">{place.address}</span>
                 </span>
                 {place.distanceM !== undefined && (
-                  <span className="shrink-0 text-xs text-muted tabular">
+                  <span className="shrink-0 text-xs text-fg-muted tabular">
                     {formatDistance(place.distanceM)}
                   </span>
                 )}
@@ -197,7 +197,7 @@ export function MainSearchBar({
         type="button"
         aria-label="길찾기"
         onClick={onRoute}
-        className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-brand text-ink shadow-pill hover:bg-brand-strong lg:shadow-none"
+        className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-brand text-fg shadow-float hover:bg-brand-strong lg:shadow-none"
       >
         <DirectionsIcon size={22} />
       </button>

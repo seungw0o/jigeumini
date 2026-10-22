@@ -85,10 +85,10 @@ function SheetSection({
   return (
     <section aria-label={title} className="pb-2">
       <div className="flex h-11 items-center justify-between pr-2 pl-4">
-        <h2 className="text-15 font-bold text-ink">
+        <h2 className="text-sm font-bold text-fg">
           {title}
           {count !== undefined && (
-            <span className="ml-1 font-semibold text-muted tabular">{count}</span>
+            <span className="ml-1 font-semibold text-fg-muted tabular">{count}</span>
           )}
         </h2>
         {action}
@@ -344,7 +344,7 @@ export function HomeScreen() {
             <button
               type="button"
               onClick={() => setEditingRecent((v) => !v)}
-              className="h-10 rounded-md px-2 text-13 text-muted hover:text-ink"
+              className="h-10 rounded-md px-2 text-xs text-fg-muted hover:text-fg"
             >
               {editingRecent ? "완료" : "편집"}
             </button>

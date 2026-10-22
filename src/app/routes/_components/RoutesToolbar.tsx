@@ -29,18 +29,18 @@ export function RoutesToolbar({
   onSortChange?: (next: RouteSortKey) => void;
 }) {
   return (
-    <div className="flex h-11 items-center justify-between gap-2 border-b border-line px-4">
+    <div className="flex h-11 items-center justify-between gap-2 border-b border-border px-4">
       <div className="flex min-w-0 items-center gap-2.5">
         <button
           type="button"
           aria-label={baseTime ? `출발 시각 지금 ${formatShortClock(baseTime)}` : "출발 시각 지금"}
           className="-ml-1 inline-flex h-11 shrink-0 items-center gap-1 rounded-md px-1 text-sm whitespace-nowrap focus-visible:outline-offset-[-2px]"
         >
-          <span className="font-bold text-ink">지금</span>
-          <span className="font-medium text-ink-2 tabular">
+          <span className="font-bold text-fg">지금</span>
+          <span className="font-medium text-fg-secondary tabular">
             {baseTime ? `${formatShortClock(baseTime)} 출발` : "출발"}
           </span>
-          <ChevronDownIcon size={16} className="text-muted" />
+          <ChevronDownIcon size={16} className="text-fg-muted" />
         </button>
         {secondsAgo !== undefined && (
           <span className="min-w-0 max-[359px]:hidden">
@@ -56,7 +56,7 @@ export function RoutesToolbar({
           onChange={(e) => {
             if (isSortKey(e.target.value)) onSortChange?.(e.target.value);
           }}
-          className="h-11 cursor-pointer appearance-none rounded-md bg-transparent pr-6 pl-1 text-13 font-medium text-ink-2 focus-visible:outline-offset-[-2px] disabled:cursor-default"
+          className="h-11 cursor-pointer appearance-none rounded-md bg-transparent pr-6 pl-1 text-xs font-medium text-fg-secondary focus-visible:outline-offset-[-2px] disabled:cursor-default"
         >
           {SORT_OPTIONS.map((o) => (
             <option key={o.key} value={o.key}>
@@ -64,7 +64,7 @@ export function RoutesToolbar({
             </option>
           ))}
         </select>
-        <ChevronDownIcon size={15} className="pointer-events-none absolute right-1 text-muted" />
+        <ChevronDownIcon size={15} className="pointer-events-none absolute right-1 text-fg-muted" />
       </label>
     </div>
   );

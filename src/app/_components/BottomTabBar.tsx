@@ -20,7 +20,7 @@ export function BottomTabBar({
   return (
     <nav
       aria-label="주요 메뉴"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <ul className="grid h-14 grid-cols-4">
         {TABS.map(({ key, label, Icon }) => {
@@ -32,7 +32,7 @@ export function BottomTabBar({
                 aria-current={current ? "page" : undefined}
                 onClick={() => onSelect(key)}
                 className={`relative flex flex-1 flex-col items-center justify-center gap-0.5 text-2xs focus-visible:outline-offset-[-2px] ${
-                  current ? "font-bold text-ink" : "text-muted hover:text-ink-2"
+                  current ? "font-bold text-fg" : "text-fg-muted hover:text-fg-secondary"
                 }`}
               >
                 {current && (

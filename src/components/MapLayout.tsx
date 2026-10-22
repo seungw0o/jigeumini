@@ -27,9 +27,9 @@ export function MapLayout({
           </div>
         )}
       </div>
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 lg:pointer-events-auto lg:relative lg:col-start-1 lg:row-start-1 lg:flex lg:h-dvh lg:min-h-0 lg:flex-col lg:border-r lg:border-line lg:bg-surface">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 lg:pointer-events-auto lg:relative lg:col-start-1 lg:row-start-1 lg:flex lg:h-dvh lg:min-h-0 lg:flex-col lg:border-r lg:border-border lg:bg-surface">
         {header && (
-          <div className="pointer-events-auto px-3 pt-[max(0.75rem,env(safe-area-inset-top))] lg:shrink-0 lg:border-b lg:border-line lg:px-4 lg:py-4">
+          <div className="pointer-events-auto px-3 pt-[max(0.75rem,env(safe-area-inset-top))] lg:shrink-0 lg:border-b lg:border-border lg:px-4 lg:py-4">
             {header}
           </div>
         )}
@@ -56,8 +56,8 @@ export function MapControlButton({
       aria-label={label}
       aria-pressed={pressed}
       onClick={onClick}
-      className={`flex size-11 items-center justify-center rounded-lg bg-surface shadow-float transition-colors hover:bg-fill active:bg-canvas [&>svg]:size-[22px] ${
-        pressed ? "text-brand-ink" : "text-ink-2"
+      className={`flex size-11 items-center justify-center rounded-lg bg-surface shadow-float transition-colors hover:bg-surface-muted active:bg-bg [&>svg]:size-[22px] ${
+        pressed ? "text-brand-ink" : "text-fg-secondary"
       }`}
     >
       {children}

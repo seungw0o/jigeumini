@@ -163,7 +163,7 @@ function MockRoutesScreen() {
                   <NotifyDeniedHint />
                 </div>
               )}
-              <p className="px-4 pb-2 text-xs text-muted">{ESTIMATE_NOTE}</p>
+              <p className="px-4 pb-2 text-xs text-fg-muted">{ESTIMATE_NOTE}</p>
               <ul className="flex flex-col gap-2">
                 {visible.map((route, i) => (
                   <li
@@ -305,7 +305,7 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
             <>
               {realtimeFailed && (
                 <div role="status" className="mb-2 flex items-center gap-3 bg-surface px-4 py-2.5">
-                  <p className="min-w-0 flex-1 text-13 text-ink-2">실시간 정보를 못 받았어요. 이동 시간만 보여 드려요</p>
+                  <p className="min-w-0 flex-1 text-xs text-fg-secondary">실시간 정보를 못 받았어요. 이동 시간만 보여 드려요</p>
                   <StateButton variant="secondary" onClick={live.refresh}>
                     다시 시도
                   </StateButton>
@@ -316,7 +316,7 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
                   <NotifyDeniedHint />
                 </div>
               )}
-              <p className="px-4 pb-2 text-xs text-muted">{ESTIMATE_NOTE}</p>
+              <p className="px-4 pb-2 text-xs text-fg-muted">{ESTIMATE_NOTE}</p>
               <ul className="flex flex-col gap-2">
                 {visible.map((route, i) => (
                   <li

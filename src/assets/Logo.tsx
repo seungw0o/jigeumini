@@ -7,8 +7,8 @@ type LogoMarkProps = {
 };
 
 export function LogoMark({ size = 24, tone = "light", className }: LogoMarkProps) {
-  const frame = tone === "dark" ? "fill-white" : "fill-ink";
-  const glass = tone === "dark" ? "stroke-white" : "stroke-ink";
+  const frame = tone === "dark" ? "fill-fg-inverse" : "fill-fg";
+  const glass = tone === "dark" ? "stroke-fg-inverse" : "stroke-fg";
 
   return (
     <svg
@@ -36,9 +36,9 @@ export function LogoMark({ size = 24, tone = "light", className }: LogoMarkProps
 }
 
 const SIZES = {
-  sm: { mark: 20, text: "text-base", gap: "gap-1.5" },
-  md: { mark: 24, text: "text-xl", gap: "gap-1.5" },
-  lg: { mark: 32, text: "text-2xl", gap: "gap-2" },
+  sm: { mark: 20, text: "text-[16px]", gap: "gap-1.5" },
+  md: { mark: 24, text: "text-[20px]", gap: "gap-1.5" },
+  lg: { mark: 32, text: "text-[24px]", gap: "gap-2" },
 } as const;
 
 type LogoProps = {
@@ -59,14 +59,14 @@ export function Logo({ size = "md", tone = "light", className }: LogoProps) {
       <LogoMark size={s.mark} tone={tone} />
       <span
         aria-hidden="true"
-        className={`font-bold leading-none tracking-normal ${s.text} ${dark ? "text-white" : "text-ink"}`}
+        className={`font-bold leading-none tracking-normal ${s.text} ${dark ? "text-fg-inverse" : "text-fg"}`}
       >
         지
         {dark ? (
           <span className="text-brand">금</span>
         ) : (
           <span className="relative inline-block">
-            <span className="absolute inset-x-0 bottom-0 h-[0.45em] rounded-xs bg-brand" />
+            <span className="absolute inset-x-0 bottom-0 h-[0.45em] rounded-[2px] bg-brand" />
             <span className="relative">금</span>
           </span>
         )}

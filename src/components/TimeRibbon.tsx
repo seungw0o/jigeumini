@@ -14,11 +14,11 @@ const ARRIVE_FADE_PX = 14;
 
 const VARIANT = {
   compact: { bar: "h-5.5", text: "text-2xs leading-none", textPx: 11, bus: "text-xs leading-none", busPx: 12 },
-  full: { bar: "h-7", text: "text-xs leading-none", textPx: 12, bus: "text-13 leading-none", busPx: 13 },
+  full: { bar: "h-7", text: "text-xs leading-none", textPx: 12, bus: "text-xs leading-none", busPx: 13 },
 } as const;
 
 const HATCH =
-  "bg-canvas bg-[image:repeating-linear-gradient(135deg,var(--color-line-strong)_0_1px,transparent_1px_5px)]";
+  "bg-bg bg-[image:repeating-linear-gradient(135deg,var(--color-border-strong)_0_1px,transparent_1px_5px)]";
 
 /** Pretendard 기준 대략 폭: 한글 1em, 숫자·라틴 0.62em, 콜론 0.32em, 공백 0.3em */
 function estimateWidth(text: string, fontPx: number, bold = false): number {
@@ -53,11 +53,11 @@ function innerLabelCandidates(seg: RibbonSegment, variant: Variant): string[] {
 }
 
 const SEGMENT_CLASS: Record<RibbonSegment["kind"], string> = {
-  before: "bg-brand text-ink font-semibold",
-  walk: "bg-walk text-walk-text font-medium",
-  stop: `${HATCH} text-muted font-medium`,
-  transfer: `${HATCH} text-ink-2 font-semibold`,
-  bus: "text-white font-bold",
+  before: "bg-brand text-fg font-semibold",
+  walk: "bg-walk text-walk-fg font-medium",
+  stop: `${HATCH} text-fg-muted font-medium`,
+  transfer: `${HATCH} text-fg-secondary font-semibold`,
+  bus: "text-fg-inverse font-bold",
 };
 
 function Segment({
@@ -167,8 +167,8 @@ function CompactTimes({ marks, total }: { marks: RibbonMark[]; total: number }) 
       anchors: ["end"],
       node: (
         <>
-          <span className="text-muted">약</span> <span className="font-semibold text-ink">{time}</span>{" "}
-          <span className="text-muted">도착</span>
+          <span className="text-fg-muted">약</span> <span className="font-semibold text-fg">{time}</span>{" "}
+          <span className="text-fg-muted">도착</span>
         </>
       ),
     });
@@ -201,7 +201,7 @@ function CompactTimes({ marks, total }: { marks: RibbonMark[]; total: number }) 
       anchors: ["start"],
       node: (
         <>
-          <span className="text-muted">지금</span> <span className="text-ink-2">{time}</span>
+          <span className="text-fg-muted">지금</span> <span className="text-fg-secondary">{time}</span>
         </>
       ),
     });
@@ -240,17 +240,17 @@ function fullPriority(mark: RibbonMark, boardIndex: number): number {
 function Caption({ mark }: { mark: RibbonMark }) {
   switch (mark.kind) {
     case "now":
-      return <span className="text-muted">지금</span>;
+      return <span className="text-fg-muted">지금</span>;
     case "leave":
       return <span className="font-semibold text-brand-ink">{mark.offset === 0 ? "지금 출발" : "출발"}</span>;
     case "board":
       return (
         <>
-          <span className="font-bold text-ink-2">{mark.routeNo}</span> <span className="text-muted">탑승</span>
+          <span className="font-bold text-fg-secondary">{mark.routeNo}</span> <span className="text-fg-muted">탑승</span>
         </>
       );
     case "arrive":
-      return <span className="font-semibold text-ink">도착 예상</span>;
+      return <span className="font-semibold text-fg">도착 예상</span>;
   }
 }
 
@@ -267,10 +267,10 @@ function fullTimeText(mark: RibbonMark): string {
 }
 
 const TIME_TONE: Record<RibbonMark["kind"], string> = {
-  now: "text-ink-2",
+  now: "text-fg-secondary",
   leave: "font-semibold text-brand-ink",
-  board: "text-ink-2",
-  arrive: "font-semibold text-ink",
+  board: "text-fg-secondary",
+  arrive: "font-semibold text-fg",
 };
 
 function layoutFullLabels(marks: RibbonMark[], total: number) {
@@ -297,7 +297,7 @@ function layoutFullLabels(marks: RibbonMark[], total: number) {
 
 function Tick({ pct }: { pct: number }) {
   const style = pct <= 0 ? { left: 0 } : pct >= 100 ? { right: 0 } : { left: `${pct}%` };
-  return <span className={`absolute top-0 h-1 w-px bg-subtle ${pct > 0 && pct < 100 ? "-translate-x-1/2" : ""}`} style={style} />;
+  return <span className={`absolute top-0 h-1 w-px bg-fg-subtle ${pct > 0 && pct < 100 ? "-translate-x-1/2" : ""}`} style={style} />;
 }
 
 function describe(seg: RibbonSegment): string {
@@ -362,7 +362,7 @@ export function TimeRibbon({
           <div
             className="absolute inset-0 overflow-hidden rounded-l-sm bg-surface"
             style={{
-              maskImage: `linear-gradient(to right, #000 calc(100% - ${ARRIVE_FADE_PX}px), transparent)`,
+              maskImage: `linear-gradient(to right, currentColor calc(100% - ${ARRIVE_FADE_PX}px), transparent)`,
             }}
           >
             {total > 0 &&
@@ -377,7 +377,7 @@ export function TimeRibbon({
                 />
               ))}
           </div>
-          <span className="absolute top-1/2 left-0 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink ring-2 ring-surface" />
+          <span className="absolute top-1/2 left-0 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-fg ring-2 ring-surface" />
         </div>
 
         {full ? (

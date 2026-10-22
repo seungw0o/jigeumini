@@ -22,18 +22,18 @@ export function PlaceSummary({
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1 pt-2">
           <div className="flex min-w-0 items-baseline gap-1.5">
-            <h2 id={`place-${place.id}-name`} className="truncate text-lg font-bold text-ink">
+            <h2 id={`place-${place.id}-name`} className="truncate text-md font-bold text-fg">
               {place.name}
             </h2>
-            <span className="shrink-0 text-13 text-muted">{place.category}</span>
+            <span className="shrink-0 text-xs text-fg-muted">{place.category}</span>
           </div>
-          <p className="mt-1 truncate text-13 text-ink-2">{place.address}</p>
+          <p className="mt-1 truncate text-xs text-fg-secondary">{place.address}</p>
           <p className="mt-0.5 truncate text-xs tabular">
             {place.distanceM !== undefined && (
-              <span className="text-muted">{formatDistance(place.distanceM)}</span>
+              <span className="text-fg-muted">{formatDistance(place.distanceM)}</span>
             )}
-            {place.distanceM !== undefined && <span aria-hidden="true" className="px-1 text-line-strong">|</span>}
-            <span className="text-subtle">
+            {place.distanceM !== undefined && <span aria-hidden="true" className="px-1 text-border-strong">|</span>}
+            <span className="text-fg-subtle">
               {place.position.lat.toFixed(5)}, {place.position.lng.toFixed(5)}
             </span>
           </p>
@@ -43,7 +43,7 @@ export function PlaceSummary({
             type="button"
             onClick={onClose}
             aria-label="장소 정보 닫기"
-            className="-mr-2 inline-flex size-10 shrink-0 items-center justify-center rounded-md text-ink-2 hover:bg-fill"
+            className="-mr-2 inline-flex size-10 shrink-0 items-center justify-center rounded-md text-fg-secondary hover:bg-surface-muted"
           >
             <CloseIcon size={20} />
           </button>
@@ -54,14 +54,14 @@ export function PlaceSummary({
         <button
           type="button"
           onClick={() => onSetOrigin(place)}
-          className="relative h-9 rounded-md border border-line-strong bg-surface px-4 text-sm font-semibold text-ink before:absolute before:-inset-y-0.5 before:inset-x-0 hover:bg-fill"
+          className="relative h-9 rounded-md border border-border-strong bg-surface px-4 text-sm font-semibold text-fg before:absolute before:-inset-y-0.5 before:inset-x-0 hover:bg-surface-muted"
         >
           출발
         </button>
         <button
           type="button"
           onClick={() => onSetDestination(place)}
-          className="relative h-9 rounded-md bg-brand px-4 text-sm font-semibold text-ink before:absolute before:-inset-y-0.5 before:inset-x-0 hover:bg-brand-strong"
+          className="relative h-9 rounded-md bg-brand px-4 text-sm font-semibold text-fg before:absolute before:-inset-y-0.5 before:inset-x-0 hover:bg-brand-strong"
         >
           도착
         </button>
@@ -70,12 +70,12 @@ export function PlaceSummary({
           aria-label="즐겨찾기 추가"
           aria-pressed={favorite}
           onClick={() => onToggleFavorite?.(place)}
-          className="relative ml-auto flex size-9 items-center justify-center rounded-md border border-line-strong bg-surface before:absolute before:-inset-0.5 hover:bg-fill"
+          className="relative ml-auto flex size-9 items-center justify-center rounded-md border border-border-strong bg-surface before:absolute before:-inset-0.5 hover:bg-surface-muted"
         >
           {favorite ? (
             <StarFilledIcon size={18} className="text-brand" />
           ) : (
-            <StarIcon size={18} className="text-ink-2" />
+            <StarIcon size={18} className="text-fg-secondary" />
           )}
         </button>
       </div>
@@ -84,7 +84,7 @@ export function PlaceSummary({
 }
 
 export function PlaceSummarySkeleton() {
-  const block = "rounded-sm bg-line animate-pulse motion-reduce:animate-none";
+  const block = "rounded-sm bg-skeleton animate-pulse motion-reduce:animate-none";
   return (
     <div aria-busy="true" className="px-4 pt-1 pb-4">
       <span className="sr-only">장소 정보를 불러오는 중</span>
@@ -106,9 +106,9 @@ export function PlaceSummarySkeleton() {
         </div>
 
         <div className="mt-3 flex items-center gap-1.5">
-          <div className="h-9 w-[62px] rounded-md bg-line animate-pulse motion-reduce:animate-none" />
-          <div className="h-9 w-[62px] rounded-md bg-line animate-pulse motion-reduce:animate-none" />
-          <div className="ml-auto size-9 rounded-md bg-line animate-pulse motion-reduce:animate-none" />
+          <div className="h-9 w-[62px] rounded-md bg-skeleton animate-pulse motion-reduce:animate-none" />
+          <div className="h-9 w-[62px] rounded-md bg-skeleton animate-pulse motion-reduce:animate-none" />
+          <div className="ml-auto size-9 rounded-md bg-skeleton animate-pulse motion-reduce:animate-none" />
         </div>
       </div>
     </div>

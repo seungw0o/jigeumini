@@ -3,7 +3,7 @@ import { RouteListSkeleton } from "@/components/StateViews";
 import { RoutesLayout } from "./RoutesLayout";
 import { RoutesToolbar } from "./RoutesToolbar";
 
-const pulse = "bg-canvas animate-pulse motion-reduce:animate-none";
+const pulse = "bg-bg animate-pulse motion-reduce:animate-none";
 
 export function RoutesFallback() {
   return (

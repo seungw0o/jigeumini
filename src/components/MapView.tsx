@@ -37,7 +37,7 @@ function focusBox(p: LatLng): LatLng[] {
 
 export function MapView(props: MapViewProps) {
   return (
-    <div role="region" aria-label={props.label} className="absolute inset-0 overflow-hidden bg-map">
+    <div role="region" aria-label={props.label} className="absolute inset-0 overflow-hidden bg-map-ground">
       {KAKAO_KEY ? <KakaoMap {...props} appKey={KAKAO_KEY} /> : <PlaceholderMap {...props} />}
     </div>
   );
@@ -48,30 +48,30 @@ function escapeHtml(s: string): string {
 }
 
 function bubbleHtml(label: string, color: string): string {
-  return `<div style="padding-bottom:6px;filter:drop-shadow(0 1px 2px rgb(0 0 0/.25))"><div style="display:flex;align-items:center;height:22px;padding:0 6px;border:2px solid var(--color-surface);border-radius:4px;background:${color};color:var(--color-surface);font:700 13px/1 ${FONT};white-space:nowrap">${escapeHtml(
+  return `<div style="padding-bottom:6px;filter:var(--elevation-marker)"><div style="display:flex;align-items:center;height:22px;padding:0 6px;border:2px solid var(--color-surface);border-radius:4px;background:${color};color:var(--color-surface);font:700 13px/1 ${FONT};white-space:nowrap">${escapeHtml(
     label,
   )}</div></div>`;
 }
 
 function pinHtml(tone: "origin" | "destination"): string {
-  const color = tone === "origin" ? "var(--color-pin-origin)" : "var(--color-pin-destination)";
+  const color = tone === "origin" ? "var(--color-map-origin)" : "var(--color-map-destination)";
   const text = tone === "origin" ? "출발" : "도착";
-  return `<div style="position:relative;width:30px;height:40px;filter:drop-shadow(0 1px 2px rgb(0 0 0/.3))"><svg width="30" height="40" viewBox="0 0 30 40" aria-hidden="true" style="display:block"><path d="M15 38.6C15 38.6 2 24.6 2 15a13 13 0 0 1 26 0c0 9.6-13 23.6-13 23.6Z" fill="${color}" stroke="var(--color-surface)" stroke-width="2" stroke-linejoin="round"/></svg><span style="position:absolute;inset:0 0 auto;height:30px;display:flex;align-items:center;justify-content:center;color:var(--color-surface);font:700 11px/1 ${FONT};letter-spacing:-0.04em">${text}</span></div>`;
+  return `<div style="position:relative;width:30px;height:40px;filter:var(--elevation-pin)"><svg width="30" height="40" viewBox="0 0 30 40" aria-hidden="true" style="display:block"><path d="M15 38.6C15 38.6 2 24.6 2 15a13 13 0 0 1 26 0c0 9.6-13 23.6-13 23.6Z" fill="${color}" stroke="var(--color-surface)" stroke-width="2" stroke-linejoin="round"/></svg><span style="position:absolute;inset:0 0 auto;height:30px;display:flex;align-items:center;justify-content:center;color:var(--color-surface);font:700 11px/1 ${FONT};letter-spacing:-0.04em">${text}</span></div>`;
 }
 
 function dotHtml(tone: "stop" | "transfer" | "current"): string {
   if (tone === "current") {
-    return `<span style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9999px;background:color-mix(in srgb,var(--color-current) 18%,transparent)"><span style="display:block;width:14px;height:14px;border-radius:9999px;background:var(--color-current);border:3px solid var(--color-surface);box-shadow:0 1px 3px rgb(0 0 0/.3)"></span></span>`;
+    return `<span style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9999px;background:color-mix(in srgb,var(--color-map-current) 18%,transparent)"><span style="display:block;width:14px;height:14px;border-radius:9999px;background:var(--color-map-current);border:3px solid var(--color-surface);box-shadow:var(--shadow-float)"></span></span>`;
   }
   const size = tone === "transfer" ? 12 : 10;
-  const border = tone === "transfer" ? "3px solid var(--color-ink)" : "2.5px solid var(--color-ink-2)";
+  const border = tone === "transfer" ? "3px solid var(--color-fg)" : "2.5px solid var(--color-fg-secondary)";
   return `<span style="display:block;box-sizing:border-box;width:${size}px;height:${size}px;border-radius:9999px;background:var(--color-surface);border:${border}"></span>`;
 }
 
-const PLACE_HTML = `<span style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:9999px;background:var(--color-surface);box-shadow:var(--shadow-float)"><span style="display:block;width:10px;height:10px;border-radius:9999px;background:var(--color-brand);box-shadow:0 0 0 2px var(--color-ink)"></span></span>`;
+const PLACE_HTML = `<span style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:9999px;background:var(--color-surface);box-shadow:var(--shadow-float)"><span style="display:block;width:10px;height:10px;border-radius:9999px;background:var(--color-brand);box-shadow:0 0 0 2px var(--color-fg)"></span></span>`;
 
 function pillHtml(name: string): string {
-  return `<span style="position:absolute;left:50%;bottom:calc(100% - 4px);transform:translateX(-50%);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 10px;border-radius:9999px;background:var(--color-surface);color:var(--color-ink);font:600 12px/16px ${FONT};box-shadow:var(--shadow-float)">${escapeHtml(
+  return `<span style="position:absolute;left:50%;bottom:calc(100% - 4px);transform:translateX(-50%);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 10px;border-radius:9999px;background:var(--color-surface);color:var(--color-fg);font:600 12px/16px ${FONT};box-shadow:var(--shadow-float)">${escapeHtml(
     name,
   )}</span>`;
 }
@@ -276,7 +276,7 @@ function PlaceholderMap({
         </div>
       )}
 
-      <p className="absolute bottom-2 left-2 rounded-sm bg-surface/80 px-1.5 py-0.5 text-2xs text-muted lg:bottom-3 lg:left-3">
+      <p className="absolute bottom-2 left-2 rounded-sm bg-surface/80 px-1.5 py-0.5 text-2xs text-fg-muted lg:bottom-3 lg:left-3">
         지도 미리보기 · 카카오맵 키 없음
       </p>
     </div>
@@ -381,7 +381,7 @@ function KakaoMap({
     const buses = drawn.filter((p) => p.kind === "bus");
     for (const p of drawn) {
       if (p.kind !== "walk") continue;
-      line(p, { strokeWeight: 4, strokeColor: cssVar("var(--color-walk-text)"), strokeOpacity: 1, strokeStyle: "shortdot", zIndex: 1 });
+      line(p, { strokeWeight: 4, strokeColor: cssVar("var(--color-walk-fg)"), strokeOpacity: 1, strokeStyle: "shortdot", zIndex: 1 });
     }
     for (const p of buses) {
       line(p, { strokeWeight: 10, strokeColor: cssVar("var(--color-surface)"), strokeOpacity: 1, strokeStyle: "solid", zIndex: 2 });
