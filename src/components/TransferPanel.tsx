@@ -1,12 +1,14 @@
 import { ChevronRightIcon } from "@/assets/icons";
 import { BusNumber, StaleBadge } from "@/components/StatusChips";
-import type { BusArrival, BusLeg, TransitRoute } from "@/utils/types";
+import { formatShortClock } from "@/utils/ribbon";
+import type { BusLeg, TransitRoute } from "@/utils/types";
 
-function transferArrivalText(arrival: BusArrival | undefined): string {
-  const status = arrival?.status;
-  if (!status || status.kind === "ended") return "환승 버스 운행 종료";
-  if (status.kind === "garage") return `환승 버스 ${status.departAt} 출발 예정`;
-  return `환승 버스 도착까지 ${status.minutes}분`;
+function arrivalText(leg: BusLeg, prefix: string): string {
+  const status = leg.arrivals[leg.catchIndex]?.status;
+  const name = `${prefix}${leg.routeNo}번`;
+  if (!status || status.kind === "ended") return `${name} 운행 종료`;
+  if (status.kind === "garage") return `${name} ${formatShortClock(status.departAt)} 출발 예정`;
+  return `${name} 도착까지 ${status.minutes}분`;
 }
 
 export function TransferPanel({
@@ -38,7 +40,7 @@ export function TransferPanel({
               <span className="inline-flex items-center gap-1">
                 <BusNumber routeNo={prev.routeNo} busType={prev.busType} size="sm" />
                 <time dateTime={prev.alightAt} className="font-semibold">
-                  {prev.alightAt}
+                  {formatShortClock(prev.alightAt)}
                 </time>
                 하차
               </span>
@@ -46,19 +48,20 @@ export function TransferPanel({
               <span className="inline-flex items-center gap-1">
                 <BusNumber routeNo={next.routeNo} busType={next.busType} size="sm" />
                 <time dateTime={next.boardAt} className="font-semibold">
-                  {next.boardAt}
+                  {formatShortClock(next.boardAt)}
                 </time>
                 승차
               </span>
             </p>
-            <p className="mt-1 text-13 text-muted tabular">
-              {transferArrivalText(next.arrivals[next.catchIndex])} · 환승 대기 {next.waitMinutes}분
+            <p className="mt-1 text-13 text-muted tabular">{arrivalText(prev, "버스 ")}</p>
+            <p className="text-13 text-muted tabular">
+              {arrivalText(next, "환승 버스 ")} · 환승 대기 {next.waitMinutes}분
             </p>
           </li>
         ))}
       </ul>
       {route.quickTransferChance !== undefined && (
-        <p className="text-xs text-muted tabular">바로 환승 확률 {route.quickTransferChance}%</p>
+        <p className="text-xs text-muted tabular">바로 환승 {route.quickTransferChance}%</p>
       )}
     </section>
   );

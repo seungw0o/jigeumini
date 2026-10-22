@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { getRouteById, mockRouteSearch } from "@/app/_mocks/routes";
 import { BottomSheet } from "@/components/BottomSheet";
+import { LeaveBadge } from "@/components/LeaveBadge";
 import { MapLayout } from "@/components/MapLayout";
 import { MapView } from "@/components/MapView";
 import { NotifyButton } from "@/components/NotifyButton";
 import { StepTimeline } from "@/components/StepTimeline";
 import { RideInsightPlaceholder, TransferPanel } from "@/components/TransferPanel";
-import { formatClock, leaveLabel } from "@/utils/format";
 import { routeMarkers, routePaths } from "@/utils/mapData";
+import { formatShortClock } from "@/utils/ribbon";
 import type { MapMarker, MapPath, NotifyState, TransitRoute } from "@/utils/types";
 import { RouteSummary } from "./RouteSummary";
 import { RouteSwitcher } from "./RouteSwitcher";
@@ -43,9 +44,9 @@ function RouteFooterBar({
   return (
     <div className="flex items-center justify-between gap-3 bg-surface px-4 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-bar">
       <div className="min-w-0">
-        <p className="truncate text-15 font-bold text-accent tabular">{leaveLabel(route)}</p>
-        <p className="truncate text-xs text-muted tabular">
-          {formatClock(route.arriveAt)} 도착 · 총 {route.totalMinutes}분
+        <LeaveBadge route={route} size="md" />
+        <p className="mt-1 truncate text-xs text-muted tabular">
+          {formatShortClock(route.arriveAt)} 도착 · 총 {route.totalMinutes}분
         </p>
       </div>
       <NotifyButton variant="primary" state={notifyState} onChange={onNotifyChange} />
@@ -58,8 +59,6 @@ export function RouteDetailScreen({ routeId }: { routeId: string }) {
   const route = getRouteById(routeId);
   const mapData = MAP_DATA.get(routeId);
   if (!route || !mapData) return null;
-
-  const best = mockRouteSearch.routes[0]?.id === route.id;
 
   return (
     <MapLayout
@@ -82,13 +81,13 @@ export function RouteDetailScreen({ routeId }: { routeId: string }) {
         >
           <RouteSummary
             route={route}
-            best={best}
-            baseTime={mockRouteSearch.baseTime}
+            now={mockRouteSearch.baseTime}
             secondsAgo={mockRouteSearch.updatedSecondsAgo}
             onRefresh={noop}
           />
           <StepTimeline
             route={route}
+            now={mockRouteSearch.baseTime}
             originName={mockRouteSearch.origin.name}
             destinationName={mockRouteSearch.destination.name}
           />
