@@ -1,0 +1,1 @@
+{"response":{"header":{"resultCode":"00","resultMsg":"NORMAL SERVICE."},"body":{"items":{"item":[{"gpslati":36.39007,"gpslong":127.362274,"nodeid":"DJB8001318","nodenm":"대덕대학교","nodeno":43420},{"gpslati":36.390736,"gpslong":127.36219,"nodeid":"DJB8001319","nodenm":"대덕대학교","nodeno":43430}]},"numOfRows":100,"pageNo":1,"totalCount":2}}}
