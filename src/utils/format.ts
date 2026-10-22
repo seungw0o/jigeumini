@@ -1,4 +1,4 @@
-import type { BusType } from "./types";
+import type { BusType, TransitRoute } from "./types";
 
 export function formatClock(hhmm: string): string {
   const [h, m] = hhmm.split(":").map(Number);
@@ -13,6 +13,21 @@ export function formatFare(won: number): string {
 
 export function formatDistance(m: number): string {
   return m < 1000 ? `${m}m` : `${(m / 1000).toFixed(1)}km`;
+}
+
+export function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes}분`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m === 0 ? `${h}시간` : `${h}시간 ${m}분`;
+}
+
+export function leaveLabel(route: Pick<TransitRoute, "leaveInMinutes">): string {
+  return route.leaveInMinutes <= 0 ? "지금 출발" : `${route.leaveInMinutes}분 뒤 출발`;
+}
+
+export function transferLabel(count: number): string {
+  return count > 0 ? `환승 ${count}회` : "환승 없음";
 }
 
 export const BUS_TYPE_META: Record<

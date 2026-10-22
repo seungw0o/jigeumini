@@ -106,3 +106,23 @@ export interface RouteSearch {
 }
 
 export type NotifyState = "idle" | "on" | "denied";
+
+/** 경로 목록 정렬 기준 */
+export type RouteSortKey = "arrival" | "walk" | "transfer";
+
+/** 지도에 그리는 선 하나. 버스 구간이면 label(노선 번호)을 말풍선으로 띄운다 */
+export interface MapPath {
+  points: LatLng[];
+  color: string;
+  kind: "walk" | "bus";
+  label?: string;
+}
+
+export type MarkerTone = "origin" | "destination" | "stop" | "transfer" | "current" | "place";
+
+export interface MapMarker {
+  id: string;
+  position: LatLng;
+  label?: string;
+  tone: MarkerTone;
+}

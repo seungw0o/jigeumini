@@ -1,4 +1,5 @@
-import { BusIcon, ClockIcon, RefreshIcon } from "@/assets/icons";
+import type { ReactNode } from "react";
+import { BusGlyph, ClockIcon, RefreshIcon } from "@/assets/icons";
 import { BUS_TYPE_META } from "@/utils/format";
 import type { BusArrival, BusType } from "@/utils/types";
 
@@ -14,11 +15,22 @@ export function BusNumber({
   const meta = BUS_TYPE_META[busType];
   return (
     <span
-      className={`inline-flex shrink-0 items-center gap-1 rounded-sm font-semibold text-white tabular ${
-        size === "sm" ? "h-5 px-1.5 text-xs" : "h-6 px-2 text-sm"
+      className={`inline-flex shrink-0 items-center justify-center rounded-[3px] border-[1.5px] bg-surface font-bold tabular ${
+        size === "sm" ? "h-[18px] min-w-[18px] px-1 text-2xs" : "h-[22px] min-w-[22px] px-1.5 text-13"
       }`}
-      style={{ backgroundColor: meta.color }}
+      style={{ borderColor: meta.color, color: meta.color }}
     >
+      <span className="sr-only">{meta.label} </span>
+      {routeNo}
+    </span>
+  );
+}
+
+export function BusBadge({ routeNo, busType }: { routeNo: string; busType: BusType }) {
+  const meta = BUS_TYPE_META[busType];
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1 text-15 font-bold text-ink tabular">
+      <BusGlyph size={16} style={{ color: meta.color }} />
       <span className="sr-only">{meta.label} </span>
       {routeNo}
     </span>
@@ -28,8 +40,8 @@ export function BusNumber({
 export function BusTypeLabel({ busType }: { busType: BusType }) {
   const meta = BUS_TYPE_META[busType];
   return (
-    <span className="inline-flex items-center gap-1 text-sm font-semibold" style={{ color: meta.color }}>
-      <BusIcon size={16} />
+    <span className="inline-flex shrink-0 items-center gap-1 text-15 font-bold" style={{ color: meta.color }}>
+      <BusGlyph size={16} />
       {meta.label}
     </span>
   );
@@ -38,10 +50,8 @@ export function BusTypeLabel({ busType }: { busType: BusType }) {
 export function RunLabelBadge({ runLabel }: { runLabel: "first" | "last" }) {
   return (
     <span
-      className={`inline-flex h-5 shrink-0 items-center rounded-sm border px-1.5 text-xs font-semibold ${
-        runLabel === "last"
-          ? "border-danger/30 bg-danger-soft text-danger"
-          : "border-line-strong bg-surface text-ink-2"
+      className={`inline-flex h-[18px] shrink-0 items-center rounded-[3px] px-1 text-2xs font-semibold ${
+        runLabel === "last" ? "bg-danger-soft text-danger" : "bg-canvas text-ink-2"
       }`}
     >
       {runLabel === "last" ? "막차" : "첫차"}
@@ -49,31 +59,60 @@ export function RunLabelBadge({ runLabel }: { runLabel: "first" | "last" }) {
   );
 }
 
-export function ArrivalChip({ arrival, missed = false }: { arrival: BusArrival; missed?: boolean }) {
+export function ArrivalText({ arrival, missed = false }: { arrival: BusArrival; missed?: boolean }) {
   const { status } = arrival;
-  let main: string;
-  let sub: string | null = null;
-  let tone = "bg-accent-soft text-accent-strong";
-
-  if (status.kind === "live") {
-    main = status.minutes <= 1 ? "곧 도착" : `${status.minutes}분 뒤 도착`;
-    sub = `${status.stopsAway}정류장 전`;
-  } else if (status.kind === "garage") {
-    main = `${status.departAt} 출발 예정`;
-    sub = "차고지 대기";
-    tone = "bg-warn-soft text-warn";
-  } else {
-    main = "운행 종료";
-    tone = "bg-canvas text-muted";
+  if (missed) {
+    const text = status.kind === "live" ? `${status.minutes}분 ${status.stopsAway}정류장 전` : "놓침";
+    return <span className="text-13 text-subtle line-through tabular">{text}</span>;
   }
-  if (missed) tone = "bg-canvas text-muted line-through decoration-1";
-
   return (
-    <span className={`inline-flex h-7 max-w-full items-center gap-1.5 rounded-md px-2 text-sm tabular ${tone}`}>
-      <span className="truncate font-semibold">{main}</span>
-      {sub && <span className="truncate opacity-80">{sub}</span>}
-      {arrival.runLabel && !missed && <RunLabelBadge runLabel={arrival.runLabel} />}
+    <span className="inline-flex min-w-0 items-center gap-1.5 text-13 tabular">
+      {status.kind === "live" && (
+        <>
+          <span className="font-semibold whitespace-nowrap text-live">
+            {status.minutes <= 1 ? "곧 도착" : `${status.minutes}분`}
+          </span>
+          <span className="truncate text-muted">{status.stopsAway}정류장 전</span>
+        </>
+      )}
+      {status.kind === "garage" && (
+        <>
+          <span className="font-semibold whitespace-nowrap text-warn">{status.departAt} 출발</span>
+          <span className="truncate text-muted">차고지 대기</span>
+        </>
+      )}
+      {status.kind === "ended" && <span className="text-subtle">운행 종료</span>}
+      {arrival.runLabel && <RunLabelBadge runLabel={arrival.runLabel} />}
     </span>
+  );
+}
+
+export function ArrivalChip({ arrival, missed = false }: { arrival: BusArrival; missed?: boolean }) {
+  return (
+    <span className="inline-flex h-6 max-w-full items-center rounded-full bg-fill px-2">
+      <ArrivalText arrival={arrival} missed={missed} />
+    </span>
+  );
+}
+
+export function PillButton({
+  children,
+  onClick,
+  label,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  label?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="relative inline-flex h-7 shrink-0 items-center rounded-full border border-line-strong bg-surface px-2.5 text-xs font-medium text-ink-2 before:absolute before:-inset-2 hover:bg-fill"
+    >
+      {children}
+    </button>
   );
 }
 
@@ -87,10 +126,11 @@ export function MissedBusNotice({
   nextInMinutes: number;
 }) {
   return (
-    <p className="flex items-start gap-1.5 text-sm text-warn">
-      <ClockIcon size={16} className="mt-0.5 shrink-0" />
+    <p className="flex items-start gap-1 text-xs text-warn">
+      <ClockIcon size={14} className="mt-px shrink-0" />
       <span>
-        {missedInMinutes}분 뒤 {routeNo}번은 걸어가면 놓쳐요. 다음 차 <strong className="tabular">{nextInMinutes}분 뒤</strong>
+        {missedInMinutes}분 뒤 {routeNo}번은 걸어가면 놓쳐요. 다음 차{" "}
+        <strong className="font-semibold tabular">{nextInMinutes}분 뒤</strong>
       </span>
     </p>
   );
@@ -106,16 +146,16 @@ export function StaleBadge({
   const stale = secondsAgo >= 60;
   const label = secondsAgo < 60 ? `${secondsAgo}초 전 정보` : `${Math.floor(secondsAgo / 60)}분 전 정보`;
   return (
-    <span className={`inline-flex items-center gap-1 text-sm tabular ${stale ? "text-warn" : "text-muted"}`}>
+    <span className={`inline-flex items-center gap-0.5 text-xs tabular ${stale ? "text-warn" : "text-subtle"}`}>
       <span>{label}</span>
       {onRefresh && (
         <button
           type="button"
           onClick={onRefresh}
           aria-label="실시간 정보 새로고침"
-          className="-my-2 inline-flex size-11 items-center justify-center rounded-md text-ink-2 hover:bg-canvas"
+          className="-my-2.5 -mr-2 inline-flex size-10 items-center justify-center rounded-full text-muted hover:bg-fill"
         >
-          <RefreshIcon size={18} />
+          <RefreshIcon size={15} />
         </button>
       )}
     </span>

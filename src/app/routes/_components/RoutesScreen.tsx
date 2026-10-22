@@ -11,8 +11,8 @@ import { NotifyDeniedHint } from "@/components/NotifyButton";
 import { RouteCard } from "@/components/RouteCard";
 import { RouteSearchBar } from "@/components/RouteSearchBar";
 import { EmptyState, ErrorState, RouteListSkeleton } from "@/components/StateViews";
-import { BUS_TYPE_META } from "@/utils/format";
-import type { NotifyState, Place, TransitRoute } from "@/utils/types";
+import { routePaths } from "@/utils/mapData";
+import type { NotifyState, Place } from "@/utils/types";
 import { RoutesToolbar } from "./RoutesToolbar";
 
 type DemoState = "ready" | "empty" | "error" | "loading";
@@ -31,14 +31,6 @@ const DEFAULT_NOTIFY: Record<string, NotifyState> = { a: "idle", b: "on" };
 
 function toDemoState(value: string | null): DemoState {
   return value === "empty" || value === "error" || value === "loading" ? value : "ready";
-}
-
-function routePaths(route: TransitRoute): MapPath[] {
-  return route.legs.map((leg, i) =>
-    leg.kind === "bus"
-      ? { points: route.path[i], color: BUS_TYPE_META[leg.busType].color }
-      : { points: route.path[i], color: "var(--color-line-strong)", dashed: true },
-  );
 }
 
 const PATHS_BY_ROUTE = new Map(mockRouteSearch.routes.map((r) => [r.id, routePaths(r)]));

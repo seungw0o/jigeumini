@@ -1,22 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { LatLng } from "@/utils/types";
+import type { LatLng, MapMarker, MapPath, MarkerTone } from "@/utils/types";
 
-export interface MapPath {
-  points: LatLng[];
-  color: string;
-  dashed?: boolean;
-}
-
-export type MarkerTone = "origin" | "destination" | "stop" | "current" | "place";
-
-export interface MapMarker {
-  id: string;
-  position: LatLng;
-  label?: string;
-  tone: MarkerTone;
-}
+export type { MapMarker, MapPath, MarkerTone };
 
 interface MapViewProps {
   paths?: MapPath[];
@@ -44,6 +31,7 @@ const MARKER_STYLE: Record<MarkerTone, { fill: string; text: string }> = {
   origin: { fill: "var(--color-ink)", text: "출발" },
   destination: { fill: "var(--color-accent)", text: "도착" },
   stop: { fill: "var(--color-surface)", text: "" },
+  transfer: { fill: "var(--color-surface)", text: "" },
   current: { fill: "#2f6fde", text: "" },
   place: { fill: "var(--color-accent)", text: "" },
 };
@@ -152,10 +140,10 @@ function PlaceholderMap({
               points={p.points.map((pt) => { const q = project!(pt); return `${q.x},${q.y}`; }).join(" ")}
               fill="none"
               stroke={p.color}
-              strokeWidth={p.dashed ? 4 : 6}
+              strokeWidth={p.kind === "walk" ? 4 : 6}
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeDasharray={p.dashed ? "2 8" : undefined}
+              strokeDasharray={p.kind === "walk" ? "2 8" : undefined}
             />
           ))}
       </svg>
@@ -274,10 +262,10 @@ function KakaoMap({
           const line = new maps.Polyline({
             map,
             path: p.points.map((pt) => new maps.LatLng(pt.lat, pt.lng)),
-            strokeWeight: p.dashed ? 4 : 6,
+            strokeWeight: p.kind === "walk" ? 4 : 6,
             strokeColor: cssVar(p.color),
             strokeOpacity: 0.95,
-            strokeStyle: p.dashed ? "shortdot" : "solid",
+            strokeStyle: p.kind === "walk" ? "shortdot" : "solid",
           });
           cleanups.push(() => line.setMap(null));
         }

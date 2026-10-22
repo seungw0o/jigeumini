@@ -1,4 +1,4 @@
-import { WalkIcon } from "@/assets/icons";
+import { BusGlyph, WalkGlyph } from "@/assets/icons";
 import { BUS_TYPE_META } from "@/utils/format";
 import type { Leg } from "@/utils/types";
 
@@ -10,43 +10,66 @@ function describeLeg(leg: Leg): string {
   return leg.kind === "walk" ? `도보 ${leg.minutes}분` : `${leg.routeNo}번 버스 ${leg.rideMinutes}분`;
 }
 
+function Minutes({ value }: { value: number }) {
+  return (
+    <span className="truncate tabular">
+      {value}
+      <span className="text-[10px]">분</span>
+    </span>
+  );
+}
+
 export function SegmentBar({ legs, showRouteNumbers = false }: { legs: Leg[]; showRouteNumbers?: boolean }) {
+  const grow = (leg: Leg) => ({ flexGrow: Math.max(legMinutes(leg), 2) });
+
   return (
     <div role="img" aria-label={legs.map(describeLeg).join(", ")} className="flex flex-col gap-1">
-      <div className="flex h-6 gap-px overflow-hidden rounded-sm">
+      <div className="flex h-[18px] rounded-full bg-walk">
         {legs.map((leg, i) => {
-          const grow = { flexGrow: Math.max(legMinutes(leg), 1) };
           if (leg.kind === "walk") {
             return (
               <div
                 key={i}
-                className="@container flex min-w-9 basis-0 items-center justify-center gap-0.5 bg-walk px-0.5 text-xs text-ink-2 tabular"
-                style={grow}
+                className="relative flex min-w-8 basis-0 items-center justify-center text-2xs font-medium text-walk-text"
+                style={grow(leg)}
               >
-                <WalkIcon size={12} className="shrink-0 @max-[3rem]:hidden" />
-                <span className="truncate">{leg.minutes}분</span>
+                {i === 0 && (
+                  <span className="absolute top-0 left-0 flex size-[18px] items-center justify-center rounded-full border border-line-strong bg-surface text-walk-text">
+                    <WalkGlyph size={11} />
+                  </span>
+                )}
+                <span className={i === 0 ? "pl-4" : ""}>
+                  <Minutes value={leg.minutes} />
+                </span>
               </div>
             );
           }
+          const color = BUS_TYPE_META[leg.busType].color;
           return (
             <div
               key={i}
-              className="flex min-w-9 basis-0 items-center justify-center px-0.5 text-xs font-semibold text-white tabular"
-              style={{ ...grow, backgroundColor: BUS_TYPE_META[leg.busType].color }}
+              className="relative flex min-w-11 basis-0 items-center justify-center rounded-full pl-4 text-2xs font-semibold text-white"
+              style={{ ...grow(leg), backgroundColor: color }}
             >
-              <span className="truncate">{leg.rideMinutes}분</span>
+              <span
+                className="absolute top-0 left-0 flex size-[18px] items-center justify-center rounded-full border-2 bg-surface"
+                style={{ borderColor: color, color }}
+              >
+                <BusGlyph size={10} />
+              </span>
+              <Minutes value={leg.rideMinutes} />
             </div>
           );
         })}
       </div>
       {showRouteNumbers && (
-        <div className="flex h-4 gap-px">
+        <div className="flex h-4">
           {legs.map((leg, i) => (
             <div
               key={i}
-              className="min-w-9 basis-0 truncate px-0.5 text-center text-xs leading-4 font-semibold tabular"
+              className={`basis-0 truncate text-xs leading-4 font-bold tabular ${leg.kind === "bus" ? "min-w-11" : "min-w-8"}`}
               style={{
-                flexGrow: Math.max(legMinutes(leg), 1),
+                flexGrow: Math.max(legMinutes(leg), 2),
                 color: leg.kind === "bus" ? BUS_TYPE_META[leg.busType].color : undefined,
               }}
             >
