@@ -3,18 +3,19 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getPlaceById, mockRecentSearches, searchPlaces } from "@/app/_mocks/places";
-import { mockEmptyRouteSearch, mockRouteSearch } from "@/app/_mocks/routes";
+import { mockEmptyRouteSearch, mockRouteSearch, mockTightRouteSearch } from "@/app/_mocks/routes";
 import { MapView } from "@/components/MapView";
 import { NotifyDeniedHint } from "@/components/NotifyButton";
 import { RouteCard } from "@/components/RouteCard";
 import { RouteSearchBar } from "@/components/RouteSearchBar";
 import { EmptyState, ErrorState, RouteListSkeleton } from "@/components/StateViews";
+import { ESTIMATE_NOTE } from "@/utils/format";
 import { routeMarkers, routePaths } from "@/utils/mapData";
 import type { MapMarker, MapPath, NotifyState, Place, RouteSortKey, TransitRoute } from "@/utils/types";
 import { RoutesLayout } from "./RoutesLayout";
 import { RoutesToolbar } from "./RoutesToolbar";
 
-type DemoState = "ready" | "empty" | "error" | "loading";
+type DemoState = "ready" | "tight" | "empty" | "error" | "loading";
 
 const { origin: ORIGIN, destination: DESTINATION } = mockRouteSearch;
 
@@ -25,8 +26,9 @@ const BASE_MARKERS: MapMarker[] = [
 
 const DEFAULT_NOTIFY: Record<string, NotifyState> = { a: "idle", b: "on" };
 
-const PATHS_BY_ROUTE = new Map(mockRouteSearch.routes.map((r) => [r.id, routePaths(r)]));
-const MARKERS_BY_ROUTE = new Map(mockRouteSearch.routes.map((r) => [r.id, routeMarkers(r, ORIGIN, DESTINATION)]));
+const ALL_ROUTES = [...mockRouteSearch.routes, ...mockTightRouteSearch.routes];
+const PATHS_BY_ROUTE = new Map(ALL_ROUTES.map((r) => [r.id, routePaths(r)]));
+const MARKERS_BY_ROUTE = new Map(ALL_ROUTES.map((r) => [r.id, routeMarkers(r, ORIGIN, DESTINATION)]));
 const NO_PATHS: MapPath[] = [];
 
 const BADGE: Record<RouteSortKey, string> = {
@@ -36,7 +38,7 @@ const BADGE: Record<RouteSortKey, string> = {
 };
 
 function toDemoState(value: string | null): DemoState {
-  return value === "empty" || value === "error" || value === "loading" ? value : "ready";
+  return value === "tight" || value === "empty" || value === "error" || value === "loading" ? value : "ready";
 }
 
 const walkMinutes = (r: TransitRoute) => r.legs.reduce((sum, l) => sum + (l.kind === "walk" ? l.minutes : 0), 0);
@@ -54,8 +56,9 @@ export function RoutesScreen() {
   const params = useSearchParams();
   const demo = toDemoState(params.get("state"));
   const notifyDenied = params.get("notify") === "denied";
-  const search = demo === "empty" ? mockEmptyRouteSearch : mockRouteSearch;
-  const routes = demo === "ready" ? search.routes : [];
+  const search = demo === "empty" ? mockEmptyRouteSearch : demo === "tight" ? mockTightRouteSearch : mockRouteSearch;
+  const ready = demo === "ready" || demo === "tight";
+  const routes = ready ? search.routes : [];
 
   const [places, setPlaces] = useState<{ origin: Place | null; destination: Place | null }>(() => {
     const from = params.get("from");
@@ -125,13 +128,14 @@ export function RoutesScreen() {
               />
             </div>
           )}
-          {demo === "ready" && visible.length > 0 && (
+          {ready && visible.length > 0 && (
             <>
               {notifyDenied && (
                 <div className="mb-2 bg-surface px-4 py-2.5">
                   <NotifyDeniedHint />
                 </div>
               )}
+              <p className="px-4 pb-2 text-xs text-muted">{ESTIMATE_NOTE}</p>
               <ul className="flex flex-col gap-2">
                 {visible.map((route, i) => (
                   <li

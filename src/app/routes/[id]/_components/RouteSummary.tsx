@@ -3,7 +3,7 @@ import { ChevronRightIcon } from "@/assets/icons";
 import { LeaveBadge } from "@/components/LeaveBadge";
 import { BusNumber, StaleBadge } from "@/components/StatusChips";
 import { TimeRibbon } from "@/components/TimeRibbon";
-import { formatFare, transferLabel } from "@/utils/format";
+import { ESTIMATE_NOTE, formatFare, totalLabel, transferLabel } from "@/utils/format";
 import { formatShortClock } from "@/utils/ribbon";
 import type { BusLeg, TransitRoute } from "@/utils/types";
 
@@ -40,15 +40,15 @@ export function RouteSummary({
         <StaleBadge secondsAgo={secondsAgo} onRefresh={onRefresh} />
       </div>
       <h1 id="route-summary-title" className="mt-2 flex items-center justify-between gap-3">
+        <span className="shrink-0 text-[26px] leading-8 font-bold text-ink tabular">{totalLabel(route)}</span>
         <LeaveBadge route={route} size="lg" />
-        <span className="flex shrink-0 items-baseline gap-1 text-ink tabular">
-          <span className="text-[26px] leading-8 font-bold">{formatShortClock(route.arriveAt)}</span>
-          <span className="text-13 font-semibold text-ink-2">도착</span>
-        </span>
       </h1>
       <p className="mt-1 text-13 text-muted tabular">
-        총 {route.totalMinutes}분 · {formatFare(route.fare)} · {transferLabel(route.transferCount)}
+        <span className="text-ink-2">도착 예상</span>{" "}
+        <span className="text-15 font-semibold text-ink">{formatShortClock(route.arriveAt)}</span> ·{" "}
+        {formatFare(route.fare)} · {transferLabel(route.transferCount)}
       </p>
+      <p className="mt-1 text-xs text-muted">{ESTIMATE_NOTE}</p>
       <TimeRibbon route={route} now={now} variant="full" className="mt-4" />
     </section>
   );

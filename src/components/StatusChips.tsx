@@ -97,18 +97,15 @@ export function ArrivalChip({ arrival, missed = false }: { arrival: BusArrival; 
 export function MissedBusNotice({
   routeNo,
   missedInMinutes,
-  nextInMinutes,
 }: {
   routeNo: string;
   missedInMinutes: number;
-  nextInMinutes: number;
 }) {
   return (
     <p className="flex items-start gap-1 text-xs text-warn">
       <ClockIcon size={14} className="mt-px shrink-0" />
-      <span>
-        {missedInMinutes}분 뒤 {routeNo}번은 걸어가면 놓쳐요. 다음 차{" "}
-        <strong className="font-semibold tabular">{nextInMinutes}분 뒤</strong>
+      <span className="tabular">
+        {missedInMinutes}분 뒤 {routeNo}번은 어려워요, <strong className="font-semibold">다음 {routeNo} 기준</strong>이에요
       </span>
     </p>
   );

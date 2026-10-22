@@ -6,10 +6,10 @@ import { BUS_TYPE_META, formatDistance } from "@/utils/format";
 import { buildRibbon, formatShortClock } from "@/utils/ribbon";
 import type { BusLeg, Leg, Ribbon, TransitRoute } from "@/utils/types";
 
-type Segment = { kind: "home" } | { kind: "walk" } | { kind: "bus"; color: string } | null;
+type Segment = { kind: "before" } | { kind: "walk" } | { kind: "bus"; color: string } | null;
 
 type Marker =
-  | { kind: "home" }
+  | { kind: "before" }
   | { kind: "origin" }
   | { kind: "destination" }
   | { kind: "board"; color: string }
@@ -36,7 +36,7 @@ function Rail({ segment, className }: { segment: Segment; className: string }) {
   if (segment.kind === "walk") {
     return <span className={`absolute left-1/2 w-0 -translate-x-px border-l-2 border-dotted border-walk-text ${className}`} />;
   }
-  if (segment.kind === "home") {
+  if (segment.kind === "before") {
     return <span className={`absolute left-1/2 w-1 -translate-x-1/2 bg-brand ${className}`} />;
   }
   return (
@@ -73,7 +73,7 @@ function Pin({ color, text }: { color: string; text: string }) {
 
 function MarkerGlyph({ marker }: { marker: Marker }) {
   switch (marker.kind) {
-    case "home":
+    case "before":
       return (
         <span className="absolute top-6 left-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-xs bg-brand ring-2 ring-surface" />
       );
@@ -175,7 +175,7 @@ function BoardContent({ leg, transferWait }: { leg: BusLeg; transferWait?: numbe
       </div>
       {leg.catchIndex > 0 && firstMissed?.kind === "live" && caught?.kind === "live" && (
         <div className="mt-1.5">
-          <MissedBusNotice routeNo={leg.routeNo} missedInMinutes={firstMissed.minutes} nextInMinutes={caught.minutes} />
+          <MissedBusNotice routeNo={leg.routeNo} missedInMinutes={firstMissed.minutes} />
         </div>
       )}
       <p className="mt-2 text-xs text-muted tabular">
@@ -196,19 +196,19 @@ function transferWaitOf(ribbon: Ribbon, leg: BusLeg): number {
 function buildSteps(route: TransitRoute, now: string, originName: string, destinationName: string): StepData[] {
   const { legs } = route;
   const ribbon = buildRibbon(route, now);
-  const homeMinutes = ribbon.segments[0]?.kind === "home" ? ribbon.segments[0].minutes : 0;
+  const beforeMinutes = ribbon.segments[0]?.kind === "before" ? ribbon.segments[0].minutes : 0;
   const steps: StepData[] = [];
 
-  if (homeMinutes > 0) {
+  if (beforeMinutes > 0) {
     steps.push({
-      key: "home",
+      key: "before",
       time: now,
       incoming: null,
-      outgoing: { kind: "home" },
-      marker: { kind: "home" },
+      outgoing: { kind: "before" },
+      marker: { kind: "before" },
       content: (
         <>
-          <StopTitle>집에서 {homeMinutes}분</StopTitle>
+          <StopTitle>출발 전 {beforeMinutes}분</StopTitle>
           <p className="text-xs text-muted tabular">지금 {formatShortClock(now)}</p>
         </>
       ),
@@ -219,7 +219,7 @@ function buildSteps(route: TransitRoute, now: string, originName: string, destin
     key: "origin",
     time: route.leaveAt,
     emphasize: true,
-    incoming: homeMinutes > 0 ? { kind: "home" } : null,
+    incoming: beforeMinutes > 0 ? { kind: "before" } : null,
     outgoing: segmentOf(legs[0]),
     marker: { kind: "origin" },
     content: (
@@ -283,7 +283,7 @@ function buildSteps(route: TransitRoute, now: string, originName: string, destin
     content: (
       <>
         <StopTitle>{destinationName}</StopTitle>
-        <p className="text-xs text-muted">대기 포함 실제 도착</p>
+        <p className="text-xs text-muted">대기까지 더한 도착 예상</p>
       </>
     ),
   });
