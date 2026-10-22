@@ -18,65 +18,67 @@ export function PlaceSummary({
   onToggleFavorite?: (p: Place) => void;
 }) {
   return (
-    <section aria-labelledby={`place-${place.id}-name`} className="px-4 pt-1 pb-4">
+    <section aria-labelledby={`place-${place.id}-name`} className="px-gutter pt-3 pb-5">
       <div className="flex items-start gap-2">
-        <div className="min-w-0 flex-1 pt-2">
-          <div className="flex min-w-0 items-baseline gap-1.5">
-            <h2 id={`place-${place.id}-name`} className="truncate text-md font-bold text-fg">
-              {place.name}
-            </h2>
-            <span className="shrink-0 text-xs text-fg-muted">{place.category}</span>
-          </div>
-          <p className="mt-1 truncate text-xs text-fg-secondary">{place.address}</p>
-          <p className="mt-0.5 truncate text-xs tabular">
+        <div className="min-w-0 flex-1 pt-1">
+          <h2 id={`place-${place.id}-name`} className="truncate text-md font-bold text-fg">
+            {place.name}
+          </h2>
+          <p className="mt-0.5 truncate text-xs text-fg-muted tabular">
+            {place.category}
             {place.distanceM !== undefined && (
-              <span className="text-fg-muted">{formatDistance(place.distanceM)}</span>
+              <>
+                <span aria-hidden="true" className="px-1.5 text-fg-subtle">·</span>
+                {formatDistance(place.distanceM)}
+              </>
             )}
-            {place.distanceM !== undefined && <span aria-hidden="true" className="px-1 text-border-strong">|</span>}
-            <span className="text-fg-subtle">
-              {place.position.lat.toFixed(5)}, {place.position.lng.toFixed(5)}
-            </span>
+          </p>
+          <p className="mt-0.5 truncate text-xs text-fg-muted">{place.address}</p>
+          <p className="mt-0.5 truncate text-xs text-fg-muted tabular">
+            {place.position.lat.toFixed(5)}, {place.position.lng.toFixed(5)}
           </p>
         </div>
-        {onClose && (
+        <div className="-mr-2 flex shrink-0 items-center">
           <button
             type="button"
-            onClick={onClose}
-            aria-label="장소 정보 닫기"
-            className="-mr-2 inline-flex size-10 shrink-0 items-center justify-center rounded-md text-fg-secondary hover:bg-surface-muted"
+            aria-label="즐겨찾기 추가"
+            aria-pressed={favorite}
+            onClick={() => onToggleFavorite?.(place)}
+            className="flex size-11 items-center justify-center rounded-md hover:bg-surface-muted"
           >
-            <CloseIcon size={20} />
+            {favorite ? (
+              <StarFilledIcon size={20} className="text-brand" />
+            ) : (
+              <StarIcon size={20} className="text-fg-secondary" />
+            )}
           </button>
-        )}
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="장소 정보 닫기"
+              className="flex size-11 items-center justify-center rounded-md text-fg-secondary hover:bg-surface-muted"
+            >
+              <CloseIcon size={20} />
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-1.5">
+      <div className="mt-4 flex items-center gap-2">
         <button
           type="button"
           onClick={() => onSetOrigin(place)}
-          className="relative h-9 rounded-md border border-border-strong bg-surface px-4 text-sm font-semibold text-fg before:absolute before:-inset-y-0.5 before:inset-x-0 hover:bg-surface-muted"
+          className="h-control flex-1 rounded-md bg-action-secondary px-4 text-sm font-semibold text-action-secondary-fg transition-colors hover:bg-action-secondary-pressed"
         >
           출발
         </button>
         <button
           type="button"
           onClick={() => onSetDestination(place)}
-          className="relative h-9 rounded-md bg-brand px-4 text-sm font-semibold text-fg before:absolute before:-inset-y-0.5 before:inset-x-0 hover:bg-brand-strong"
+          className="h-control flex-[2] rounded-md bg-action-primary px-4 text-sm font-bold text-action-primary-fg transition-colors hover:bg-action-primary-pressed"
         >
           도착
-        </button>
-        <button
-          type="button"
-          aria-label="즐겨찾기 추가"
-          aria-pressed={favorite}
-          onClick={() => onToggleFavorite?.(place)}
-          className="relative ml-auto flex size-9 items-center justify-center rounded-md border border-border-strong bg-surface before:absolute before:-inset-0.5 hover:bg-surface-muted"
-        >
-          {favorite ? (
-            <StarFilledIcon size={18} className="text-brand" />
-          ) : (
-            <StarIcon size={18} className="text-fg-secondary" />
-          )}
         </button>
       </div>
     </section>
@@ -86,29 +88,30 @@ export function PlaceSummary({
 export function PlaceSummarySkeleton() {
   const block = "rounded-sm bg-skeleton animate-pulse motion-reduce:animate-none";
   return (
-    <div aria-busy="true" className="px-4 pt-1 pb-4">
+    <div aria-busy="true" className="px-gutter pt-3 pb-5">
       <span className="sr-only">장소 정보를 불러오는 중</span>
       <div aria-hidden="true">
         <div className="flex items-start gap-2">
-          <div className="min-w-0 flex-1 pt-2">
-            <div className="flex h-7 items-center gap-1.5">
+          <div className="min-w-0 flex-1 pt-1">
+            <div className="flex h-6 items-center">
               <div className={`h-[18px] w-2/5 ${block}`} />
-              <div className={`h-3 w-12 ${block}`} />
             </div>
-            <div className="mt-1 flex h-[18px] items-center">
+            <div className="mt-0.5 flex h-[18px] items-center">
+              <div className={`h-3 w-1/4 ${block}`} />
+            </div>
+            <div className="mt-0.5 flex h-[18px] items-center">
               <div className={`h-3 w-3/5 ${block}`} />
             </div>
-            <div className="mt-0.5 flex h-4 items-center">
+            <div className="mt-0.5 flex h-[18px] items-center">
               <div className={`h-3 w-2/5 ${block}`} />
             </div>
           </div>
-          <div className="-mr-2 size-10 shrink-0" />
+          <div className="-mr-2 h-11 w-[88px] shrink-0" />
         </div>
 
-        <div className="mt-3 flex items-center gap-1.5">
-          <div className="h-9 w-[62px] rounded-md bg-skeleton animate-pulse motion-reduce:animate-none" />
-          <div className="h-9 w-[62px] rounded-md bg-skeleton animate-pulse motion-reduce:animate-none" />
-          <div className="ml-auto size-9 rounded-md bg-skeleton animate-pulse motion-reduce:animate-none" />
+        <div className="mt-4 flex items-center gap-2">
+          <div className="h-control flex-1 rounded-md bg-skeleton animate-pulse motion-reduce:animate-none" />
+          <div className="h-control flex-[2] rounded-md bg-skeleton animate-pulse motion-reduce:animate-none" />
         </div>
       </div>
     </div>

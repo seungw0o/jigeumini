@@ -48,7 +48,7 @@ function escapeHtml(s: string): string {
 }
 
 function bubbleHtml(label: string, color: string): string {
-  return `<div style="padding-bottom:6px;filter:var(--elevation-marker)"><div style="display:flex;align-items:center;height:22px;padding:0 6px;border:2px solid var(--color-surface);border-radius:4px;background:${color};color:var(--color-surface);font:700 13px/1 ${FONT};white-space:nowrap">${escapeHtml(
+  return `<div style="padding-bottom:6px;filter:var(--elevation-marker)"><div style="display:flex;align-items:center;height:22px;padding:0 6px;border:2px solid var(--color-surface);border-radius:var(--radius-sm);background:${color};color:var(--color-fg-inverse);font:700 var(--text-xs)/1 ${FONT};white-space:nowrap">${escapeHtml(
     label,
   )}</div></div>`;
 }
@@ -56,7 +56,7 @@ function bubbleHtml(label: string, color: string): string {
 function pinHtml(tone: "origin" | "destination"): string {
   const color = tone === "origin" ? "var(--color-map-origin)" : "var(--color-map-destination)";
   const text = tone === "origin" ? "출발" : "도착";
-  return `<div style="position:relative;width:30px;height:40px;filter:var(--elevation-pin)"><svg width="30" height="40" viewBox="0 0 30 40" aria-hidden="true" style="display:block"><path d="M15 38.6C15 38.6 2 24.6 2 15a13 13 0 0 1 26 0c0 9.6-13 23.6-13 23.6Z" fill="${color}" stroke="var(--color-surface)" stroke-width="2" stroke-linejoin="round"/></svg><span style="position:absolute;inset:0 0 auto;height:30px;display:flex;align-items:center;justify-content:center;color:var(--color-surface);font:700 11px/1 ${FONT};letter-spacing:-0.04em">${text}</span></div>`;
+  return `<div style="position:relative;width:30px;height:40px;filter:var(--elevation-pin)"><svg width="30" height="40" viewBox="0 0 30 40" aria-hidden="true" style="display:block"><path d="M15 38.6C15 38.6 2 24.6 2 15a13 13 0 0 1 26 0c0 9.6-13 23.6-13 23.6Z" fill="${color}" stroke="var(--color-surface)" stroke-width="2" stroke-linejoin="round"/></svg><span style="position:absolute;inset:0 0 auto;height:30px;display:flex;align-items:center;justify-content:center;color:var(--color-fg-inverse);font:700 var(--text-2xs)/1 ${FONT};letter-spacing:-0.04em">${text}</span></div>`;
 }
 
 function dotHtml(tone: "stop" | "transfer" | "current"): string {
@@ -71,7 +71,7 @@ function dotHtml(tone: "stop" | "transfer" | "current"): string {
 const PLACE_HTML = `<span style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:9999px;background:var(--color-surface);box-shadow:var(--shadow-float)"><span style="display:block;width:10px;height:10px;border-radius:9999px;background:var(--color-brand);box-shadow:0 0 0 2px var(--color-fg)"></span></span>`;
 
 function pillHtml(name: string): string {
-  return `<span style="position:absolute;left:50%;bottom:calc(100% - 4px);transform:translateX(-50%);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 10px;border-radius:9999px;background:var(--color-surface);color:var(--color-fg);font:600 12px/16px ${FONT};box-shadow:var(--shadow-float)">${escapeHtml(
+  return `<span style="position:absolute;left:50%;bottom:calc(100% - 4px);transform:translateX(-50%);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 10px;border-radius:var(--radius-sm);background:var(--color-surface);color:var(--color-fg);font:600 var(--text-xs)/var(--text-xs--line-height) ${FONT};box-shadow:var(--shadow-float)">${escapeHtml(
     name,
   )}</span>`;
 }
@@ -276,7 +276,7 @@ function PlaceholderMap({
         </div>
       )}
 
-      <p className="absolute bottom-2 left-2 rounded-sm bg-surface/80 px-1.5 py-0.5 text-2xs text-fg-muted lg:bottom-3 lg:left-3">
+      <p className="absolute bottom-2 left-2 rounded-sm bg-surface/90 px-2 py-0.5 text-2xs text-fg-muted shadow-card lg:bottom-3 lg:left-3">
         지도 미리보기 · 카카오맵 키 없음
       </p>
     </div>

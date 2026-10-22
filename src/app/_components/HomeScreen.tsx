@@ -83,12 +83,12 @@ function SheetSection({
   children: ReactNode;
 }) {
   return (
-    <section aria-label={title} className="pb-2">
-      <div className="flex h-11 items-center justify-between pr-2 pl-4">
-        <h2 className="text-sm font-bold text-fg">
+    <section aria-label={title} className="pb-3">
+      <div className="flex h-12 items-center justify-between px-gutter pt-1">
+        <h2 className="text-md font-bold text-fg">
           {title}
           {count !== undefined && (
-            <span className="ml-1 font-semibold text-fg-muted tabular">{count}</span>
+            <span className="ml-1.5 font-semibold text-fg-muted tabular">{count}</span>
           )}
         </h2>
         {action}
@@ -344,7 +344,7 @@ export function HomeScreen() {
             <button
               type="button"
               onClick={() => setEditingRecent((v) => !v)}
-              className="h-10 rounded-md px-2 text-xs text-fg-muted hover:text-fg"
+              className="-mr-3 h-11 rounded-md px-3 text-xs font-semibold text-fg-secondary hover:bg-surface-muted hover:text-fg"
             >
               {editingRecent ? "완료" : "편집"}
             </button>
@@ -371,7 +371,7 @@ export function HomeScreen() {
   const sheetKey = selectedPlace ? `place-${selectedPlace.id}` : locationState ? "demo" : "idle";
 
   return (
-    <div style={{ "--controls-top": "7.25rem" } as CSSProperties}>
+    <div style={{ "--controls-top": routeMode ? "8.5rem" : "7.25rem" } as CSSProperties}>
       <MapLayout
         map={
           <MapView
@@ -401,7 +401,7 @@ export function HomeScreen() {
         header={
           <div ref={headerRef}>
             <h1 className="sr-only">지금이니? 대전 버스 길찾기</h1>
-            <div aria-hidden="true" className="mb-3 hidden h-8 items-center lg:flex">
+            <div aria-hidden="true" className="mb-4 hidden h-8 items-center lg:flex">
               <Logo size="md" />
             </div>
             {routeMode ? (
@@ -419,11 +419,12 @@ export function HomeScreen() {
                 <MainSearchBar
                   onSelect={selectFromSearch}
                   onRoute={() => setRouteMode(true)}
+                  quietRoute={Boolean(selectedPlace) || locationState !== null}
                   search={mock ? searchPlaces : undefined}
                   near={mock ? undefined : livePosition}
                   recent={recent}
                 />
-                <div className="mt-1">
+                <div className="mt-1 lg:mt-3">
                   <CategoryChips active={activeChip} onToggle={toggleView} />
                 </div>
               </>
