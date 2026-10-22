@@ -125,6 +125,8 @@ export function HomeScreen() {
       : null;
   const origin = originChoice === undefined ? defaultOrigin : originChoice;
   const [destination, setDestination] = useState<Place | null>(null);
+  // 길찾기에서 마지막으로 고른 출발지/목적지. 하나만 골랐을 때 지도를 그 장소로 옮긴다
+  const [routeFocus, setRouteFocus] = useState<Place | null>(null);
   const [selected, setSelected] = useState<Place | null | undefined>(undefined);
   const [routeMode, setRouteMode] = useState(false);
   const [view, setView] = useState<SheetView>(null);
@@ -139,7 +141,7 @@ export function HomeScreen() {
   const selectedPlace =
     selected === undefined ? (placeParam ? (getPlaceById(placeParam) ?? null) : null) : selected;
 
-  const markers = useMemo<MapMarker[]>(() => {
+  const baseMarkers = useMemo<MapMarker[]>(() => {
     if (mock) return locationAvailable ? MARKERS_WITH_CURRENT : PLACE_MARKERS;
     const list: MapMarker[] = [];
     if (livePosition) list.push({ id: "current", position: livePosition, tone: "current" });
@@ -154,6 +156,23 @@ export function HomeScreen() {
     return list;
   }, [mock, locationAvailable, livePosition, selectedPlace]);
 
+  // 길찾기 중 고른 출발지(현재 위치 제외)·목적지 핀. originChoice는 state라 렌더마다 새 객체가 아니다
+  const markers = useMemo<MapMarker[]>(() => {
+    if (!routeMode) return baseMarkers;
+    const pins: MapMarker[] = [];
+    if (originChoice && originChoice.id !== "current") {
+      pins.push({ id: `origin-${originChoice.id}`, position: originChoice.position, tone: "origin" });
+    }
+    if (destination) {
+      pins.push({ id: `destination-${destination.id}`, position: destination.position, tone: "destination" });
+    }
+    return [...baseMarkers, ...pins];
+  }, [baseMarkers, routeMode, originChoice, destination]);
+
+  const routeFocusPlace =
+    [destination, originChoice].find((p) => p && p.id !== "current" && p.id === routeFocus?.id) ?? null;
+  const focus = routeMode ? routeFocusPlace?.position : selectedPlace?.position;
+
   function update(next: { origin: Place | null; destination: Place | null }) {
     if (!mock) {
       const picked = [next.origin, next.destination].filter(
@@ -166,6 +185,13 @@ export function HomeScreen() {
         );
       }
     }
+    const newest = [next.destination, next.origin].find(
+      (p) =>
+        p !== null &&
+        p.id !== "current" &&
+        p.id !== (p === next.destination ? destination?.id : origin?.id),
+    );
+    if (newest) setRouteFocus(newest);
     setOrigin(next.origin);
     setDestination(next.destination);
     if (next.origin && next.destination) {
@@ -357,6 +383,7 @@ export function HomeScreen() {
             obscuredBottom={SHEET_SNAPS[initialSnap] + TAB_BAR_RATIO}
             onMarkerClick={selectById}
             selectedId={selectedPlace?.id}
+            focus={focus}
           />
         }
         controls={

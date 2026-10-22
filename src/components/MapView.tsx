@@ -16,12 +16,24 @@ interface MapViewProps {
   onMarkerClick?: (id: string) => void;
   /** 이 장소 마커에만 이름표를 띄운다 (탭한 장소) */
   selectedId?: string;
+  /** 있으면 다른 마커·경로 대신 이 좌표를 가운데 두고 확대한다 (검색·입력한 장소) */
+  focus?: LatLng;
   label: string;
 }
 
 const KAKAO_KEY = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
 const DEFAULT_CENTER: LatLng = { lat: 36.3622, lng: 127.3712 };
 const FONT = "var(--font-sans)";
+/** focus 주변으로 맞출 범위(도). 위도 0.0018 ≈ 200m, 경도 0.0022 ≈ 200m */
+const FOCUS_SPAN = { lat: 0.0018, lng: 0.0022 };
+
+/** focus 좌표를 가운데 둔 작은 사각형의 두 모서리. 기존 범위 맞춤(가림 영역 여백 포함)을 그대로 쓰려고 점 두 개로 만든다 */
+function focusBox(p: LatLng): LatLng[] {
+  return [
+    { lat: p.lat - FOCUS_SPAN.lat, lng: p.lng - FOCUS_SPAN.lng },
+    { lat: p.lat + FOCUS_SPAN.lat, lng: p.lng + FOCUS_SPAN.lng },
+  ];
+}
 
 export function MapView(props: MapViewProps) {
   return (
@@ -121,10 +133,13 @@ function PlaceholderMap({
   obscuredTop = 0,
   onMarkerClick,
   selectedId,
+  focus,
 }: MapViewProps) {
   const [ref, size] = useSize<HTMLDivElement>();
 
-  const pts = [...paths.flatMap((p) => p.points), ...markers.map((m) => m.position)];
+  const pts = focus
+    ? focusBox(focus)
+    : [...paths.flatMap((p) => p.points), ...markers.map((m) => m.position)];
   if (pts.length === 0 && center) pts.push(center);
 
   let project: ((p: LatLng) => { x: number; y: number }) | null = null;
@@ -317,6 +332,7 @@ function KakaoMap({
   obscuredTop = 0,
   onMarkerClick,
   selectedId,
+  focus,
 }: MapViewProps & { appKey: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
@@ -411,7 +427,9 @@ function KakaoMap({
     const el = ref.current;
     if (!kakao || !el) return;
     const { maps, map } = kakao;
-    const pts = [...paths.flatMap((p) => p.points), ...markers.map((m) => m.position)];
+    const pts = focus
+      ? focusBox(focus)
+      : [...paths.flatMap((p) => p.points), ...markers.map((m) => m.position)];
     const fit = () => {
       if (pts.length > 1) {
         const bounds = new maps.LatLngBounds();
@@ -425,7 +443,7 @@ function KakaoMap({
     };
     fitRef.current = fit;
     fit();
-  }, [kakao, paths, markers, center, obscuredBottom, obscuredTop]);
+  }, [kakao, paths, markers, center, obscuredBottom, obscuredTop, focus]);
 
   if (failed) {
     return (
@@ -437,6 +455,7 @@ function KakaoMap({
         obscuredTop={obscuredTop}
         onMarkerClick={onMarkerClick}
         selectedId={selectedId}
+        focus={focus}
         label="지도"
       />
     );
