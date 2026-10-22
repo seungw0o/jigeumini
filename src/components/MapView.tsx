@@ -104,22 +104,47 @@ function PlaceholderMap({
     });
   }
 
+  const placed: { x: number; y: number; w: number }[] = [];
+  const labelVisible = markers.map((m) => {
+    if (!project || !m.label) return false;
+    const q = project(m.position);
+    const w = Math.min(m.label.length * 12 + 12, 128);
+    const hit = placed.some((p) => Math.abs(p.x - q.x) < (p.w + w) / 2 + 4 && Math.abs(p.y - q.y) < 28);
+    if (!hit) placed.push({ x: q.x, y: q.y, w });
+    return !hit;
+  });
+
   return (
     <div ref={ref} className="absolute inset-0">
+      <svg
+        className="absolute inset-0 size-full"
+        viewBox="0 0 1000 1000"
+        preserveAspectRatio="xMidYMid slice"
+        aria-hidden="true"
+      >
+        <path d="M90 120h230l40 160-250 30z" fill="var(--color-map-park)" />
+        <path d="M640 560l220-30 30 170-230 20z" fill="var(--color-map-park)" />
+        <path d="M380 40l120 10 10 120-140-10z" fill="var(--color-map-park)" />
+        <path
+          d="M-40 700C120 650 260 760 420 690S700 560 1040 600"
+          stroke="var(--color-map-water)"
+          strokeWidth="34"
+          fill="none"
+        />
+        <g stroke="var(--color-map-road)" fill="none" strokeLinecap="round">
+          <path d="M-20 380L1020 470M420 -20L560 1020M-20 880L1020 820" strokeWidth="16" />
+          <path
+            d="M-20 180L1020 230M180 -20L240 1020M760 -20L700 1020M-20 600L1020 660M300 300L640 540L980 300"
+            strokeWidth="8"
+          />
+          <path
+            d="M-20 90L1020 120M-20 280L1020 330M-20 530L1020 560M-20 760L1020 740M-20 960L1020 930M90 -20L120 1020M320 -20L340 1020M630 -20L620 1020M880 -20L860 1020"
+            strokeWidth="3"
+            opacity="0.85"
+          />
+        </g>
+      </svg>
       <svg className="absolute inset-0 size-full" aria-hidden="true">
-        <defs>
-          <pattern id="map-grid" width="120" height="120" patternUnits="userSpaceOnUse">
-            <path d="M0 60H120M60 0V120" stroke="var(--color-map-road)" strokeWidth="3" />
-            <path d="M0 20H120M0 100H120M20 0V120M100 0V120" stroke="var(--color-map-road)" strokeWidth="1" opacity="0.7" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#map-grid)" />
-        <rect x="8%" y="14%" width="22%" height="16%" fill="var(--color-map-park)" rx="6" />
-        <rect x="62%" y="52%" width="26%" height="14%" fill="var(--color-map-park)" rx="6" />
-        <path d="M-20 72% C 30% 64%, 45% 82%, 110% 58%" stroke="var(--color-map-water)" strokeWidth="22" fill="none" />
-        <path d="M-20 30% L 110% 44%" stroke="var(--color-map-road)" strokeWidth="9" />
-        <path d="M38% -20 L 52% 110%" stroke="var(--color-map-road)" strokeWidth="9" />
-
         {project &&
           paths.map((p, i) => (
             <polyline
@@ -136,13 +161,14 @@ function PlaceholderMap({
       </svg>
 
       {project &&
-        markers.map((m) => {
+        markers.map((m, i) => {
           const q = project!(m.position);
+          const showLabel = labelVisible[i];
           const s = MARKER_STYLE[m.tone];
           return (
             <div
               key={m.id}
-              className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
+              className={`pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 ${m.tone === "origin" || m.tone === "destination" ? "z-[3]" : showLabel ? "z-[2]" : "z-[1]"}`}
               style={{ left: q.x, top: q.y }}
             >
               {m.tone === "origin" || m.tone === "destination" ? (
@@ -163,7 +189,7 @@ function PlaceholderMap({
                   className="pointer-events-auto flex min-h-11 min-w-11 flex-col items-center justify-center"
                 >
                   <span className="block size-4 rounded-full border-[3px] border-white bg-accent shadow-float" />
-                  {m.label && (
+                  {m.label && showLabel && (
                     <span className="mt-1 max-w-32 truncate rounded-sm bg-surface px-1.5 py-0.5 text-xs font-semibold shadow-float">
                       {m.label}
                     </span>

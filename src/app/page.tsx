@@ -1,6 +1,10 @@
-import { MapLayout } from "@/components/MapLayout";
-import { MapView } from "@/components/MapView";
+import { Suspense } from "react";
+import { HomeScreen } from "./_components/HomeScreen";
 
 export default function HomePage() {
-  return <MapLayout map={<MapView label="지도" />} />;
+  return (
+    <Suspense fallback={null}>
+      <HomeScreen />
+    </Suspense>
+  );
 }

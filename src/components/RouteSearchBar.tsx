@@ -171,7 +171,7 @@ export function RouteSearchBar({
     const value = field === f && draft !== null ? draft : (place?.name ?? "");
     const isActiveField = field === f && expanded;
     return (
-      <div className="group flex h-11 items-center">
+      <div className="group flex h-12 items-center">
         <span className="flex w-9 shrink-0 justify-center" aria-hidden="true">
           {f === "origin" ? (
             <span className="size-2 rounded-full bg-ink" />

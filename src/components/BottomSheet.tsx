@@ -80,7 +80,7 @@ export function BottomSheet({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        className="flex h-6 w-full shrink-0 touch-none cursor-grab items-center justify-center lg:hidden"
+        className="relative z-10 -mb-4 flex h-11 w-full shrink-0 touch-none cursor-grab items-start justify-center pt-2.5 lg:hidden"
       >
         <span className="h-1 w-10 rounded-full bg-line-strong" />
       </button>

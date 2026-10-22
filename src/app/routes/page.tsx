@@ -1,3 +1,13 @@
+import { Suspense } from "react";
+import { RoutesFallback } from "./_components/RoutesFallback";
+import { RoutesScreen } from "./_components/RoutesScreen";
+
 export default function RoutesPage() {
-  return <main>경로 목록</main>;
+  return (
+    <main>
+      <Suspense fallback={<RoutesFallback />}>
+        <RoutesScreen />
+      </Suspense>
+    </main>
+  );
 }
