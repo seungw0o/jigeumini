@@ -1,0 +1,92 @@
+"use client";
+
+import { useRef, useState, type CSSProperties, type ReactNode, type PointerEvent } from "react";
+
+interface BottomSheetProps {
+  children: ReactNode;
+  /** 화면 높이 대비 보이는 비율, 작은 것부터. 예: [0.22, 0.5, 0.88] */
+  snaps?: number[];
+  initialSnap?: number;
+  label: string;
+  className?: string;
+}
+
+/**
+ * 모바일: 화면 아래 고정, 핸들을 끌거나 눌러 높이를 바꾼다.
+ * lg 이상: 좌측 패널 안에서 남은 높이를 채우는 일반 스크롤 영역이 된다.
+ */
+export function BottomSheet({
+  children,
+  snaps = [0.22, 0.5, 0.88],
+  initialSnap = 1,
+  label,
+  className = "",
+}: BottomSheetProps) {
+  const [snap, setSnap] = useState(initialSnap);
+  const [dragHeight, setDragHeight] = useState<number | null>(null);
+  const drag = useRef<{ startY: number; startH: number; moved: boolean } | null>(null);
+  const sheetRef = useRef<HTMLElement>(null);
+
+  const height = dragHeight !== null ? `${dragHeight}px` : `${snaps[snap] * 100}dvh`;
+
+  function onPointerDown(e: PointerEvent<HTMLButtonElement>) {
+    const el = sheetRef.current;
+    if (!el) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    drag.current = { startY: e.clientY, startH: el.getBoundingClientRect().height, moved: false };
+  }
+
+  function onPointerMove(e: PointerEvent<HTMLButtonElement>) {
+    const d = drag.current;
+    if (!d) return;
+    const dy = d.startY - e.clientY;
+    if (Math.abs(dy) > 4) d.moved = true;
+    if (!d.moved) return;
+    const vh = window.innerHeight;
+    setDragHeight(Math.min(Math.max(d.startH + dy, vh * snaps[0] * 0.6), vh * snaps[snaps.length - 1]));
+  }
+
+  function onPointerUp() {
+    const d = drag.current;
+    drag.current = null;
+    if (!d) return;
+    if (!d.moved) {
+      setSnap((s) => (s + 1) % snaps.length);
+      return;
+    }
+    const vh = window.innerHeight;
+    const ratio = (dragHeight ?? d.startH) / vh;
+    let nearest = 0;
+    snaps.forEach((s, i) => {
+      if (Math.abs(s - ratio) < Math.abs(snaps[nearest] - ratio)) nearest = i;
+    });
+    setSnap(nearest);
+    setDragHeight(null);
+  }
+
+  return (
+    <section
+      ref={sheetRef}
+      aria-label={label}
+      style={{ "--sheet-h": height } as CSSProperties}
+      className={`fixed inset-x-0 bottom-0 z-30 flex h-(--sheet-h) flex-col rounded-t-lg bg-surface shadow-sheet ${
+        dragHeight === null ? "transition-[height] duration-300 ease-out motion-reduce:transition-none" : ""
+      } lg:static lg:z-auto lg:h-auto lg:min-h-0 lg:flex-1 lg:rounded-none lg:shadow-none ${className}`}
+    >
+      <button
+        type="button"
+        aria-label={`${label} 크기 조절`}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        className="relative z-10 -mb-4 flex h-11 w-full shrink-0 touch-none cursor-grab items-start justify-center pt-2.5 lg:hidden"
+      >
+        <span className="h-1 w-10 rounded-full bg-line-strong" />
+      </button>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
+        {children}
+      </div>
+    </section>
+  );
+}
