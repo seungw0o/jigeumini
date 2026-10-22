@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef, useState, type KeyboardEvent } from "react";
-import { BackIcon, CloseIcon, HistoryIcon, LocateIcon, PinIcon, SwapIcon } from "@/assets/icons";
+import { CloseIcon, HistoryIcon, LocateIcon, MoreIcon, PinIcon, SwapIcon } from "@/assets/icons";
 import { mockCurrentPosition } from "@/app/_mocks/places";
 import { formatDistance } from "@/utils/format";
 import type { Place } from "@/utils/types";
@@ -54,6 +54,7 @@ export function RouteSearchBar({
   const [draft, setDraft] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const values: Record<Field, Place | null> = { origin, destination };
   const query = field && draft !== null ? draft.trim() : "";
@@ -144,20 +145,20 @@ export function RouteSearchBar({
         tabIndex={-1}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => select(o.place)}
-        className="flex h-14 cursor-pointer items-center gap-3 px-4 hover:bg-canvas aria-selected:bg-canvas"
+        className="flex h-12 cursor-pointer items-center gap-3 px-4 hover:bg-fill aria-selected:bg-fill"
       >
         <Icon
-          size={20}
-          className={`shrink-0 ${o.kind === "current" ? "text-accent" : "text-muted"}`}
+          size={18}
+          className={`shrink-0 ${o.kind === "current" ? "text-(--color-current)" : "text-muted"}`}
         />
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold text-ink">{o.place.name}</span>
+          <span className="block truncate text-15 font-semibold text-ink">{o.place.name}</span>
           {o.place.address && (
-            <span className="block truncate text-sm text-muted">{o.place.address}</span>
+            <span className="block truncate text-13 text-muted">{o.place.address}</span>
           )}
         </span>
         {o.kind === "result" && o.place.distanceM !== undefined && (
-          <span className="shrink-0 text-sm text-muted tabular">
+          <span className="shrink-0 text-13 text-muted tabular">
             {formatDistance(o.place.distanceM)}
           </span>
         )}
@@ -171,13 +172,13 @@ export function RouteSearchBar({
     const value = field === f && draft !== null ? draft : (place?.name ?? "");
     const isActiveField = field === f && expanded;
     return (
-      <div className="group flex h-12 items-center">
-        <span className="flex w-9 shrink-0 justify-center" aria-hidden="true">
-          {f === "origin" ? (
-            <span className="size-2 rounded-full bg-ink" />
-          ) : (
-            <span className="size-2 bg-accent" />
-          )}
+      <div className="group flex h-11 items-center">
+        <span className="flex w-6 shrink-0 justify-start" aria-hidden="true">
+          <span
+            className={`size-2.5 rounded-full border-[3px] bg-surface ${
+              f === "origin" ? "border-pin-origin" : "border-pin-destination"
+            }`}
+          />
         </span>
         <input
           ref={f === "origin" ? originRef : destinationRef}
@@ -207,16 +208,16 @@ export function RouteSearchBar({
             setActiveIndex(-1);
           }}
           onKeyDown={handleKeyDown}
-          className="h-full min-w-0 flex-1 rounded-md bg-transparent text-base text-ink placeholder:text-muted focus-visible:outline-offset-[-2px]"
+          className="h-full min-w-0 flex-1 rounded-md bg-transparent text-15 text-ink placeholder:text-subtle focus-visible:outline-offset-[-2px]"
         />
         {value !== "" && (
           <button
             type="button"
             aria-label={copy.clear}
             onClick={() => clear(f)}
-            className="invisible flex size-11 shrink-0 items-center justify-center rounded-md text-muted hover:text-ink group-focus-within:visible group-hover:visible focus-visible:outline-offset-[-2px]"
+            className="invisible flex size-10 shrink-0 items-center justify-center rounded-md text-subtle hover:text-ink group-focus-within:visible group-hover:visible focus-visible:outline-offset-[-2px]"
           >
-            <CloseIcon size={18} />
+            <CloseIcon size={16} />
           </button>
         )}
       </div>
@@ -230,33 +231,75 @@ export function RouteSearchBar({
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
           setField(null);
+          setMenuOpen(false);
           reset();
         }
       }}
     >
-      <div className="flex rounded-lg border border-line bg-surface shadow-float lg:shadow-none">
-        {onBack && (
+      <div
+        className={`flex rounded-lg border border-line bg-surface ${
+          compact ? "" : "shadow-float lg:shadow-none"
+        }`}
+      >
+        <div className="flex w-10 shrink-0 items-center justify-center">
           <button
             type="button"
-            aria-label="뒤로"
-            onClick={onBack}
-            className="flex w-11 shrink-0 items-center justify-center rounded-md text-ink-2 hover:text-ink focus-visible:outline-offset-[-2px]"
+            aria-label="출발지와 도착지 바꾸기"
+            onClick={swap}
+            className="flex size-10 items-center justify-center rounded-md text-ink-2 hover:text-ink focus-visible:outline-offset-[-2px]"
           >
-            <BackIcon size={22} />
+            <SwapIcon size={18} />
           </button>
-        )}
-        <div className="min-w-0 flex-1 divide-y divide-line">
+        </div>
+        <div className={`min-w-0 flex-1 divide-y divide-line ${onBack ? "" : "pr-1"}`}>
           {renderRow("origin")}
           {renderRow("destination")}
         </div>
-        <button
-          type="button"
-          aria-label="출발지와 도착지 바꾸기"
-          onClick={swap}
-          className="flex w-11 shrink-0 items-center justify-center rounded-md text-ink-2 hover:text-ink focus-visible:outline-offset-[-2px]"
-        >
-          <SwapIcon size={20} />
-        </button>
+        {onBack && (
+          <div className="relative flex w-10 shrink-0 flex-col">
+            <button
+              type="button"
+              aria-label="뒤로"
+              onClick={onBack}
+              className="flex h-11 items-center justify-center rounded-md text-ink-2 hover:text-ink focus-visible:outline-offset-[-2px]"
+            >
+              <CloseIcon size={20} />
+            </button>
+            <button
+              type="button"
+              aria-label="더보기"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((v) => !v)}
+              className="flex h-11 items-center justify-center rounded-md text-ink-2 hover:text-ink focus-visible:outline-offset-[-2px]"
+            >
+              <MoreIcon size={20} />
+            </button>
+            {menuOpen && (
+              <div
+                role="menu"
+                aria-label="경로 검색 메뉴"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setMenuOpen(false);
+                }}
+                className="absolute top-full right-0 z-40 mt-1 w-36 rounded-lg bg-surface py-1 shadow-float"
+              >
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onChange({ origin: null, destination: null });
+                    originRef.current?.focus();
+                  }}
+                  className="flex h-11 w-full items-center px-4 text-left text-sm text-ink hover:bg-fill focus-visible:outline-offset-[-2px]"
+                >
+                  모두 지우기
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div
@@ -271,7 +314,7 @@ export function RouteSearchBar({
             role="option"
             aria-selected={false}
             aria-disabled="true"
-            className="flex h-14 items-center px-4 text-sm text-muted"
+            className="flex h-12 items-center px-4 text-13 text-muted"
           >
             검색 결과가 없어요
           </div>
@@ -283,7 +326,7 @@ export function RouteSearchBar({
             <div
               id={recentLabelId}
               role="presentation"
-              className="flex h-9 items-end px-4 pb-1 text-sm font-semibold text-muted"
+              className="flex h-8 items-end px-4 pb-1 text-xs font-semibold text-muted"
             >
               최근 검색
             </div>
