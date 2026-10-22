@@ -2,12 +2,12 @@ import type { Ribbon, RibbonMark, RibbonSegment, TransitRoute } from "./types";
 
 const DAY = 24 * 60;
 
-function toMinutes(hhmm: string): number {
+export function toMinutes(hhmm: string): number {
   const [h, m] = hhmm.split(":").map(Number);
   return h * 60 + m;
 }
 
-function toClock(totalMinutes: number): string {
+export function toClock(totalMinutes: number): string {
   const m = ((totalMinutes % DAY) + DAY) % DAY;
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 }
@@ -37,7 +37,7 @@ export function buildRibbon(route: TransitRoute, now: string): Ribbon {
   };
 
   const leave = Math.max(0, offsetOf(route.leaveAt));
-  push(0, leave, { kind: "home" });
+  push(0, leave, { kind: "before" });
   marks.push({ kind: "leave", time: route.leaveAt, offset: leave });
 
   let t = leave;

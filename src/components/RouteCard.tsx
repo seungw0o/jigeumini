@@ -3,7 +3,7 @@ import { LeaveBadge } from "@/components/LeaveBadge";
 import { NotifyButton } from "@/components/NotifyButton";
 import { ArrivalText, BusNumber, MissedBusNotice, RunLabelBadge } from "@/components/StatusChips";
 import { TimeRibbon } from "@/components/TimeRibbon";
-import { formatFare, leaveLabel, transferLabel } from "@/utils/format";
+import { formatFare, leaveLabel, totalLabel, transferLabel } from "@/utils/format";
 import { formatShortClock } from "@/utils/ribbon";
 import type { BusArrival, BusLeg, NotifyState, TransitRoute } from "@/utils/types";
 
@@ -37,7 +37,6 @@ function BoardRow({ leg, quickTransferChance }: { leg: BusLeg; quickTransferChan
   const catchArrival = leg.arrivals[leg.catchIndex];
   const next = nextArrivalText(leg.arrivals[leg.catchIndex + 1]);
   const missedIn = leg.catchIndex > 0 ? liveMinutes(leg.arrivals[0]) : null;
-  const nextIn = liveMinutes(catchArrival);
 
   return (
     <li className="grid grid-cols-[44px_minmax(0,1fr)] gap-y-0.5">
@@ -58,9 +57,9 @@ function BoardRow({ leg, quickTransferChance }: { leg: BusLeg; quickTransferChan
             {next && <span className="shrink-0 text-muted">{next}</span>}
           </p>
         )}
-        {missedIn !== null && nextIn !== null && (
+        {missedIn !== null && (
           <div className="mt-1">
-            <MissedBusNotice routeNo={leg.routeNo} missedInMinutes={missedIn} nextInMinutes={nextIn} />
+            <MissedBusNotice routeNo={leg.routeNo} missedInMinutes={missedIn} />
           </div>
         )}
       </div>
@@ -92,18 +91,16 @@ export function RouteCard({
       {badge && <p className="mb-1.5 text-xs leading-4 font-bold text-brand-ink">{badge}</p>}
       <Link
         href={href}
-        aria-label={`${leaveLabel(route)}, ${arrive} 도착`}
+        aria-label={`${totalLabel(route)}, 도착 예상 ${arrive}, ${leaveLabel(route)}`}
         className="flex items-center justify-between gap-3 rounded-sm after:absolute after:inset-0"
       >
+        <span className="shrink-0 text-[24px] leading-7 font-bold text-ink tabular">{totalLabel(route)}</span>
         <LeaveBadge route={route} size="lg" />
-        <span className="flex shrink-0 items-baseline gap-1 text-ink">
-          <span className="text-[24px] leading-7 font-bold tabular">{arrive}</span>
-          <span className="text-13 font-medium text-ink-2">도착</span>
-        </span>
       </Link>
-      <p className="mt-1 flex min-w-0 text-13 whitespace-nowrap text-muted tabular">
+      <p className="mt-1 flex min-w-0 items-baseline text-13 whitespace-nowrap text-muted tabular">
         <span className="shrink-0">
-          총 {route.totalMinutes}분 · {formatFare(route.fare)} ·&nbsp;
+          <span className="text-ink-2">도착 예상</span>{" "}
+          <span className="text-15 font-semibold text-ink">{arrive}</span> · {formatFare(route.fare)} ·&nbsp;
         </span>
         <span className="truncate">{transferLabel(route.transferCount)}</span>
       </p>

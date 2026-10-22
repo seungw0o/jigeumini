@@ -228,10 +228,10 @@ export function HomeScreen() {
         />
       </SheetSection>
     );
-  } else if (view === "home") {
+  } else if (view === "frequent") {
     sheetContent = (
-      <SheetSection title="집">
-        <PlaceList places={[]} onSelect={setSelected} emptyText="집을 등록해 보세요" />
+      <SheetSection title="자주 가는 곳">
+        <PlaceList places={[]} onSelect={setSelected} emptyText="자주 가는 곳을 등록해 보세요" />
       </SheetSection>
     );
   } else if (view === "alerts") {

@@ -60,7 +60,7 @@ export function RouteSwitcher({ routes, currentId }: { routes: TransitRoute[]; c
                   />
                   <BusSequence route={route} size="sm" />
                   <span>
-                    <span className={active ? "font-bold" : "font-semibold"}>{formatShortClock(route.arriveAt)}</span>{" "}
+                    약 <span className={active ? "font-bold" : "font-semibold"}>{formatShortClock(route.arriveAt)}</span>{" "}
                     도착
                   </span>
                 </Link>

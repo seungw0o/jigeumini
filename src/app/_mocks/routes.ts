@@ -1,3 +1,4 @@
+import { leaveByOf } from "@/utils/departure";
 import type { BusStop, RouteSearch, TransitRoute } from "@/utils/types";
 import { mockPlaces } from "./places";
 
@@ -15,18 +16,21 @@ const DAEDEOK_HS_OPP = stop("s-43360", "대덕고등학교건너편", "43360", 3
 const GOV_COMPLEX = stop("s-31130", "정부청사역", "31130", 36.3592, 127.3812);
 const GALLERIA = stop("s-32120", "갤러리아타임월드", "32120", 36.3527, 127.3771);
 
+const BASE_TIME = "09:48";
+
+type RouteDraft = Omit<TransitRoute, "leaveAt" | "leaveInMinutes" | "marginMinutes">;
+
+const withLeaveBy = (draft: RouteDraft): TransitRoute => ({ ...draft, ...leaveByOf(draft, BASE_TIME) });
+
 const ORIGIN = mockPlaces[0];
 const DEST = mockPlaces[1];
 
-const routeA: TransitRoute = {
+const routeA = withLeaveBy({
   id: "a",
-  leaveAt: "09:58",
-  leaveInMinutes: 10,
   arriveAt: "10:30",
   totalMinutes: 42,
   travelMinutes: 30,
   waitMinutes: 0,
-  marginMinutes: 2,
   fare: 1500,
   transferCount: 0,
   legs: [
@@ -55,17 +59,14 @@ const routeA: TransitRoute = {
     [DAEDEOK_UNIV.position, { lat: 36.3778, lng: 127.3741 }, { lat: 36.3655, lng: 127.3769 }, GALLERIA.position],
     [GALLERIA.position, DEST.position],
   ],
-};
+});
 
-const routeB: TransitRoute = {
+const routeB = withLeaveBy({
   id: "b",
-  leaveAt: "09:58",
-  leaveInMinutes: 10,
   arriveAt: "10:33",
   totalMinutes: 45,
   travelMinutes: 29,
   waitMinutes: 4,
-  marginMinutes: 2,
   fare: 1500,
   transferCount: 1,
   quickTransferChance: 72,
@@ -115,17 +116,14 @@ const routeB: TransitRoute = {
     [GOV_COMPLEX.position, { lat: 36.3561, lng: 127.3796 }, GALLERIA.position],
     [GALLERIA.position, DEST.position],
   ],
-};
+});
 
-const routeD: TransitRoute = {
+const routeD = withLeaveBy({
   id: "d",
-  leaveAt: "10:01",
-  leaveInMinutes: 13,
   arriveAt: "10:39",
   totalMinutes: 51,
   travelMinutes: 32,
   waitMinutes: 7,
-  marginMinutes: 2,
   fare: 1500,
   transferCount: 1,
   quickTransferChance: 41,
@@ -174,17 +172,14 @@ const routeD: TransitRoute = {
     [DAEDEOK_HS_OPP.position, { lat: 36.3702, lng: 127.3758 }, { lat: 36.3601, lng: 127.3752 }, GALLERIA.position],
     [GALLERIA.position, DEST.position],
   ],
-};
+});
 
-const routeC: TransitRoute = {
+const routeC = withLeaveBy({
   id: "c",
-  leaveAt: "10:01",
-  leaveInMinutes: 13,
   arriveAt: "10:40",
   totalMinutes: 52,
   travelMinutes: 37,
   waitMinutes: 0,
-  marginMinutes: 2,
   fare: 1500,
   transferCount: 0,
   legs: [
@@ -213,20 +208,76 @@ const routeC: TransitRoute = {
     [DAEDEOK_UNIV.position, { lat: 36.3741, lng: 127.3592 }, { lat: 36.3612, lng: 127.3688 }, GALLERIA.position],
     [GALLERIA.position, DEST.position],
   ],
-};
+});
+
+const routeE = withLeaveBy({
+  id: "e",
+  arriveAt: "10:27",
+  totalMinutes: 39,
+  travelMinutes: 37,
+  waitMinutes: 0,
+  fare: 1500,
+  transferCount: 0,
+  legs: [
+    { kind: "walk", minutes: 7, distanceM: 420, from: ORIGIN.name, to: DAEDEOK_UNIV.name },
+    {
+      kind: "bus",
+      routeNo: "604",
+      busType: "branch",
+      boardStop: DAEDEOK_UNIV,
+      alightStop: GALLERIA,
+      stopCount: 17,
+      rideMinutes: 26,
+      arrivals: [
+        { routeNo: "604", busType: "branch", status: { kind: "live", minutes: 9, stopsAway: 4 } },
+        { routeNo: "604", busType: "branch", status: { kind: "live", minutes: 24, stopsAway: 12 } },
+      ],
+      catchIndex: 0,
+      waitMinutes: 0,
+      boardAt: "09:57",
+      alightAt: "10:23",
+    },
+    { kind: "walk", minutes: 4, distanceM: 240, from: GALLERIA.name, to: DEST.name },
+  ],
+  path: routeC.path,
+});
+
+const routeF = withLeaveBy({
+  ...routeA,
+  id: "f",
+  legs: routeA.legs.map((leg) =>
+    leg.kind === "bus"
+      ? {
+          ...leg,
+          arrivals: [
+            { routeNo: "318", busType: "trunk", status: { kind: "live", minutes: 8, stopsAway: 4 } },
+            ...leg.arrivals,
+          ],
+          catchIndex: 1,
+        }
+      : leg,
+  ),
+});
 
 export const mockRouteSearch: RouteSearch = {
   origin: ORIGIN,
   destination: DEST,
-  baseTime: "09:48",
+  baseTime: BASE_TIME,
   updatedSecondsAgo: 12,
   routes: [routeA, routeB, routeD, routeC],
 };
 
 export const mockEmptyRouteSearch: RouteSearch = { ...mockRouteSearch, routes: [] };
 
-export const mockRouteIds = mockRouteSearch.routes.map((r) => r.id);
+/** /routes?state=tight: 604는 지금 바로 나서야 빠듯하게 타고, 먼저 오는 318은 여유를 넣으면 어려워 다음 318 기준 */
+export const mockTightRouteSearch: RouteSearch = { ...mockRouteSearch, routes: [routeE, routeF] };
+
+export function getRouteSearchFor(id: string): RouteSearch {
+  return mockTightRouteSearch.routes.some((r) => r.id === id) ? mockTightRouteSearch : mockRouteSearch;
+}
+
+export const mockRouteIds = [...mockRouteSearch.routes, ...mockTightRouteSearch.routes].map((r) => r.id);
 
 export function getRouteById(id: string): TransitRoute | undefined {
-  return mockRouteSearch.routes.find((r) => r.id === id);
+  return getRouteSearchFor(id).routes.find((r) => r.id === id);
 }

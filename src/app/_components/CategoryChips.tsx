@@ -1,28 +1,13 @@
 import type { ReactNode } from "react";
-import { BusStopIcon, HistoryIcon, StarFilledIcon } from "@/assets/icons";
+import { BusStopIcon, HistoryIcon, PinIcon, StarFilledIcon } from "@/assets/icons";
 
-export type ChipKey = "favorites" | "stops" | "recentRoutes" | "home";
-
-function HomeIcon({ size = 16, className }: { size?: number; className?: string }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      focusable="false"
-      className={className}
-    >
-      <path fill="currentColor" d="M12 3.2 2.8 11h2.7v9.3h5.2v-5.6h2.6v5.6h5.2V11h2.7L12 3.2Z" />
-    </svg>
-  );
-}
+export type ChipKey = "favorites" | "stops" | "recentRoutes" | "frequent";
 
 const CHIPS: { key: ChipKey; label: string; icon: ReactNode }[] = [
   { key: "favorites", label: "즐겨찾기", icon: <StarFilledIcon size={16} className="text-brand" /> },
   { key: "stops", label: "정류장", icon: <BusStopIcon size={16} strokeWidth={2.2} className="text-bus-trunk" /> },
   { key: "recentRoutes", label: "최근 경로", icon: <HistoryIcon size={16} strokeWidth={2.2} className="text-ink-2" /> },
-  { key: "home", label: "집", icon: <HomeIcon size={16} className="text-bus-outer" /> },
+  { key: "frequent", label: "자주 가는 곳", icon: <PinIcon size={16} strokeWidth={2.2} className="text-bus-outer" /> },
 ];
 
 export function CategoryChips({

@@ -22,9 +22,19 @@ export function formatDuration(minutes: number): string {
   return m === 0 ? `${h}시간` : `${h}시간 ${m}분`;
 }
 
-export function leaveLabel(route: Pick<TransitRoute, "leaveInMinutes">): string {
-  return route.leaveInMinutes <= 0 ? "지금 출발" : `${route.leaveInMinutes}분 뒤 출발`;
+export function isTight(route: Pick<TransitRoute, "leaveInMinutes">): boolean {
+  return route.leaveInMinutes < 1;
 }
+
+export function leaveLabel(route: Pick<TransitRoute, "leaveInMinutes">): string {
+  return isTight(route) ? "빠듯해요, 지금 바로 출발" : `${route.leaveInMinutes}분 안에 출발`;
+}
+
+export function totalLabel(route: Pick<TransitRoute, "totalMinutes">): string {
+  return `약 ${formatDuration(route.totalMinutes)}`;
+}
+
+export const ESTIMATE_NOTE = "실시간 정보 기준 예상이에요, 교통 상황에 따라 달라질 수 있어요";
 
 export function transferLabel(count: number): string {
   return count > 0 ? `환승 ${count}회` : "환승 없음";

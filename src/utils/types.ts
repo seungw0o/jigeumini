@@ -73,10 +73,10 @@ export type Leg = WalkLeg | BusLeg;
 
 export interface TransitRoute {
   id: string;
-  /** 집에서 나서야 하는 시각과 지금부터 남은 분 */
+  /** 여유를 미리 뺀 출발 시각(이 시각 전에 나서면 된다)과 지금부터 남은 분. 1 미만이면 빠듯함 */
   leaveAt: string;
   leaveInMinutes: number;
-  /** 대기 포함 실제 도착 시각 */
+  /** 대기 포함 도착 예상 시각 */
   arriveAt: string;
   /** 지금부터 도착까지 (대기 + 여유 포함) */
   totalMinutes: number;
@@ -84,7 +84,7 @@ export interface TransitRoute {
   travelMinutes: number;
   /** 정류장 대기 합계 */
   waitMinutes: number;
-  /** 정류장에 미리 도착하는 여유 */
+  /** 출발 시각에 미리 넣어 둔 여유(분). 정류장에 그만큼 일찍 도착한다 */
   marginMinutes: number;
   fare: number;
   transferCount: number;
@@ -127,8 +127,8 @@ export interface MapMarker {
   tone: MarkerTone;
 }
 
-/** 타임 리본 구간: 집 대기 / 도보 / 첫 정류장 여유 / 환승 대기 / 탑승 */
-export type RibbonSegmentKind = "home" | "walk" | "stop" | "transfer" | "bus";
+/** 타임 리본 구간: 출발 전 / 도보 / 첫 정류장 여유 / 환승 대기 / 탑승 */
+export type RibbonSegmentKind = "before" | "walk" | "stop" | "transfer" | "bus";
 
 /** 지금부터 도착까지 시간축 위의 한 구간. start/end는 "HH:MM" */
 export interface RibbonSegment {
