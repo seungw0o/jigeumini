@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { flushSync } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Logo } from "@/assets/Logo";
@@ -11,14 +18,17 @@ import { PlaceList } from "@/components/PlaceList";
 import { PlaceSummary } from "@/components/PlaceSummary";
 import { RouteSearchBar } from "@/components/RouteSearchBar";
 import { LocationDeniedState, OutsideServiceAreaState } from "@/components/StateViews";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import {
+  DAEJEON_CENTER,
   getPlaceById,
   mockCurrentPosition,
   mockPlaces,
   mockRecentSearches,
   searchPlaces,
 } from "@/app/_mocks/places";
-import type { Place } from "@/utils/types";
+import { isMockMode, placeToRouteEnd, routePairQuery } from "@/utils/routeQuery";
+import type { LatLng, Place } from "@/utils/types";
 import { BottomTabBar, type TabKey } from "./BottomTabBar";
 import { CategoryChips, type ChipKey } from "./CategoryChips";
 import { MainSearchBar } from "./MainSearchBar";
@@ -49,6 +59,10 @@ const MARKERS_WITH_CURRENT: MapMarker[] = [
   { id: "current", position: mockCurrentPosition, tone: "current" },
   ...PLACE_MARKERS,
 ];
+
+function inDaejeon({ lat, lng }: LatLng): boolean {
+  return lat >= 36.18 && lat <= 36.5 && lng >= 127.24 && lng <= 127.56;
+}
 
 type DemoState = "denied" | "outside" | null;
 type SheetView = ChipKey | "alerts" | null;
@@ -87,18 +101,35 @@ function SheetSection({
 export function HomeScreen() {
   const router = useRouter();
   const params = useSearchParams();
-  const demoState = readDemoState(params.get("state"));
+  const mock = isMockMode(params);
+  const demoState = mock ? readDemoState(params.get("state")) : null;
   const locationAvailable = demoState === null;
+  const geo = useGeolocation(!mock);
+  const livePosition = geo.position;
+  const locationState: DemoState = mock
+    ? demoState
+    : geo.status === "denied"
+      ? "denied"
+      : livePosition && !inDaejeon(livePosition)
+        ? "outside"
+        : null;
 
-  const [origin, setOrigin] = useState<Place | null>(() =>
-    demoState === "denied" ? null : CURRENT_PLACE,
-  );
+  // undefined = 아직 고르지 않음: 위치를 알면 "현재 위치"가 기본 출발지다
+  const [originChoice, setOrigin] = useState<Place | null | undefined>(undefined);
+  const defaultOrigin = mock
+    ? demoState === "denied"
+      ? null
+      : CURRENT_PLACE
+    : livePosition
+      ? { ...CURRENT_PLACE, position: livePosition }
+      : null;
+  const origin = originChoice === undefined ? defaultOrigin : originChoice;
   const [destination, setDestination] = useState<Place | null>(null);
   const [selected, setSelected] = useState<Place | null | undefined>(undefined);
   const [routeMode, setRouteMode] = useState(false);
   const [view, setView] = useState<SheetView>(null);
-  const [favorites, setFavorites] = useState<Place[]>(INITIAL_FAVORITES);
-  const [recent, setRecent] = useState<Place[]>(mockRecentSearches);
+  const [favorites, setFavorites] = useState<Place[]>(() => (mock ? INITIAL_FAVORITES : []));
+  const [recent, setRecent] = useState<Place[]>(() => (mock ? mockRecentSearches : []));
   const [editingRecent, setEditingRecent] = useState(false);
   const [layersOn, setLayersOn] = useState(false);
   const [mapKey, setMapKey] = useState(0);
@@ -108,13 +139,47 @@ export function HomeScreen() {
   const selectedPlace =
     selected === undefined ? (placeParam ? (getPlaceById(placeParam) ?? null) : null) : selected;
 
+  const markers = useMemo<MapMarker[]>(() => {
+    if (mock) return locationAvailable ? MARKERS_WITH_CURRENT : PLACE_MARKERS;
+    const list: MapMarker[] = [];
+    if (livePosition) list.push({ id: "current", position: livePosition, tone: "current" });
+    if (selectedPlace) {
+      list.push({
+        id: selectedPlace.id,
+        position: selectedPlace.position,
+        label: selectedPlace.name,
+        tone: "place",
+      });
+    }
+    return list;
+  }, [mock, locationAvailable, livePosition, selectedPlace]);
+
   function update(next: { origin: Place | null; destination: Place | null }) {
+    if (!mock) {
+      const picked = [next.origin, next.destination].filter(
+        (p): p is Place =>
+          p !== null && p.id !== "current" && p.id !== origin?.id && p.id !== destination?.id,
+      );
+      if (picked.length > 0) {
+        setRecent((list) =>
+          [...picked, ...list.filter((p) => !picked.some((x) => x.id === p.id))].slice(0, 8),
+        );
+      }
+    }
     setOrigin(next.origin);
     setDestination(next.destination);
     if (next.origin && next.destination) {
-      const from = encodeURIComponent(next.origin.id);
-      const to = encodeURIComponent(next.destination.id);
-      router.push(`/routes?from=${from}&to=${to}`);
+      if (mock) {
+        const from = encodeURIComponent(next.origin.id);
+        const to = encodeURIComponent(next.destination.id);
+        router.push(`/routes?mock=1&from=${from}&to=${to}`);
+      } else {
+        const query = routePairQuery({
+          origin: placeToRouteEnd(next.origin),
+          destination: placeToRouteEnd(next.destination),
+        });
+        router.push(`/routes?${query}`);
+      }
     }
   }
 
@@ -191,14 +256,14 @@ export function HomeScreen() {
         onClose={() => setSelected(null)}
       />
     );
-  } else if (demoState === "denied") {
+  } else if (locationState === "denied") {
     sheetContent = (
       <LocationDeniedState
         onSearchInstead={focusOriginInput}
-        onRetry={() => router.replace("/")}
+        onRetry={mock ? () => router.replace("/?mock=1") : geo.retry}
       />
     );
-  } else if (demoState === "outside") {
+  } else if (locationState === "outside") {
     sheetContent = <OutsideServiceAreaState />;
   } else if (view === "favorites") {
     sheetContent = (
@@ -221,7 +286,7 @@ export function HomeScreen() {
     sheetContent = (
       <SheetSection title="최근 경로">
         <PlaceList
-          places={mockRecentSearches}
+          places={mock ? mockRecentSearches : []}
           onSelect={setSelected}
           icon="history"
           emptyText="최근에 찾은 경로가 없어요"
@@ -275,9 +340,9 @@ export function HomeScreen() {
     );
   }
 
-  const expandedSheet = Boolean(selectedPlace) || demoState !== null;
+  const expandedSheet = Boolean(selectedPlace) || locationState !== null;
   const initialSnap = expandedSheet ? 1 : 0;
-  const sheetKey = selectedPlace ? `place-${selectedPlace.id}` : demoState ? "demo" : "idle";
+  const sheetKey = selectedPlace ? `place-${selectedPlace.id}` : locationState ? "demo" : "idle";
 
   return (
     <div style={{ "--controls-top": "7.25rem" } as CSSProperties}>
@@ -286,8 +351,8 @@ export function HomeScreen() {
           <MapView
             key={mapKey}
             label="대전 지도"
-            center={mockCurrentPosition}
-            markers={locationAvailable ? MARKERS_WITH_CURRENT : PLACE_MARKERS}
+            center={mock ? mockCurrentPosition : (livePosition ?? DAEJEON_CENTER)}
+            markers={markers}
             obscuredTop={HEADER_HEIGHT_PX}
             obscuredBottom={SHEET_SNAPS[initialSnap] + TAB_BAR_RATIO}
             onMarkerClick={selectById}
@@ -300,7 +365,10 @@ export function HomeScreen() {
             onLayers={() => setLayersOn((v) => !v)}
             favoritesOn={view === "favorites"}
             onFavorites={() => toggleView("favorites")}
-            onLocate={() => setMapKey((k) => k + 1)}
+            onLocate={() => {
+              if (!mock) geo.retry();
+              setMapKey((k) => k + 1);
+            }}
           />
         }
         header={
@@ -315,7 +383,8 @@ export function HomeScreen() {
                 destination={destination}
                 onChange={update}
                 onBack={() => setRouteMode(false)}
-                search={searchPlaces}
+                search={mock ? searchPlaces : undefined}
+                currentPosition={mock ? undefined : livePosition}
                 recent={recent}
               />
             ) : (
@@ -323,7 +392,8 @@ export function HomeScreen() {
                 <MainSearchBar
                   onSelect={selectFromSearch}
                   onRoute={() => setRouteMode(true)}
-                  search={searchPlaces}
+                  search={mock ? searchPlaces : undefined}
+                  near={mock ? undefined : livePosition}
                   recent={recent}
                 />
                 <div className="mt-1">

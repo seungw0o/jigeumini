@@ -1,6 +1,17 @@
 import { BusGlyph, ClockIcon, RefreshIcon } from "@/assets/icons";
 import { BUS_TYPE_META } from "@/utils/format";
-import type { BusArrival, BusType } from "@/utils/types";
+import { formatShortClock } from "@/utils/ribbon";
+import type { BusArrival, BusType, LegLiveIssue } from "@/utils/types";
+
+export const LIVE_ISSUE_LABEL: Record<LegLiveIssue, string> = {
+  unavailable: "실시간 정보 없음",
+  noBus: "다음 차 정보 없음",
+};
+
+/** 실시간 API가 예정 출발 시각을 안 주면 departAt은 빈 문자열 */
+export function garageDepartLabel(departAt: string): string {
+  return departAt ? `차고지 출발 예정 ${formatShortClock(departAt)}` : "차고지 출발 대기";
+}
 
 export function BusNumber({
   routeNo,
@@ -75,10 +86,7 @@ export function ArrivalText({ arrival, missed = false }: { arrival: BusArrival; 
         </>
       )}
       {status.kind === "garage" && (
-        <>
-          <span className="font-semibold whitespace-nowrap text-warn">{status.departAt} 출발</span>
-          <span className="truncate text-muted">차고지 대기</span>
-        </>
+        <span className="truncate font-semibold text-warn">{garageDepartLabel(status.departAt)}</span>
       )}
       {status.kind === "ended" && <span className="text-subtle">운행 종료</span>}
       {arrival.runLabel && <RunLabelBadge runLabel={arrival.runLabel} />}

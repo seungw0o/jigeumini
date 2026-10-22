@@ -8,7 +8,16 @@ import { formatShortClock } from "@/utils/ribbon";
 import type { TransitRoute } from "@/utils/types";
 import { BusSequence } from "./RouteSummary";
 
-export function RouteSwitcher({ routes, currentId }: { routes: TransitRoute[]; currentId: string }) {
+export function RouteSwitcher({
+  routes,
+  currentId,
+  query,
+}: {
+  routes: TransitRoute[];
+  currentId: string;
+  query?: string;
+}) {
+  const suffix = query ? `?${query}` : "";
   const scrollerRef = useRef<HTMLUListElement>(null);
   const activeRef = useRef<HTMLAnchorElement>(null);
 
@@ -30,7 +39,7 @@ export function RouteSwitcher({ routes, currentId }: { routes: TransitRoute[]; c
       </div>
       <nav aria-label="경로 선택" className="flex items-center gap-2">
         <Link
-          href="/routes"
+          href={`/routes${suffix}`}
           aria-label="경로 목록으로"
           className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-surface text-ink shadow-float hover:bg-fill lg:border lg:border-line lg:shadow-none"
         >
@@ -46,7 +55,7 @@ export function RouteSwitcher({ routes, currentId }: { routes: TransitRoute[]; c
               <li key={route.id} className="shrink-0">
                 <Link
                   ref={active ? activeRef : undefined}
-                  href={`/routes/${route.id}`}
+                  href={`/routes/${route.id}${suffix}`}
                   aria-current={active ? "page" : undefined}
                   className={`relative flex h-10 items-center gap-2 rounded-md border bg-surface pr-3 pl-2.5 text-13 whitespace-nowrap tabular shadow-float lg:shadow-none ${
                     active

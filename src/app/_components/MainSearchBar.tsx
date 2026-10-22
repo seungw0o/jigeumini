@@ -1,20 +1,27 @@
 "use client";
 
-import { useId, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useState, type KeyboardEvent } from "react";
+import { usePlaceSearch } from "@/apis/queries/usePlaceSearch.query";
 import { CloseIcon, DirectionsIcon, HistoryIcon, PinIcon, SearchIcon } from "@/assets/icons";
 import { LogoMark } from "@/assets/Logo";
 import { formatDistance } from "@/utils/format";
-import type { Place } from "@/utils/types";
+import type { LatLng, Place } from "@/utils/types";
+
+// usePlaceSearch의 디바운스와 같은 값: 그 전까지 결과는 이전 검색어의 것이다
+const SEARCH_DEBOUNCE_MS = 250;
 
 export function MainSearchBar({
   onSelect,
   onRoute,
   search,
+  near = null,
   recent,
 }: {
   onSelect: (place: Place) => void;
   onRoute: () => void;
-  search: (q: string) => Place[];
+  /** 목 데이터 동기 검색. 없으면 카카오 장소 검색을 쓴다 */
+  search?: (q: string) => Place[];
+  near?: LatLng | null;
   recent: Place[];
 }) {
   const baseId = useId();
@@ -26,9 +33,21 @@ export function MainSearchBar({
   const [activeIndex, setActiveIndex] = useState(-1);
 
   const query = value.trim();
-  const options = query ? search(query) : recent;
-  const noResults = query !== "" && options.length === 0;
-  const expanded = open && (options.length > 0 || noResults);
+  const live = usePlaceSearch(query, { near, enabled: !search });
+  const [settledQuery, setSettledQuery] = useState(query);
+  useEffect(() => {
+    const id = setTimeout(() => setSettledQuery(query), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [query]);
+
+  const options = query ? (search ? search(query) : live.places) : recent;
+  const searching =
+    !search &&
+    query !== "" &&
+    options.length === 0 &&
+    (query !== settledQuery || live.isFetching);
+  const noResults = query !== "" && options.length === 0 && !searching;
+  const expanded = open && (options.length > 0 || noResults || searching);
 
   function close() {
     setOpen(false);
@@ -135,14 +154,14 @@ export function MainSearchBar({
               최근 검색
             </div>
           )}
-          {noResults && (
+          {(noResults || searching) && (
             <div
               role="option"
               aria-selected={false}
               aria-disabled="true"
               className="flex h-12 items-center px-4 text-13 text-muted"
             >
-              검색 결과가 없어요
+              {searching ? "찾는 중이에요" : "검색 결과가 없어요"}
             </div>
           )}
           {options.map((place, i) => {

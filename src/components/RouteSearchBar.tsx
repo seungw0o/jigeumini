@@ -1,22 +1,22 @@
 "use client";
 
-import { useId, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { usePlaceSearch } from "@/apis/queries/usePlaceSearch.query";
 import { CloseIcon, HistoryIcon, LocateIcon, MoreIcon, PinIcon, SwapIcon } from "@/assets/icons";
 import { mockCurrentPosition } from "@/app/_mocks/places";
 import { formatDistance } from "@/utils/format";
-import type { Place } from "@/utils/types";
+import type { LatLng, Place } from "@/utils/types";
 
 type Field = "origin" | "destination";
 
 type Option = { key: string; kind: "current" | "recent" | "result"; place: Place };
 
-const CURRENT_PLACE: Place = {
-  id: "current",
-  name: "현재 위치",
-  address: "",
-  category: "현재 위치",
-  position: mockCurrentPosition,
-};
+// usePlaceSearch의 디바운스와 같은 값: 그 전까지 결과는 이전 검색어의 것이다
+const SEARCH_DEBOUNCE_MS = 250;
+
+function currentPlace(position: LatLng): Place {
+  return { id: "current", name: "현재 위치", address: "", category: "현재 위치", position };
+}
 
 const FIELD_COPY: Record<Field, { label: string; placeholder: string; clear: string }> = {
   origin: { label: "출발지", placeholder: "출발지 검색", clear: "출발지 지우기" },
@@ -30,6 +30,7 @@ export function RouteSearchBar({
   onSubmit,
   onBack,
   search,
+  currentPosition = mockCurrentPosition,
   recent,
   compact = false,
 }: {
@@ -38,7 +39,10 @@ export function RouteSearchBar({
   onChange: (next: { origin: Place | null; destination: Place | null }) => void;
   onSubmit?: () => void;
   onBack?: () => void;
-  search: (q: string) => Place[];
+  /** 목 데이터 동기 검색. 없으면 카카오 장소 검색을 쓴다 */
+  search?: (q: string) => Place[];
+  /** "현재 위치" 옵션의 좌표. null이면 옵션을 숨긴다 */
+  currentPosition?: LatLng | null;
   recent: Place[];
   compact?: boolean;
 }) {
@@ -58,20 +62,35 @@ export function RouteSearchBar({
 
   const values: Record<Field, Place | null> = { origin, destination };
   const query = field && draft !== null ? draft.trim() : "";
+  const live = usePlaceSearch(query, { near: currentPosition, enabled: !search });
+  const [settledQuery, setSettledQuery] = useState(query);
+  useEffect(() => {
+    const id = setTimeout(() => setSettledQuery(query), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [query]);
 
   let options: Option[] = [];
   if (field && query) {
-    options = search(query).map((place) => ({ key: `r-${place.id}`, kind: "result", place }));
+    options = (search ? search(query) : live.places).map((place) => ({
+      key: `r-${place.id}`,
+      kind: "result",
+      place,
+    }));
   } else if (field) {
     options = [
-      ...(field === "origin"
-        ? [{ key: "current", kind: "current" as const, place: CURRENT_PLACE }]
+      ...(field === "origin" && currentPosition
+        ? [{ key: "current", kind: "current" as const, place: currentPlace(currentPosition) }]
         : []),
       ...recent.map((place) => ({ key: `h-${place.id}`, kind: "recent" as const, place })),
     ];
   }
-  const noResults = query !== "" && options.length === 0;
-  const expanded = open && field !== null && (options.length > 0 || noResults);
+  const searching =
+    !search &&
+    query !== "" &&
+    options.length === 0 &&
+    (query !== settledQuery || live.isFetching);
+  const noResults = query !== "" && options.length === 0 && !searching;
+  const expanded = open && field !== null && (options.length > 0 || noResults || searching);
   const currentOption = options[0]?.kind === "current" ? options[0] : null;
   const recentOptions = options.filter((o) => o.kind === "recent");
   const resultOptions = options.filter((o) => o.kind === "result");
@@ -309,14 +328,14 @@ export function RouteSearchBar({
         hidden={!expanded}
         className="absolute inset-x-0 top-full z-40 mt-1 max-h-[60dvh] overflow-auto rounded-lg border border-line bg-surface py-1 shadow-float"
       >
-        {noResults && (
+        {(noResults || searching) && (
           <div
             role="option"
             aria-selected={false}
             aria-disabled="true"
             className="flex h-12 items-center px-4 text-13 text-muted"
           >
-            검색 결과가 없어요
+            {searching ? "찾는 중이에요" : "검색 결과가 없어요"}
           </div>
         )}
         {resultOptions.map((o, i) => renderOption(o, i))}

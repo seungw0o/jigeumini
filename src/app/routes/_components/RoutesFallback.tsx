@@ -1,4 +1,3 @@
-import { mockRouteSearch } from "@/app/_mocks/routes";
 import { MapView } from "@/components/MapView";
 import { RouteListSkeleton } from "@/components/StateViews";
 import { RoutesLayout } from "./RoutesLayout";
@@ -14,11 +13,7 @@ export function RoutesFallback() {
           <div className="px-4 pt-3 pb-1 lg:pt-0" aria-hidden="true">
             <div className={`h-[90px] rounded-lg ${pulse}`} />
           </div>
-          <RoutesToolbar
-            baseTime={mockRouteSearch.baseTime}
-            secondsAgo={mockRouteSearch.updatedSecondsAgo}
-            sort="arrival"
-          />
+          <RoutesToolbar sort="arrival" />
         </>
       }
       map={<MapView label="경로 지도" />}

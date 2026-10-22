@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { BusGlyph } from "@/assets/icons";
 import { LeaveBadge } from "@/components/LeaveBadge";
-import { ArrivalText, BusBadge, MissedBusNotice } from "@/components/StatusChips";
-import { BUS_TYPE_META, formatDistance } from "@/utils/format";
+import { ArrivalText, BusBadge, LIVE_ISSUE_LABEL, MissedBusNotice } from "@/components/StatusChips";
+import { BUS_TYPE_META, formatDistance, isLiveTimed } from "@/utils/format";
 import { buildRibbon, formatShortClock } from "@/utils/ribbon";
 import type { BusLeg, Leg, Ribbon, TransitRoute } from "@/utils/types";
 
@@ -149,8 +149,23 @@ function WaitTag({ children }: { children: ReactNode }) {
   );
 }
 
-function BoardContent({ leg, transferWait }: { leg: BusLeg; transferWait?: number }) {
-  const visible = leg.arrivals.slice(0, leg.catchIndex + 2);
+function BoardContent({
+  leg,
+  transferWait,
+  isTransfer,
+  pending,
+}: {
+  leg: BusLeg;
+  transferWait?: number;
+  isTransfer: boolean;
+  pending: boolean;
+}) {
+  const visible = leg.liveIssue ? [] : leg.arrivals.slice(0, leg.catchIndex + 2);
+  const statusText = leg.liveIssue
+    ? LIVE_ISSUE_LABEL[leg.liveIssue]
+    : visible.length === 0 && pending
+      ? "실시간 확인 중"
+      : null;
   const firstMissed = leg.arrivals[0]?.status;
   const caught = leg.arrivals[leg.catchIndex]?.status;
 
@@ -158,7 +173,7 @@ function BoardContent({ leg, transferWait }: { leg: BusLeg; transferWait?: numbe
     <>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <StopTitle>{leg.boardStop.name} 승차</StopTitle>
-        {transferWait !== undefined && <WaitTag>환승 대기 {transferWait}분</WaitTag>}
+        {transferWait !== undefined && !leg.liveIssue && <WaitTag>환승 대기 {transferWait}분</WaitTag>}
       </div>
       <p className="text-xs text-muted tabular">{leg.boardStop.arsId}</p>
       <div className="mt-2 flex items-start gap-2.5">
@@ -166,6 +181,7 @@ function BoardContent({ leg, transferWait }: { leg: BusLeg; transferWait?: numbe
           <BusBadge routeNo={leg.routeNo} busType={leg.busType} />
         </span>
         <ul className="flex min-w-0 flex-col gap-0.5">
+          {statusText && <li className="flex min-h-[18px] min-w-0 items-center text-13 text-muted">{statusText}</li>}
           {visible.map((arrival, i) => (
             <li key={i} className="flex min-h-[18px] min-w-0 items-center">
               <ArrivalText arrival={arrival} missed={i < leg.catchIndex} />
@@ -173,7 +189,10 @@ function BoardContent({ leg, transferWait }: { leg: BusLeg; transferWait?: numbe
           ))}
         </ul>
       </div>
-      {leg.catchIndex > 0 && firstMissed?.kind === "live" && caught?.kind === "live" && (
+      {isTransfer && leg.liveIssue && (
+        <p className="mt-1.5 text-xs text-muted">환승 버스 실시간 정보가 없어 대기 시간은 빼고 계산했어요</p>
+      )}
+      {!leg.liveIssue && leg.catchIndex > 0 && firstMissed?.kind === "live" && caught?.kind === "live" && (
         <div className="mt-1.5">
           <MissedBusNotice routeNo={leg.routeNo} missedInMinutes={firstMissed.minutes} />
         </div>
@@ -196,6 +215,8 @@ function transferWaitOf(ribbon: Ribbon, leg: BusLeg): number {
 function buildSteps(route: TransitRoute, now: string, originName: string, destinationName: string): StepData[] {
   const { legs } = route;
   const ribbon = buildRibbon(route, now);
+  const live = isLiveTimed(route);
+  const pending = route.realtime === "loading";
   const beforeMinutes = ribbon.segments[0]?.kind === "before" ? ribbon.segments[0].minutes : 0;
   const steps: StepData[] = [];
 
@@ -256,7 +277,14 @@ function buildSteps(route: TransitRoute, now: string, originName: string, destin
       incoming: segmentOf(legs[i - 1]),
       outgoing: segmentOf(leg),
       marker: { kind: "board", color },
-      content: <BoardContent leg={leg} transferWait={seenBus ? transferWaitOf(ribbon, leg) : undefined} />,
+      content: (
+        <BoardContent
+          leg={leg}
+          transferWait={seenBus && live ? transferWaitOf(ribbon, leg) : undefined}
+          isTransfer={seenBus}
+          pending={pending}
+        />
+      ),
     });
     seenBus = true;
     steps.push({
@@ -283,7 +311,9 @@ function buildSteps(route: TransitRoute, now: string, originName: string, destin
     content: (
       <>
         <StopTitle>{destinationName}</StopTitle>
-        <p className="text-xs text-muted">대기까지 더한 도착 예상</p>
+        <p className="text-xs text-muted">
+          {!live ? "기다리는 시간 없이 계산한 도착 예상" : route.realtime === "partial" ? "환승 대기는 뺀 도착 예상" : "대기까지 더한 도착 예상"}
+        </p>
       </>
     ),
   });

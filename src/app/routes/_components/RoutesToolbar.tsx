@@ -22,8 +22,8 @@ export function RoutesToolbar({
   sort,
   onSortChange,
 }: {
-  baseTime: string;
-  secondsAgo: number;
+  baseTime?: string;
+  secondsAgo?: number;
   onRefresh?: () => void;
   sort: RouteSortKey;
   onSortChange?: (next: RouteSortKey) => void;
@@ -33,16 +33,20 @@ export function RoutesToolbar({
       <div className="flex min-w-0 items-center gap-2.5">
         <button
           type="button"
-          aria-label={`출발 시각 지금 ${formatShortClock(baseTime)}`}
+          aria-label={baseTime ? `출발 시각 지금 ${formatShortClock(baseTime)}` : "출발 시각 지금"}
           className="-ml-1 inline-flex h-11 shrink-0 items-center gap-1 rounded-md px-1 text-sm whitespace-nowrap focus-visible:outline-offset-[-2px]"
         >
           <span className="font-bold text-ink">지금</span>
-          <span className="font-medium text-ink-2 tabular">{formatShortClock(baseTime)} 출발</span>
+          <span className="font-medium text-ink-2 tabular">
+            {baseTime ? `${formatShortClock(baseTime)} 출발` : "출발"}
+          </span>
           <ChevronDownIcon size={16} className="text-muted" />
         </button>
-        <span className="min-w-0 max-[359px]:hidden">
-          <StaleBadge secondsAgo={secondsAgo} onRefresh={onRefresh} />
-        </span>
+        {secondsAgo !== undefined && (
+          <span className="min-w-0 max-[359px]:hidden">
+            <StaleBadge secondsAgo={secondsAgo} onRefresh={onRefresh} />
+          </span>
+        )}
       </div>
       <label className="relative -mr-1 inline-flex h-11 shrink-0 items-center">
         <span className="sr-only">정렬</span>

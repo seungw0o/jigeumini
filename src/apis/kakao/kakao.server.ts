@@ -65,6 +65,8 @@ export interface PlaceSearchOptions extends RequestOptions {
   near?: LatLng;
   /** near 기준 반경(m), 최대 20000 */
   radiusM?: number;
+  /** near가 있을 때 정렬. 기본 distance, accuracy면 검색어 정확도 순이고 distanceM은 그대로 온다 */
+  sort?: "distance" | "accuracy";
   page?: number;
   size?: number;
 }
@@ -74,7 +76,7 @@ export async function searchPlaces(query: string, options: PlaceSearchOptions = 
   if (options.near) {
     params.x = String(options.near.lng);
     params.y = String(options.near.lat);
-    params.sort = "distance";
+    params.sort = options.sort ?? "distance";
     if (options.radiusM !== undefined) params.radius = String(Math.min(20000, Math.round(options.radiusM)));
   }
   if (options.page !== undefined) params.page = String(options.page);

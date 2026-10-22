@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
   const near = parseCoord(`${params.get("lat") ?? ""},${params.get("lng") ?? ""}`);
   try {
-    const result = await searchPlaces(q, near ? { near, radiusM: 20000, size: 10 } : { size: 10 });
+    const result = await searchPlaces(q, near ? { near, radiusM: 20000, sort: "accuracy", size: 10 } : { size: 10 });
     return Response.json({ places: result.places } satisfies PlacesResponse, { headers: NO_STORE });
   } catch (error) {
     if (!isApiError(error)) throw error;

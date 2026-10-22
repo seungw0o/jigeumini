@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { BUS_TYPE_META } from "@/utils/format";
+import { BUS_TYPE_META, isLiveTimed } from "@/utils/format";
 import { buildRibbon, formatShortClock } from "@/utils/ribbon";
 import type { RibbonMark, RibbonSegment, TransitRoute } from "@/utils/types";
 
@@ -326,7 +326,9 @@ export function TimeRibbon({
   variant?: Variant;
   className?: string;
 }) {
-  const ribbon = buildRibbon(route, now);
+  const built = buildRibbon(route, now);
+  const timed = isLiveTimed(route);
+  const ribbon = timed ? built : { ...built, marks: built.marks.filter((m) => m.kind !== "leave") };
   const total = ribbon.totalMinutes;
   const size = VARIANT[variant];
 
@@ -401,7 +403,7 @@ export function TimeRibbon({
 
       <ol className="sr-only">
         <li>지금 {formatShortClock(ribbon.now)}</li>
-        {!hasBefore && <li>지금 바로 출발</li>}
+        {timed && !hasBefore && <li>지금 바로 출발</li>}
         {ribbon.segments.map((seg) => (
           <li key={`${seg.kind}-${seg.start}`}>{describe(seg)}</li>
         ))}

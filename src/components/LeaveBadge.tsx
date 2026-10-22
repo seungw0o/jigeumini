@@ -1,4 +1,4 @@
-import { leaveLabel } from "@/utils/format";
+import { leaveLabel, realtimeBadgeLabel } from "@/utils/format";
 import type { TransitRoute } from "@/utils/types";
 
 const SIZE = {
@@ -11,14 +11,16 @@ export function LeaveBadge({
   route,
   size = "md",
 }: {
-  route: Pick<TransitRoute, "leaveInMinutes">;
+  route: Pick<TransitRoute, "leaveInMinutes" | "realtime">;
   size?: keyof typeof SIZE;
 }) {
+  const status = realtimeBadgeLabel(route);
+  const tone = status ? "bg-fill text-ink-2" : "bg-brand text-ink";
   return (
     <span
-      className={`inline-flex shrink-0 items-center rounded-sm bg-brand font-bold whitespace-nowrap text-ink tabular ${SIZE[size]}`}
+      className={`inline-flex shrink-0 items-center rounded-sm font-bold whitespace-nowrap tabular ${tone} ${SIZE[size]}`}
     >
-      {leaveLabel(route)}
+      {status ?? leaveLabel(route)}
     </span>
   );
 }

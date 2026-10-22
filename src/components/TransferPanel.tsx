@@ -1,13 +1,17 @@
 import { ChevronRightIcon } from "@/assets/icons";
-import { BusNumber, StaleBadge } from "@/components/StatusChips";
+import { BusNumber, garageDepartLabel, LIVE_ISSUE_LABEL, StaleBadge } from "@/components/StatusChips";
+import { isLiveTimed } from "@/utils/format";
 import { formatShortClock } from "@/utils/ribbon";
 import type { BusLeg, TransitRoute } from "@/utils/types";
 
-function arrivalText(leg: BusLeg, prefix: string): string {
-  const status = leg.arrivals[leg.catchIndex]?.status;
+function arrivalText(leg: BusLeg, prefix: string, route: TransitRoute): string {
   const name = `${prefix}${leg.routeNo}번`;
+  if (leg.liveIssue) return `${name} ${LIVE_ISSUE_LABEL[leg.liveIssue]}`;
+  const status = leg.arrivals[leg.catchIndex]?.status;
+  if (!status && route.realtime === "loading") return `${name} 실시간 확인 중`;
+  if (!status && !isLiveTimed(route)) return `${name} ${LIVE_ISSUE_LABEL.unavailable}`;
   if (!status || status.kind === "ended") return `${name} 운행 종료`;
-  if (status.kind === "garage") return `${name} ${formatShortClock(status.departAt)} 출발 예정`;
+  if (status.kind === "garage") return `${name} ${garageDepartLabel(status.departAt)}`;
   return `${name} 도착까지 ${status.minutes}분`;
 }
 
@@ -24,6 +28,8 @@ export function TransferPanel({
 
   const busLegs = route.legs.filter((leg): leg is BusLeg => leg.kind === "bus");
   const transfers = busLegs.slice(1).map((leg, i) => ({ prev: busLegs[i], next: leg }));
+  const live = isLiveTimed(route);
+  const waitKnown = (leg: BusLeg) => live && !leg.liveIssue;
 
   return (
     <section aria-labelledby="transfer-panel-title" className="px-4 pt-2.5 pb-3">
@@ -53,14 +59,15 @@ export function TransferPanel({
                 승차
               </span>
             </p>
-            <p className="mt-1 text-13 text-muted tabular">{arrivalText(prev, "버스 ")}</p>
+            <p className="mt-1 text-13 text-muted tabular">{arrivalText(prev, "버스 ", route)}</p>
             <p className="text-13 text-muted tabular">
-              {arrivalText(next, "환승 버스 ")} · 환승 대기 {next.waitMinutes}분
+              {arrivalText(next, "환승 버스 ", route)}
+              {waitKnown(next) && ` · 환승 대기 ${next.waitMinutes}분`}
             </p>
           </li>
         ))}
       </ul>
-      {route.quickTransferChance !== undefined && (
+      {route.quickTransferChance !== undefined && busLegs.slice(1).every(waitKnown) && (
         <p className="text-xs text-muted tabular">바로 환승 {route.quickTransferChance}%</p>
       )}
     </section>
