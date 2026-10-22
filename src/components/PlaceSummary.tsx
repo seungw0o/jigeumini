@@ -54,14 +54,14 @@ export function PlaceSummary({
         <button
           type="button"
           onClick={() => onSetOrigin(place)}
-          className="relative h-9 rounded-full border border-line-strong bg-surface px-4 text-sm font-semibold text-ink before:absolute before:-inset-y-0.5 before:inset-x-0 hover:bg-fill"
+          className="relative h-9 rounded-md border border-line-strong bg-surface px-4 text-sm font-semibold text-ink before:absolute before:-inset-y-0.5 before:inset-x-0 hover:bg-fill"
         >
           출발
         </button>
         <button
           type="button"
           onClick={() => onSetDestination(place)}
-          className="relative h-9 rounded-full bg-accent px-4 text-sm font-semibold text-white before:absolute before:-inset-y-0.5 before:inset-x-0 hover:bg-accent-strong"
+          className="relative h-9 rounded-md bg-brand px-4 text-sm font-semibold text-ink before:absolute before:-inset-y-0.5 before:inset-x-0 hover:bg-brand-strong"
         >
           도착
         </button>
@@ -70,10 +70,10 @@ export function PlaceSummary({
           aria-label="즐겨찾기 추가"
           aria-pressed={favorite}
           onClick={() => onToggleFavorite?.(place)}
-          className="relative ml-auto flex size-9 items-center justify-center rounded-full border border-line-strong bg-surface before:absolute before:-inset-0.5 hover:bg-fill"
+          className="relative ml-auto flex size-9 items-center justify-center rounded-md border border-line-strong bg-surface before:absolute before:-inset-0.5 hover:bg-fill"
         >
           {favorite ? (
-            <StarFilledIcon size={18} className="text-[#f5a400]" />
+            <StarFilledIcon size={18} className="text-brand" />
           ) : (
             <StarIcon size={18} className="text-ink-2" />
           )}
@@ -106,9 +106,9 @@ export function PlaceSummarySkeleton() {
         </div>
 
         <div className="mt-3 flex items-center gap-1.5">
-          <div className="h-9 w-[62px] rounded-full bg-line animate-pulse motion-reduce:animate-none" />
-          <div className="h-9 w-[62px] rounded-full bg-line animate-pulse motion-reduce:animate-none" />
-          <div className="ml-auto size-9 rounded-full bg-line animate-pulse motion-reduce:animate-none" />
+          <div className="h-9 w-[62px] rounded-md bg-line animate-pulse motion-reduce:animate-none" />
+          <div className="h-9 w-[62px] rounded-md bg-line animate-pulse motion-reduce:animate-none" />
+          <div className="ml-auto size-9 rounded-md bg-line animate-pulse motion-reduce:animate-none" />
         </div>
       </div>
     </div>

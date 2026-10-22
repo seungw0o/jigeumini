@@ -2,6 +2,7 @@
 
 import { useId, useState, type KeyboardEvent } from "react";
 import { CloseIcon, DirectionsIcon, HistoryIcon, PinIcon, SearchIcon } from "@/assets/icons";
+import { LogoMark } from "@/assets/Logo";
 import { formatDistance } from "@/utils/format";
 import type { Place } from "@/utils/types";
 
@@ -78,8 +79,9 @@ export function MainSearchBar({
           if (!e.currentTarget.contains(e.relatedTarget as Node | null)) close();
         }}
       >
-        <div className="flex h-12 items-center rounded-full bg-surface pl-4 shadow-pill focus-within:outline-2 focus-within:outline-accent lg:border lg:border-line lg:shadow-none">
-          <SearchIcon size={20} className="shrink-0 text-subtle" />
+        <div className="flex h-12 items-center rounded-lg bg-surface pl-3.5 shadow-pill focus-within:outline-2 focus-within:outline-brand-ink lg:border lg:border-line-strong lg:pl-4 lg:shadow-none">
+          <LogoMark size={22} className="shrink-0 lg:hidden" />
+          <SearchIcon size={20} className="hidden shrink-0 text-muted lg:block" />
           <input
             type="text"
             role="combobox"
@@ -90,7 +92,7 @@ export function MainSearchBar({
             aria-activedescendant={expanded && activeIndex >= 0 ? optionId(activeIndex) : undefined}
             autoComplete="off"
             enterKeyHint="search"
-            placeholder="장소, 버스, 정류장 검색"
+            placeholder="정류장, 장소 검색"
             value={value}
             onFocus={() => {
               setOpen(true);
@@ -112,7 +114,7 @@ export function MainSearchBar({
                 setValue("");
                 setActiveIndex(-1);
               }}
-              className="mr-1 flex size-10 shrink-0 items-center justify-center rounded-full text-subtle hover:text-ink"
+              className="mr-1 flex size-10 shrink-0 items-center justify-center rounded-md text-muted hover:text-ink"
             >
               <CloseIcon size={18} />
             </button>
@@ -176,7 +178,7 @@ export function MainSearchBar({
         type="button"
         aria-label="길찾기"
         onClick={onRoute}
-        className="flex size-12 shrink-0 items-center justify-center rounded-full bg-accent text-white shadow-pill hover:bg-accent-strong"
+        className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-brand text-ink shadow-pill hover:bg-brand-strong lg:shadow-none"
       >
         <DirectionsIcon size={22} />
       </button>
