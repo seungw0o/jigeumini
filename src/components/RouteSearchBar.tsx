@@ -1,22 +1,22 @@
 "use client";
 
-import { useId, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { usePlaceSearch } from "@/apis/queries/usePlaceSearch.query";
 import { CloseIcon, HistoryIcon, LocateIcon, MoreIcon, PinIcon, SwapIcon } from "@/assets/icons";
 import { mockCurrentPosition } from "@/app/_mocks/places";
 import { formatDistance } from "@/utils/format";
-import type { Place } from "@/utils/types";
+import type { LatLng, Place } from "@/utils/types";
 
 type Field = "origin" | "destination";
 
 type Option = { key: string; kind: "current" | "recent" | "result"; place: Place };
 
-const CURRENT_PLACE: Place = {
-  id: "current",
-  name: "현재 위치",
-  address: "",
-  category: "현재 위치",
-  position: mockCurrentPosition,
-};
+// usePlaceSearch의 디바운스와 같은 값: 그 전까지 결과는 이전 검색어의 것이다
+const SEARCH_DEBOUNCE_MS = 250;
+
+function currentPlace(position: LatLng): Place {
+  return { id: "current", name: "현재 위치", address: "", category: "현재 위치", position };
+}
 
 const FIELD_COPY: Record<Field, { label: string; placeholder: string; clear: string }> = {
   origin: { label: "출발지", placeholder: "출발지 검색", clear: "출발지 지우기" },
@@ -30,6 +30,7 @@ export function RouteSearchBar({
   onSubmit,
   onBack,
   search,
+  currentPosition = mockCurrentPosition,
   recent,
   compact = false,
 }: {
@@ -38,7 +39,10 @@ export function RouteSearchBar({
   onChange: (next: { origin: Place | null; destination: Place | null }) => void;
   onSubmit?: () => void;
   onBack?: () => void;
-  search: (q: string) => Place[];
+  /** 목 데이터 동기 검색. 없으면 카카오 장소 검색을 쓴다 */
+  search?: (q: string) => Place[];
+  /** "현재 위치" 옵션의 좌표. null이면 옵션을 숨긴다 */
+  currentPosition?: LatLng | null;
   recent: Place[];
   compact?: boolean;
 }) {
@@ -58,20 +62,35 @@ export function RouteSearchBar({
 
   const values: Record<Field, Place | null> = { origin, destination };
   const query = field && draft !== null ? draft.trim() : "";
+  const live = usePlaceSearch(query, { near: currentPosition, enabled: !search });
+  const [settledQuery, setSettledQuery] = useState(query);
+  useEffect(() => {
+    const id = setTimeout(() => setSettledQuery(query), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [query]);
 
   let options: Option[] = [];
   if (field && query) {
-    options = search(query).map((place) => ({ key: `r-${place.id}`, kind: "result", place }));
+    options = (search ? search(query) : live.places).map((place) => ({
+      key: `r-${place.id}`,
+      kind: "result",
+      place,
+    }));
   } else if (field) {
     options = [
-      ...(field === "origin"
-        ? [{ key: "current", kind: "current" as const, place: CURRENT_PLACE }]
+      ...(field === "origin" && currentPosition
+        ? [{ key: "current", kind: "current" as const, place: currentPlace(currentPosition) }]
         : []),
       ...recent.map((place) => ({ key: `h-${place.id}`, kind: "recent" as const, place })),
     ];
   }
-  const noResults = query !== "" && options.length === 0;
-  const expanded = open && field !== null && (options.length > 0 || noResults);
+  const searching =
+    !search &&
+    query !== "" &&
+    options.length === 0 &&
+    (query !== settledQuery || live.isFetching);
+  const noResults = query !== "" && options.length === 0 && !searching;
+  const expanded = open && field !== null && (options.length > 0 || noResults || searching);
   const currentOption = options[0]?.kind === "current" ? options[0] : null;
   const recentOptions = options.filter((o) => o.kind === "recent");
   const resultOptions = options.filter((o) => o.kind === "result");
@@ -145,20 +164,20 @@ export function RouteSearchBar({
         tabIndex={-1}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => select(o.place)}
-        className="flex h-12 cursor-pointer items-center gap-3 px-4 hover:bg-fill aria-selected:bg-fill"
+        className="flex h-row cursor-pointer items-center gap-3 px-4 hover:bg-surface-muted aria-selected:bg-surface-muted"
       >
         <Icon
           size={18}
-          className={`shrink-0 ${o.kind === "current" ? "text-(--color-current)" : "text-muted"}`}
+          className={`shrink-0 ${o.kind === "current" ? "text-map-current" : "text-fg-muted"}`}
         />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-15 font-semibold text-ink">{o.place.name}</span>
+          <span className="block truncate text-sm font-semibold text-fg">{o.place.name}</span>
           {o.place.address && (
-            <span className="block truncate text-13 text-muted">{o.place.address}</span>
+            <span className="block truncate text-xs text-fg-muted">{o.place.address}</span>
           )}
         </span>
         {o.kind === "result" && o.place.distanceM !== undefined && (
-          <span className="shrink-0 text-13 text-muted tabular">
+          <span className="shrink-0 text-xs text-fg-muted tabular">
             {formatDistance(o.place.distanceM)}
           </span>
         )}
@@ -172,12 +191,10 @@ export function RouteSearchBar({
     const value = field === f && draft !== null ? draft : (place?.name ?? "");
     const isActiveField = field === f && expanded;
     return (
-      <div className="group flex h-11 items-center">
-        <span className="flex w-6 shrink-0 justify-start" aria-hidden="true">
+      <div className="group flex h-control items-center rounded-md bg-surface-muted pr-11 pl-3.5 has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-focus-ring">
+        <span className="flex w-5 shrink-0 justify-start" aria-hidden="true">
           <span
-            className={`size-2.5 rounded-full border-[3px] bg-surface ${
-              f === "origin" ? "border-pin-origin" : "border-pin-destination"
-            }`}
+            className={`size-2 rounded-full ${f === "origin" ? "bg-map-origin" : "bg-map-destination"}`}
           />
         </span>
         <input
@@ -208,14 +225,14 @@ export function RouteSearchBar({
             setActiveIndex(-1);
           }}
           onKeyDown={handleKeyDown}
-          className="h-full min-w-0 flex-1 rounded-md bg-transparent text-15 text-ink placeholder:text-subtle focus-visible:outline-offset-[-2px]"
+          className="h-full min-w-0 flex-1 bg-transparent pr-2 text-sm font-semibold text-fg placeholder:font-normal placeholder:text-fg-muted focus-visible:outline-none"
         />
         {value !== "" && (
           <button
             type="button"
             aria-label={copy.clear}
             onClick={() => clear(f)}
-            className="invisible flex size-10 shrink-0 items-center justify-center rounded-md text-subtle hover:text-ink group-focus-within:visible group-hover:visible focus-visible:outline-offset-[-2px]"
+            className="invisible mr-1 flex size-10 shrink-0 items-center justify-center rounded-md text-fg-muted hover:text-fg group-focus-within:visible group-hover:visible"
           >
             <CloseIcon size={16} />
           </button>
@@ -237,31 +254,30 @@ export function RouteSearchBar({
       }}
     >
       <div
-        className={`flex rounded-lg border border-line bg-surface ${
-          compact ? "" : "shadow-float lg:shadow-none"
+        className={`flex gap-1 rounded-lg ${
+          compact ? "" : "bg-surface p-1.5 shadow-float lg:p-0 lg:shadow-none"
         }`}
       >
-        <div className="flex w-10 shrink-0 items-center justify-center">
+        {/* 바꾸기 버튼은 두 입력창 경계 오른쪽 위에 떠 있다 (입력창은 pr-11로 그 자리를 비워 둠) */}
+        <div className="relative min-w-0 flex-1 space-y-1">
+          {renderRow("origin")}
+          {renderRow("destination")}
           <button
             type="button"
             aria-label="출발지와 도착지 바꾸기"
             onClick={swap}
-            className="flex size-10 items-center justify-center rounded-md text-ink-2 hover:text-ink focus-visible:outline-offset-[-2px]"
+            className="absolute top-1/2 right-1.5 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-surface text-fg-secondary shadow-float hover:text-fg"
           >
             <SwapIcon size={18} />
           </button>
         </div>
-        <div className={`min-w-0 flex-1 divide-y divide-line ${onBack ? "" : "pr-1"}`}>
-          {renderRow("origin")}
-          {renderRow("destination")}
-        </div>
         {onBack && (
-          <div className="relative flex w-10 shrink-0 flex-col">
+          <div className="relative flex w-11 shrink-0 flex-col gap-1">
             <button
               type="button"
               aria-label="뒤로"
               onClick={onBack}
-              className="flex h-11 items-center justify-center rounded-md text-ink-2 hover:text-ink focus-visible:outline-offset-[-2px]"
+              className="flex h-control items-center justify-center rounded-md text-fg-secondary hover:bg-surface-muted hover:text-fg"
             >
               <CloseIcon size={20} />
             </button>
@@ -271,7 +287,7 @@ export function RouteSearchBar({
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((v) => !v)}
-              className="flex h-11 items-center justify-center rounded-md text-ink-2 hover:text-ink focus-visible:outline-offset-[-2px]"
+              className="flex h-control items-center justify-center rounded-md text-fg-secondary hover:bg-surface-muted hover:text-fg"
             >
               <MoreIcon size={20} />
             </button>
@@ -282,7 +298,7 @@ export function RouteSearchBar({
                 onKeyDown={(e) => {
                   if (e.key === "Escape") setMenuOpen(false);
                 }}
-                className="absolute top-full right-0 z-40 mt-1 w-36 rounded-lg bg-surface py-1 shadow-float"
+                className="absolute top-full right-0 z-40 mt-2 w-40 rounded-lg bg-surface py-1.5 shadow-float"
               >
                 <button
                   type="button"
@@ -292,7 +308,7 @@ export function RouteSearchBar({
                     onChange({ origin: null, destination: null });
                     originRef.current?.focus();
                   }}
-                  className="flex h-11 w-full items-center px-4 text-left text-sm text-ink hover:bg-fill focus-visible:outline-offset-[-2px]"
+                  className="flex h-control w-full items-center px-4 text-left text-sm font-semibold text-fg hover:bg-surface-muted focus-visible:-outline-offset-2"
                 >
                   모두 지우기
                 </button>
@@ -307,16 +323,16 @@ export function RouteSearchBar({
         role="listbox"
         aria-label={field ? `${FIELD_COPY[field].label} 검색 결과` : undefined}
         hidden={!expanded}
-        className="absolute inset-x-0 top-full z-40 mt-1 max-h-[60dvh] overflow-auto rounded-lg border border-line bg-surface py-1 shadow-float"
+        className="absolute inset-x-0 top-full z-40 mt-2 max-h-[60dvh] overflow-auto rounded-lg bg-surface py-1.5 shadow-float"
       >
-        {noResults && (
+        {(noResults || searching) && (
           <div
             role="option"
             aria-selected={false}
             aria-disabled="true"
-            className="flex h-12 items-center px-4 text-13 text-muted"
+            className="flex h-row items-center px-4 text-xs text-fg-muted"
           >
-            검색 결과가 없어요
+            {searching ? "찾는 중이에요" : "검색 결과가 없어요"}
           </div>
         )}
         {resultOptions.map((o, i) => renderOption(o, i))}
@@ -326,7 +342,7 @@ export function RouteSearchBar({
             <div
               id={recentLabelId}
               role="presentation"
-              className="flex h-8 items-end px-4 pb-1 text-xs font-semibold text-muted"
+              className="flex h-8 items-end px-4 pb-1 text-xs font-semibold text-fg-muted"
             >
               최근 검색
             </div>

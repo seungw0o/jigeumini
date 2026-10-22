@@ -5,7 +5,7 @@ export function routePaths(route: TransitRoute): MapPath[] {
   return route.legs.map((leg, i) =>
     leg.kind === "bus"
       ? { points: route.path[i], color: BUS_TYPE_META[leg.busType].color, kind: "bus", label: leg.routeNo }
-      : { points: route.path[i], color: "var(--color-walk-text)", kind: "walk" },
+      : { points: route.path[i], color: "var(--color-walk-fg)", kind: "walk" },
   );
 }
 

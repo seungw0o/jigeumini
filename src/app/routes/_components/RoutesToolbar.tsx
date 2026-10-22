@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronDownIcon } from "@/assets/icons";
-import { StaleBadge } from "@/components/StatusChips";
 import { formatShortClock } from "@/utils/ribbon";
 import type { RouteSortKey } from "@/utils/types";
 
@@ -17,34 +16,29 @@ function isSortKey(value: string): value is RouteSortKey {
 
 export function RoutesToolbar({
   baseTime,
-  secondsAgo,
-  onRefresh,
   sort,
   onSortChange,
 }: {
-  baseTime: string;
-  secondsAgo: number;
-  onRefresh?: () => void;
+  baseTime?: string;
   sort: RouteSortKey;
   onSortChange?: (next: RouteSortKey) => void;
 }) {
   return (
-    <div className="flex h-11 items-center justify-between gap-2 border-b border-line px-4">
-      <div className="flex min-w-0 items-center gap-2.5">
+    <div className="flex h-14 items-center justify-between gap-2 border-b border-divider px-4">
+      <div className="flex min-w-0 items-center gap-2">
         <button
           type="button"
-          aria-label={`출발 시각 지금 ${formatShortClock(baseTime)}`}
-          className="-ml-1 inline-flex h-11 shrink-0 items-center gap-1 rounded-md px-1 text-sm whitespace-nowrap focus-visible:outline-offset-[-2px]"
+          aria-label={baseTime ? `출발 시각 지금 ${formatShortClock(baseTime)}` : "출발 시각 지금"}
+          className="inline-flex h-11 shrink-0 items-center gap-1 rounded-md bg-action-secondary px-2.5 text-sm whitespace-nowrap text-action-secondary-fg hover:bg-action-secondary-pressed"
         >
-          <span className="font-bold text-ink">지금</span>
-          <span className="font-medium text-ink-2 tabular">{formatShortClock(baseTime)} 출발</span>
-          <ChevronDownIcon size={16} className="text-muted" />
+          <span className="font-bold text-fg">지금</span>
+          <span className="font-medium text-fg-secondary tabular">
+            {baseTime ? `${formatShortClock(baseTime)} 출발` : "출발"}
+          </span>
+          <ChevronDownIcon size={16} className="text-fg-muted" />
         </button>
-        <span className="min-w-0 max-[359px]:hidden">
-          <StaleBadge secondsAgo={secondsAgo} onRefresh={onRefresh} />
-        </span>
       </div>
-      <label className="relative -mr-1 inline-flex h-11 shrink-0 items-center">
+      <label className="relative inline-flex h-11 shrink-0 items-center">
         <span className="sr-only">정렬</span>
         <select
           value={sort}
@@ -52,7 +46,7 @@ export function RoutesToolbar({
           onChange={(e) => {
             if (isSortKey(e.target.value)) onSortChange?.(e.target.value);
           }}
-          className="h-11 cursor-pointer appearance-none rounded-md bg-transparent pr-6 pl-1 text-13 font-medium text-ink-2 focus-visible:outline-offset-[-2px] disabled:cursor-default"
+          className="h-11 cursor-pointer appearance-none rounded-md bg-transparent pr-7 pl-2.5 text-sm font-medium text-fg-secondary hover:bg-action-secondary disabled:cursor-default"
         >
           {SORT_OPTIONS.map((o) => (
             <option key={o.key} value={o.key}>
@@ -60,7 +54,7 @@ export function RoutesToolbar({
             </option>
           ))}
         </select>
-        <ChevronDownIcon size={15} className="pointer-events-none absolute right-1 text-muted" />
+        <ChevronDownIcon size={16} className="pointer-events-none absolute right-2 text-fg-muted" />
       </label>
     </div>
   );

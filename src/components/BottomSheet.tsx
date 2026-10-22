@@ -77,8 +77,8 @@ export function BottomSheet({
       ref={sheetRef}
       aria-label={label}
       style={{ "--sheet-h": height, "--sheet-offset": `${bottomOffset}px` } as CSSProperties}
-      className={`fixed inset-x-0 bottom-(--sheet-offset) z-30 flex h-(--sheet-h) flex-col overflow-hidden rounded-t-2xl bg-surface shadow-sheet ${
-        dragHeight === null ? "transition-[height] duration-300 ease-out motion-reduce:transition-none" : ""
+      className={`fixed inset-x-0 bottom-(--sheet-offset) z-30 flex h-(--sheet-h) flex-col overflow-hidden rounded-t-lg bg-surface shadow-sheet ${
+        dragHeight === null ? "transition-[height] duration-(--motion-sheet) ease-sheet" : ""
       } lg:static lg:z-auto lg:h-auto lg:min-h-0 lg:flex-1 lg:overflow-visible lg:rounded-none lg:shadow-none ${className}`}
     >
       <button
@@ -88,12 +88,12 @@ export function BottomSheet({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        className="relative z-10 -mb-5 flex h-10 w-full shrink-0 touch-none cursor-grab items-start justify-center pt-2 active:cursor-grabbing lg:hidden"
+        className="relative z-10 -mb-4 flex h-8 w-full shrink-0 touch-none cursor-grab items-start justify-center pt-2 active:cursor-grabbing focus-visible:-outline-offset-2 lg:hidden"
       >
-        <span className="h-1 w-9 rounded-full bg-line-strong" />
+        <span className="h-1 w-9 rounded-full bg-border-strong" />
       </button>
       <div className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${footer ? "" : safeArea}`}>{children}</div>
-      {footer && <div className={`shrink-0 border-t border-line bg-surface ${safeArea}`}>{footer}</div>}
+      {footer && <div className={`shrink-0 bg-surface shadow-bar ${safeArea}`}>{footer}</div>}
     </section>
   );
 }

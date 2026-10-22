@@ -20,9 +20,9 @@ export function BottomTabBar({
   return (
     <nav
       aria-label="주요 메뉴"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 bg-surface pb-[env(safe-area-inset-bottom)] shadow-bar lg:hidden"
     >
-      <ul className="grid h-14 grid-cols-4">
+      <ul className="grid h-row grid-cols-4">
         {TABS.map(({ key, label, Icon }) => {
           const current = active === key;
           return (
@@ -31,17 +31,18 @@ export function BottomTabBar({
                 type="button"
                 aria-current={current ? "page" : undefined}
                 onClick={() => onSelect(key)}
-                className={`relative flex flex-1 flex-col items-center justify-center gap-0.5 text-2xs focus-visible:outline-offset-[-2px] ${
-                  current ? "font-bold text-ink" : "text-muted hover:text-ink-2"
+                className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-2xs focus-visible:-outline-offset-2 ${
+                  current ? "font-bold text-fg" : "font-medium text-fg-muted hover:text-fg-secondary"
                 }`}
               >
-                {current && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute top-0 left-1/2 h-[3px] w-6 -translate-x-1/2 rounded-b-sm bg-brand"
-                  />
-                )}
-                <Icon size={24} />
+                <span
+                  aria-hidden="true"
+                  className={`flex h-7 w-14 items-center justify-center rounded-full transition-colors ${
+                    current ? "bg-brand-soft" : ""
+                  }`}
+                >
+                  <Icon size={22} />
+                </span>
                 {label}
               </button>
             </li>

@@ -1,24 +1,23 @@
 import type { ReactNode } from "react";
-import { BUS_TYPE_META } from "@/utils/format";
+import { BUS_TYPE_META, isLiveTimed, isTight } from "@/utils/format";
 import { buildRibbon, formatShortClock } from "@/utils/ribbon";
 import type { RibbonMark, RibbonSegment, TransitRoute } from "@/utils/types";
 
 type Variant = "compact" | "full";
 
-/** 라벨이 들어갈지 판단하는 기준 폭. 390px 폰의 카드/패널 본문 폭 */
-const NOMINAL_WIDTH = 358;
 const LABEL_GAP = 6;
 const INNER_PADDING = 4;
 /** 도착 끝을 흐리게 처리하는 폭(px). 도착은 예상이라 딱 떨어지는 점으로 그리지 않는다 */
 const ARRIVE_FADE_PX = 14;
 
+/** nominal: 라벨이 들어갈지 판단하는 기준 폭(px). 390px 폰에서 경로 카드 본문 / 상세 패널 본문 폭 */
 const VARIANT = {
-  compact: { bar: "h-5.5", text: "text-2xs leading-none", textPx: 11, bus: "text-xs leading-none", busPx: 12 },
-  full: { bar: "h-7", text: "text-xs leading-none", textPx: 12, bus: "text-13 leading-none", busPx: 13 },
+  compact: { nominal: 326, bar: "h-6", text: "text-2xs leading-none", textPx: 11, bus: "text-2xs leading-none", busPx: 11 },
+  full: { nominal: 358, bar: "h-7", text: "text-xs leading-none", textPx: 12, bus: "text-xs leading-none", busPx: 13 },
 } as const;
 
 const HATCH =
-  "bg-canvas bg-[image:repeating-linear-gradient(135deg,var(--color-line-strong)_0_1px,transparent_1px_5px)]";
+  "bg-bg bg-[image:repeating-linear-gradient(135deg,var(--color-border-strong)_0_1px,transparent_1px_5px)]";
 
 /** Pretendard 기준 대략 폭: 한글 1em, 숫자·라틴 0.62em, 콜론 0.32em, 공백 0.3em */
 function estimateWidth(text: string, fontPx: number, bold = false): number {
@@ -36,11 +35,12 @@ function toPct(offset: number, total: number): number {
   return total > 0 ? (offset / total) * 100 : 0;
 }
 
-function innerLabelCandidates(seg: RibbonSegment, variant: Variant): string[] {
+/** leaveIn: 배지와 같은 route.leaveInMinutes. 빠듯하면(1 미만) 출발 전 구간에 숫자를 적지 않는다 */
+function innerLabelCandidates(seg: RibbonSegment, variant: Variant, leaveIn: number | null): string[] {
   const m = `${seg.minutes}분`;
   switch (seg.kind) {
     case "before":
-      return [`출발 전 ${m}`, m];
+      return leaveIn === null ? [] : [`출발 전 ${leaveIn}분`, `${leaveIn}분`];
     case "walk":
       return variant === "full" ? [`도보 ${m}`, m] : [m];
     case "stop":
@@ -48,16 +48,17 @@ function innerLabelCandidates(seg: RibbonSegment, variant: Variant): string[] {
     case "transfer":
       return variant === "full" ? [`환승 대기 ${m}`, `환승 ${m}`, m] : [m];
     case "bus":
-      return seg.routeNo ? [seg.routeNo] : [];
+      // 구간 폭이 모자라면 탑승 시간부터 줄이고, 마지막엔 번호만 남긴다
+      return seg.routeNo ? [`${seg.routeNo} · ${m}`, `${seg.routeNo} ${m}`, seg.routeNo] : [m];
   }
 }
 
 const SEGMENT_CLASS: Record<RibbonSegment["kind"], string> = {
-  before: "bg-brand text-ink font-semibold",
-  walk: "bg-walk text-walk-text font-medium",
-  stop: `${HATCH} text-muted font-medium`,
-  transfer: `${HATCH} text-ink-2 font-semibold`,
-  bus: "text-white font-bold",
+  before: "bg-brand text-fg font-semibold",
+  walk: "bg-walk text-walk-fg font-medium",
+  stop: `${HATCH} text-fg-muted font-medium`,
+  transfer: `${HATCH} text-fg-secondary font-semibold`,
+  bus: "text-fg-inverse font-bold",
 };
 
 function Segment({
@@ -66,18 +67,20 @@ function Segment({
   total,
   isLast,
   variant,
+  leaveIn,
 }: {
   seg: RibbonSegment;
   offset: number;
   total: number;
   isLast: boolean;
   variant: Variant;
+  leaveIn: number | null;
 }) {
   const size = VARIANT[variant];
   const isBus = seg.kind === "bus";
   const fontPx = isBus ? size.busPx : size.textPx;
-  const widthPx = (seg.minutes / total) * NOMINAL_WIDTH - (isLast ? ARRIVE_FADE_PX * 2 : 1);
-  const label = innerLabelCandidates(seg, variant).find(
+  const widthPx = (seg.minutes / total) * size.nominal - (isLast ? ARRIVE_FADE_PX * 2 : 1);
+  const label = innerLabelCandidates(seg, variant, leaveIn).find(
     (text) => estimateWidth(text, fontPx, isBus || seg.kind === "before") + INNER_PADDING <= widthPx,
   );
   const widthPct = toPct(seg.minutes, total);
@@ -111,19 +114,19 @@ interface Placement {
 }
 
 /** 우선순위 순서로 받은 라벨을 겹치지 않게 배치. 자리가 없으면 버린다. 양 끝은 컨테이너 안으로 붙인다 */
-function placeLabels(specs: LabelSpec[]): Map<string, Placement> {
+function placeLabels(specs: LabelSpec[], nominal: number): Map<string, Placement> {
   const taken: Array<[number, number]> = [];
   const placed = new Map<string, Placement>();
   for (const spec of specs) {
-    const x = (spec.pct / 100) * NOMINAL_WIDTH;
+    const x = (spec.pct / 100) * nominal;
     for (const anchor of spec.anchors) {
       let left = anchor === "start" ? x : anchor === "center" ? x - spec.width / 2 : x - spec.width;
       let placement: Placement;
       if (left <= 0) {
         left = 0;
         placement = { className: "", style: { left: 0 } };
-      } else if (left + spec.width >= NOMINAL_WIDTH) {
-        left = NOMINAL_WIDTH - spec.width;
+      } else if (left + spec.width >= nominal) {
+        left = nominal - spec.width;
         placement = { className: "", style: { right: 0 } };
       } else if (anchor === "start") {
         placement = { className: "", style: { left: `${spec.pct}%` } };
@@ -154,7 +157,7 @@ function PlacedLabel({ placement, className, children }: { placement: Placement;
   );
 }
 
-function CompactTimes({ marks, total }: { marks: RibbonMark[]; total: number }) {
+function CompactTimes({ marks, total, nominal }: { marks: RibbonMark[]; total: number; nominal: number }) {
   const now = marks.find((m) => m.kind === "now");
   const leave = marks.find((m) => m.kind === "leave");
   const arrive = marks.find((m) => m.kind === "arrive");
@@ -167,8 +170,8 @@ function CompactTimes({ marks, total }: { marks: RibbonMark[]; total: number }) 
       anchors: ["end"],
       node: (
         <>
-          <span className="text-muted">약</span> <span className="font-semibold text-ink">{time}</span>{" "}
-          <span className="text-muted">도착</span>
+          <span className="text-fg-muted">약</span> <span className="font-semibold text-fg">{time}</span>{" "}
+          <span className="text-fg-muted">도착</span>
         </>
       ),
     });
@@ -201,7 +204,7 @@ function CompactTimes({ marks, total }: { marks: RibbonMark[]; total: number }) 
       anchors: ["start"],
       node: (
         <>
-          <span className="text-muted">지금</span> <span className="text-ink-2">{time}</span>
+          <span className="text-fg-muted">지금</span> <span className="text-fg-secondary">{time}</span>
         </>
       ),
     });
@@ -211,13 +214,14 @@ function CompactTimes({ marks, total }: { marks: RibbonMark[]; total: number }) 
     items.map((item) => ({
       key: item.mark.kind,
       pct: toPct(item.mark.offset, total),
-      width: estimateWidth(item.text, 12, true),
+      width: estimateWidth(item.text, 13, true),
       anchors: item.anchors,
     })),
+    nominal,
   );
 
   return (
-    <div className="relative mt-1 h-4 text-xs leading-4 tabular">
+    <div className="relative mt-1.5 h-4.5 text-xs tabular">
       {items.map((item) => {
         const placement = placed.get(item.mark.kind);
         return placement ? (
@@ -240,17 +244,17 @@ function fullPriority(mark: RibbonMark, boardIndex: number): number {
 function Caption({ mark }: { mark: RibbonMark }) {
   switch (mark.kind) {
     case "now":
-      return <span className="text-muted">지금</span>;
+      return <span className="text-fg-muted">지금</span>;
     case "leave":
       return <span className="font-semibold text-brand-ink">{mark.offset === 0 ? "지금 출발" : "출발"}</span>;
     case "board":
       return (
         <>
-          <span className="font-bold text-ink-2">{mark.routeNo}</span> <span className="text-muted">탑승</span>
+          <span className="font-bold text-fg-secondary">{mark.routeNo}</span> <span className="text-fg-muted">탑승</span>
         </>
       );
     case "arrive":
-      return <span className="font-semibold text-ink">도착 예상</span>;
+      return <span className="font-semibold text-fg">도착 예상</span>;
   }
 }
 
@@ -267,13 +271,13 @@ function fullTimeText(mark: RibbonMark): string {
 }
 
 const TIME_TONE: Record<RibbonMark["kind"], string> = {
-  now: "text-ink-2",
+  now: "text-fg-secondary",
   leave: "font-semibold text-brand-ink",
-  board: "text-ink-2",
-  arrive: "font-semibold text-ink",
+  board: "text-fg-secondary",
+  arrive: "font-semibold text-fg",
 };
 
-function layoutFullLabels(marks: RibbonMark[], total: number) {
+function layoutFullLabels(marks: RibbonMark[], total: number, nominal: number) {
   let boardIndex = 0;
   const entries = marks.map((mark, i) => {
     const key = markKey(mark, i);
@@ -291,19 +295,22 @@ function layoutFullLabels(marks: RibbonMark[], total: number) {
         width: e.width,
         anchors: ["center", "start", "end"] as Anchor[],
       })),
+    nominal,
   );
   return { entries, placed };
 }
 
 function Tick({ pct }: { pct: number }) {
   const style = pct <= 0 ? { left: 0 } : pct >= 100 ? { right: 0 } : { left: `${pct}%` };
-  return <span className={`absolute top-0 h-1 w-px bg-subtle ${pct > 0 && pct < 100 ? "-translate-x-1/2" : ""}`} style={style} />;
+  return <span className={`absolute top-0 h-1 w-px bg-fg-subtle ${pct > 0 && pct < 100 ? "-translate-x-1/2" : ""}`} style={style} />;
 }
 
-function describe(seg: RibbonSegment): string {
+function describe(seg: RibbonSegment, leaveIn: number | null): string {
   switch (seg.kind) {
     case "before":
-      return `출발 전 ${seg.minutes}분, ${formatShortClock(seg.end)} 전에 출발`;
+      return leaveIn === null
+        ? `${formatShortClock(seg.end)} 전에 출발`
+        : `출발 전 ${leaveIn}분, ${formatShortClock(seg.end)} 전에 출발`;
     case "walk":
       return `도보 ${seg.minutes}분`;
     case "stop":
@@ -326,7 +333,9 @@ export function TimeRibbon({
   variant?: Variant;
   className?: string;
 }) {
-  const ribbon = buildRibbon(route, now);
+  const built = buildRibbon(route, now);
+  const timed = isLiveTimed(route);
+  const ribbon = timed ? built : { ...built, marks: built.marks.filter((m) => m.kind !== "leave") };
   const total = ribbon.totalMinutes;
   const size = VARIANT[variant];
 
@@ -337,8 +346,9 @@ export function TimeRibbon({
     return { seg, start };
   });
 
-  const full = variant === "full" ? layoutFullLabels(ribbon.marks, total) : null;
+  const full = variant === "full" ? layoutFullLabels(ribbon.marks, total, size.nominal) : null;
   const hasBefore = ribbon.segments[0]?.kind === "before";
+  const leaveIn = isTight(route) ? null : route.leaveInMinutes;
 
   return (
     <div className={`tracking-normal ${className ?? ""}`}>
@@ -358,9 +368,9 @@ export function TimeRibbon({
 
         <div className={`relative ${size.bar}`}>
           <div
-            className="absolute inset-0 overflow-hidden rounded-l-sm bg-surface"
+            className="absolute inset-0 overflow-hidden rounded-full bg-surface"
             style={{
-              maskImage: `linear-gradient(to right, #000 calc(100% - ${ARRIVE_FADE_PX}px), transparent)`,
+              maskImage: `linear-gradient(to right, currentColor calc(100% - ${ARRIVE_FADE_PX}px), transparent)`,
             }}
           >
             {total > 0 &&
@@ -372,10 +382,11 @@ export function TimeRibbon({
                   total={total}
                   isLast={i === positioned.length - 1}
                   variant={variant}
+                  leaveIn={leaveIn}
                 />
               ))}
           </div>
-          <span className="absolute top-1/2 left-0 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink ring-2 ring-surface" />
+          <span className="absolute top-1/2 left-0 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-fg ring-2 ring-surface" />
         </div>
 
         {full ? (
@@ -395,15 +406,15 @@ export function TimeRibbon({
             })}
           </div>
         ) : (
-          <CompactTimes marks={ribbon.marks} total={total} />
+          <CompactTimes marks={ribbon.marks} total={total} nominal={size.nominal} />
         )}
       </div>
 
       <ol className="sr-only">
         <li>지금 {formatShortClock(ribbon.now)}</li>
-        {!hasBefore && <li>지금 바로 출발</li>}
+        {timed && !hasBefore && <li>지금 바로 출발</li>}
         {ribbon.segments.map((seg) => (
-          <li key={`${seg.kind}-${seg.start}`}>{describe(seg)}</li>
+          <li key={`${seg.kind}-${seg.start}`}>{describe(seg, leaveIn)}</li>
         ))}
         <li>약 {formatShortClock(route.arriveAt)} 도착 예상</li>
       </ol>

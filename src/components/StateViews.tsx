@@ -1,41 +1,68 @@
 import type { ReactNode } from "react";
-import { LocationOffIcon, MapOffIcon } from "@/assets/icons";
+import { AlertIcon, LocationOffIcon, MapOffIcon } from "@/assets/icons";
 import { LogoMark } from "@/assets/Logo";
 
-const pulse = "rounded-sm bg-canvas animate-pulse motion-reduce:animate-none";
+const pulse = "bg-skeleton animate-pulse motion-reduce:animate-none";
+const line = `rounded-sm ${pulse}`;
 
 function SkeletonBoardRow() {
   return (
-    <div className="grid grid-cols-[44px_minmax(0,1fr)]">
-      <div className={`h-[22px] w-8 ${pulse}`} />
-      <div className="flex flex-col gap-1.5 pt-0.5">
-        <div className={`h-4 w-32 ${pulse}`} />
-        <div className={`h-3.5 w-40 ${pulse}`} />
+    <div className="grid grid-cols-[48px_minmax(0,1fr)]">
+      <div className={`h-5.5 w-9 ${line}`} />
+      <div className="min-w-0">
+        <div className="flex h-5.5 items-center">
+          <div className={`h-3.5 w-32 ${line}`} />
+        </div>
+        <div className="flex h-5 items-center">
+          <div className={`h-3 w-40 max-w-full ${line}`} />
+        </div>
       </div>
     </div>
   );
 }
 
+function SkeletonCard({ badge }: { badge: boolean }) {
+  return (
+    <li aria-hidden="true" className="rounded-lg bg-surface p-4 shadow-card">
+      {badge && (
+        <div className="mb-2 flex h-4.5 items-center">
+          <div className={`h-3 w-16 ${line}`} />
+        </div>
+      )}
+      <div className="flex h-9 items-center justify-between gap-3">
+        <div className={`h-8 w-28 ${line}`} />
+        <div className={`h-7 w-20 ${line}`} />
+      </div>
+      <div className="mt-0.5 flex h-5.5 items-center">
+        <div className={`h-4 w-36 ${line}`} />
+      </div>
+      <div className="mt-4">
+        <div className={`h-6 w-full rounded-full ${pulse}`} />
+        <div className="mt-1.5 flex h-4.5 items-center justify-between">
+          <div className={`h-3 w-10 ${line}`} />
+          <div className={`h-3 w-10 ${line}`} />
+        </div>
+      </div>
+      <div className="mt-3 flex h-4.5 items-center">
+        <div className={`h-3 w-32 ${line}`} />
+      </div>
+      <div className="mt-3 flex flex-col gap-2 border-t border-divider pt-3">
+        <SkeletonBoardRow />
+        <div className="grid h-5.5 grid-cols-[48px_minmax(0,1fr)] items-center">
+          <div className={`h-3 w-6 ${line}`} />
+          <div className={`h-3.5 w-28 ${line}`} />
+        </div>
+      </div>
+      <div className={`mt-4 h-11 w-full rounded-md ${pulse}`} />
+    </li>
+  );
+}
+
 export function RouteListSkeleton({ count = 3 }: { count?: number }) {
   return (
-    <ul aria-busy="true" aria-label="경로를 불러오는 중" className="flex flex-col gap-2">
+    <ul aria-busy="true" aria-label="경로를 불러오고 있어요" className="flex flex-col gap-3 px-4">
       {Array.from({ length: count }, (_, i) => (
-        <li key={i} aria-hidden="true" className="bg-surface px-4 pt-3 pb-3">
-          <div className="flex items-center justify-between">
-            <div className={`h-7 w-24 ${pulse}`} />
-            <div className={`h-7 w-20 ${pulse}`} />
-          </div>
-          <div className={`mt-1.5 h-3.5 w-44 max-w-full ${pulse}`} />
-          <div className={`mt-3 h-5.5 w-full ${pulse}`} />
-          <div className="mt-3 flex flex-col gap-2.5 border-t border-line pt-2.5">
-            <SkeletonBoardRow />
-            <div className="grid grid-cols-[44px_minmax(0,1fr)]">
-              <div className={`h-3.5 w-6 ${pulse}`} />
-              <div className={`h-4 w-28 ${pulse}`} />
-            </div>
-          </div>
-          <div className={`mt-3 h-9 w-full rounded-md ${pulse}`} />
-        </li>
+        <SkeletonCard key={i} badge={i === 0} />
       ))}
     </ul>
   );
@@ -54,10 +81,10 @@ export function StateButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex h-11 shrink-0 items-center justify-center rounded-md px-4 text-sm font-semibold ${
+      className={`inline-flex h-control min-w-40 shrink-0 items-center justify-center rounded-md px-5 text-sm font-semibold ${
         variant === "primary"
-          ? "bg-brand text-ink hover:bg-brand-strong"
-          : "border border-line-strong bg-surface text-ink-2 hover:bg-fill"
+          ? "bg-action-primary text-action-primary-fg hover:bg-action-primary-pressed"
+          : "bg-action-secondary text-action-secondary-fg hover:bg-action-secondary-pressed"
       }`}
     >
       {children}
@@ -79,20 +106,22 @@ export function MessageState({
   role?: "alert" | "status";
 }) {
   return (
-    <section role={role} className="px-4 py-8">
+    <section role={role} className="flex flex-col items-center px-gutter py-10 text-center">
       {icon}
-      <h2 className="mt-3 text-base font-bold text-ink">{title}</h2>
-      {message && <p className="mt-1 max-w-[36ch] text-13 text-muted">{message}</p>}
-      {actions && <div className="mt-4 flex flex-wrap gap-2">{actions}</div>}
+      <h2 className="mt-4 text-md font-bold text-balance break-keep text-fg">{title}</h2>
+      {message && <p className="mt-1.5 max-w-xs text-sm text-balance break-keep text-fg-muted">{message}</p>}
+      {actions && <div className="mt-6 flex justify-center">{actions}</div>}
     </section>
   );
 }
 
 function IconWell({ children }: { children: ReactNode }) {
-  return <div className="flex size-10 items-center justify-center rounded-full bg-fill">{children}</div>;
+  return (
+    <div className="flex size-14 items-center justify-center rounded-full bg-surface-muted text-fg-secondary">
+      {children}
+    </div>
+  );
 }
-
-const brandMark = <LogoMark size={32} tone="light" />;
 
 export function ErrorState({
   title = "실시간 정보를 불러오지 못했어요",
@@ -106,7 +135,11 @@ export function ErrorState({
   return (
     <MessageState
       role="alert"
-      icon={brandMark}
+      icon={
+        <IconWell>
+          <AlertIcon size={26} />
+        </IconWell>
+      }
       title={title}
       message={message}
       actions={onRetry && <StateButton onClick={onRetry}>다시 시도</StateButton>}
@@ -123,7 +156,18 @@ export function EmptyState({
   message?: string;
   action?: ReactNode;
 }) {
-  return <MessageState icon={brandMark} title={title} message={message} actions={action} />;
+  return (
+    <MessageState
+      icon={
+        <IconWell>
+          <LogoMark size={30} />
+        </IconWell>
+      }
+      title={title}
+      message={message}
+      actions={action}
+    />
+  );
 }
 
 export function LocationDeniedState({
@@ -133,26 +177,20 @@ export function LocationDeniedState({
   onRetry?: () => void;
   onSearchInstead?: () => void;
 }) {
-  const hasActions = onRetry || onSearchInstead;
   return (
     <MessageState
       icon={
         <IconWell>
-          <LocationOffIcon size={20} className="text-ink-2" />
+          <LocationOffIcon size={26} />
         </IconWell>
       }
       title="위치 권한이 꺼져 있어요"
-      message="현재 위치를 출발지로 쓰려면 브라우저 설정에서 위치 접근을 허용해 주세요. 출발지를 직접 검색해도 돼요."
+      message="현재 위치에서 출발하려면 브라우저 설정에서 위치 접근을 허용해 주세요. 출발지를 직접 검색해도 돼요."
       actions={
-        hasActions && (
-          <>
-            {onSearchInstead && <StateButton onClick={onSearchInstead}>출발지 검색</StateButton>}
-            {onRetry && (
-              <StateButton onClick={onRetry} variant={onSearchInstead ? "secondary" : "primary"}>
-                다시 시도
-              </StateButton>
-            )}
-          </>
+        onSearchInstead ? (
+          <StateButton onClick={onSearchInstead}>출발지 검색</StateButton>
+        ) : (
+          onRetry && <StateButton onClick={onRetry}>다시 시도</StateButton>
         )
       }
     />
@@ -164,7 +202,7 @@ export function OutsideServiceAreaState({ onMoveToDaejeon }: { onMoveToDaejeon?:
     <MessageState
       icon={
         <IconWell>
-          <MapOffIcon size={20} className="text-ink-2" />
+          <MapOffIcon size={26} />
         </IconWell>
       }
       title="대전에서만 쓸 수 있어요"

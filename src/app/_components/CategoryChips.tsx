@@ -6,8 +6,8 @@ export type ChipKey = "favorites" | "stops" | "recentRoutes" | "frequent";
 const CHIPS: { key: ChipKey; label: string; icon: ReactNode }[] = [
   { key: "favorites", label: "즐겨찾기", icon: <StarFilledIcon size={16} className="text-brand" /> },
   { key: "stops", label: "정류장", icon: <BusStopIcon size={16} strokeWidth={2.2} className="text-bus-trunk" /> },
-  { key: "recentRoutes", label: "최근 경로", icon: <HistoryIcon size={16} strokeWidth={2.2} className="text-ink-2" /> },
-  { key: "frequent", label: "자주 가는 곳", icon: <PinIcon size={16} strokeWidth={2.2} className="text-bus-outer" /> },
+  { key: "recentRoutes", label: "최근 경로", icon: <HistoryIcon size={16} strokeWidth={2.2} /> },
+  { key: "frequent", label: "자주 가는 곳", icon: <PinIcon size={16} strokeWidth={2.2} /> },
 ];
 
 export function CategoryChips({
@@ -21,7 +21,7 @@ export function CategoryChips({
     <div
       role="group"
       aria-label="빠른 찾기"
-      className="no-scrollbar -mx-3 flex gap-1.5 overflow-x-auto px-3 py-1 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0"
+      className="no-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3 py-0.5 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0"
     >
       {CHIPS.map((chip) => {
         const pressed = active === chip.key;
@@ -31,10 +31,10 @@ export function CategoryChips({
             type="button"
             aria-pressed={pressed}
             onClick={() => onToggle(chip.key)}
-            className={`relative flex h-8 shrink-0 items-center gap-1 rounded-md px-3 text-13 font-semibold whitespace-nowrap shadow-float transition-colors before:absolute before:inset-x-0 before:-inset-y-1.5 lg:shadow-none ${
+            className={`relative flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold whitespace-nowrap transition-colors before:absolute before:inset-x-0 before:-inset-y-1 ${
               pressed
-                ? "bg-ink text-white lg:border lg:border-ink"
-                : "bg-surface text-ink hover:bg-fill lg:border lg:border-line"
+                ? "bg-surface-inverse text-fg-inverse shadow-float lg:shadow-none"
+                : "bg-surface text-fg-secondary shadow-float hover:bg-surface-muted lg:shadow-none lg:ring-1 lg:ring-border lg:ring-inset"
             }`}
           >
             {chip.icon}

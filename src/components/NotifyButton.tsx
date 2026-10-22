@@ -18,19 +18,19 @@ const NEXT: Record<NotifyState, NotifyState> = { idle: "on", on: "idle", denied:
 
 const TONE: Record<Variant, Record<NotifyState, string>> = {
   block: {
-    idle: "h-9 w-full rounded-md bg-brand text-ink hover:bg-brand-strong",
-    on: "h-9 w-full rounded-md border border-brand-ink/30 bg-brand-soft text-brand-ink",
-    denied: "h-9 w-full rounded-md border border-line bg-fill text-subtle",
+    idle: "h-11 w-full rounded-md bg-action-secondary text-action-secondary-fg hover:bg-action-secondary-pressed",
+    on: "h-11 w-full rounded-md bg-brand-soft text-brand-ink",
+    denied: "h-11 w-full rounded-md bg-surface-muted text-fg-muted",
   },
   primary: {
-    idle: "h-11 rounded-lg bg-brand px-5 text-ink hover:bg-brand-strong",
-    on: "h-11 rounded-lg border border-brand-ink/30 bg-brand-soft px-5 text-brand-ink",
-    denied: "h-11 rounded-lg bg-canvas px-5 text-muted",
+    idle: "h-control rounded-md bg-action-primary px-5 text-action-primary-fg hover:bg-action-primary-pressed",
+    on: "h-control rounded-md bg-brand-soft px-5 text-brand-ink",
+    denied: "h-control rounded-md bg-surface-muted px-5 text-fg-muted",
   },
   compact: {
-    idle: "h-8 rounded-full border border-line-strong bg-surface px-3 text-ink-2 hover:bg-fill",
+    idle: "h-8 rounded-full px-3 text-fg-secondary hover:bg-action-secondary",
     on: "h-8 rounded-full bg-brand-soft px-3 text-brand-ink",
-    denied: "h-8 rounded-full bg-canvas px-3 text-subtle",
+    denied: "h-8 rounded-full px-3 text-fg-muted",
   },
 };
 
@@ -70,5 +70,5 @@ export function NotifyButton({
 }
 
 export function NotifyDeniedHint() {
-  return <p className="truncate text-xs text-muted">{DENIED_HINT}</p>;
+  return <p className="truncate text-xs text-fg-muted">{DENIED_HINT}</p>;
 }
