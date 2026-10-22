@@ -1,4 +1,1 @@
 preload = ["./scripts/bun-server-only.mjs"]
-
-[test]
-preload = ["./scripts/bun-server-only.mjs"]

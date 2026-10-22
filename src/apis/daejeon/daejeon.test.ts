@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { fixture, restoreAll, stubFetch, useTestKeys } from "../__fixtures__/fetch-stub";
 import { getArrivalsByArs, getArrivalsByStopId, getBusPositions } from "./daejeon.server";
 
