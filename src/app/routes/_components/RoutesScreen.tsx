@@ -11,7 +11,7 @@ import { NotifyDeniedHint } from "@/components/NotifyButton";
 import { RouteCard } from "@/components/RouteCard";
 import { RouteSearchBar } from "@/components/RouteSearchBar";
 import { EmptyState, ErrorState, RouteListSkeleton } from "@/components/StateViews";
-import { ESTIMATE_NOTE, isLiveTimed } from "@/utils/format";
+import { isLiveTimed } from "@/utils/format";
 import { routeMarkers, routePaths } from "@/utils/mapData";
 import {
   DEFAULT_ROUTE_PAIR,
@@ -25,6 +25,7 @@ import {
 } from "@/utils/routeQuery";
 import type { MapMarker, MapPath, NotifyState, Place, RouteSortKey, TransitRoute } from "@/utils/types";
 import { RoutesLayout } from "./RoutesLayout";
+import { StaleBadge } from "@/components/StatusChips";
 import { RoutesToolbar } from "./RoutesToolbar";
 
 type DemoState = "ready" | "tight" | "empty" | "error" | "loading";
@@ -71,7 +72,18 @@ const noop = () => {};
 
 const STATE_CARD = "mx-4 overflow-hidden rounded-lg bg-surface shadow-card";
 const NOTICE = "mx-4 mb-3 rounded-lg bg-surface px-4 py-3 shadow-card";
-const NOTE = "px-5 pb-3 text-xs text-fg-muted";
+/** 목록 맨 위: 예상 안내 + 정보 시각·새로고침 (툴바가 붐벼서 여기로 내림). 한 줄에 들어가도록 짧은 안내를 쓴다 */
+const LIST_NOTE = "교통 상황에 따라 달라질 수 있어요";
+function ListHeader({ secondsAgo, onRefresh, note }: { secondsAgo: number; onRefresh: () => void; note: string | null }) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-5 pb-3">
+      <p className="min-w-0 truncate text-xs text-fg-muted">{note}</p>
+      <span className="shrink-0">
+        <StaleBadge secondsAgo={secondsAgo} onRefresh={onRefresh} />
+      </span>
+    </div>
+  );
+}
 const LIST = "flex flex-col gap-3 px-4";
 
 export function RoutesScreen() {
@@ -137,8 +149,6 @@ function MockRoutesScreen() {
             </div>
             <RoutesToolbar
               baseTime={search.baseTime}
-              secondsAgo={search.updatedSecondsAgo}
-              onRefresh={noop}
               sort={sort}
               onSortChange={setSort}
             />
@@ -168,7 +178,7 @@ function MockRoutesScreen() {
                   <NotifyDeniedHint />
                 </div>
               )}
-              <p className={NOTE}>{ESTIMATE_NOTE}</p>
+              <ListHeader secondsAgo={search.updatedSecondsAgo} onRefresh={noop} note={LIST_NOTE} />
               <ul className={LIST}>
                 {visible.map((route, i) => (
                   <li
@@ -282,8 +292,6 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
             </div>
             <RoutesToolbar
               baseTime={live.baseTime}
-              secondsAgo={live.secondsAgo}
-              onRefresh={live.refresh}
               sort={sort}
               onSortChange={setSort}
             />
@@ -325,7 +333,7 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
                   <NotifyDeniedHint />
                 </div>
               )}
-              {!realtimeFailed && <p className={NOTE}>{ESTIMATE_NOTE}</p>}
+              <ListHeader secondsAgo={live.secondsAgo} onRefresh={live.refresh} note={realtimeFailed ? null : LIST_NOTE} />
               <ul className={LIST}>
                 {visible.map((route, i) => (
                   <li

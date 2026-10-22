@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronDownIcon } from "@/assets/icons";
-import { StaleBadge } from "@/components/StatusChips";
 import { formatShortClock } from "@/utils/ribbon";
 import type { RouteSortKey } from "@/utils/types";
 
@@ -17,14 +16,10 @@ function isSortKey(value: string): value is RouteSortKey {
 
 export function RoutesToolbar({
   baseTime,
-  secondsAgo,
-  onRefresh,
   sort,
   onSortChange,
 }: {
   baseTime?: string;
-  secondsAgo?: number;
-  onRefresh?: () => void;
   sort: RouteSortKey;
   onSortChange?: (next: RouteSortKey) => void;
 }) {
@@ -42,11 +37,6 @@ export function RoutesToolbar({
           </span>
           <ChevronDownIcon size={16} className="text-fg-muted" />
         </button>
-        {secondsAgo !== undefined && (
-          <span className="min-w-0 max-[359px]:hidden">
-            <StaleBadge secondsAgo={secondsAgo} onRefresh={onRefresh} />
-          </span>
-        )}
       </div>
       <label className="relative inline-flex h-11 shrink-0 items-center">
         <span className="sr-only">정렬</span>

@@ -191,7 +191,7 @@ export function RouteSearchBar({
     const value = field === f && draft !== null ? draft : (place?.name ?? "");
     const isActiveField = field === f && expanded;
     return (
-      <div className="group flex h-control items-center rounded-md bg-surface-muted pl-3.5 has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-focus-ring">
+      <div className="group flex h-control items-center rounded-md bg-surface-muted pr-11 pl-3.5 has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-focus-ring">
         <span className="flex w-5 shrink-0 justify-start" aria-hidden="true">
           <span
             className={`size-2 rounded-full ${f === "origin" ? "bg-map-origin" : "bg-map-destination"}`}
@@ -258,19 +258,18 @@ export function RouteSearchBar({
           compact ? "" : "bg-surface p-1.5 shadow-float lg:p-0 lg:shadow-none"
         }`}
       >
-        <div className="flex w-11 shrink-0 items-center justify-center">
+        {/* 바꾸기 버튼은 두 입력창 경계 오른쪽 위에 떠 있다 (입력창은 pr-11로 그 자리를 비워 둠) */}
+        <div className="relative min-w-0 flex-1 space-y-1">
+          {renderRow("origin")}
+          {renderRow("destination")}
           <button
             type="button"
             aria-label="출발지와 도착지 바꾸기"
             onClick={swap}
-            className="flex size-11 items-center justify-center rounded-md text-fg-secondary hover:bg-surface-muted hover:text-fg"
+            className="absolute top-1/2 right-1.5 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-surface text-fg-secondary shadow-float hover:text-fg"
           >
             <SwapIcon size={18} />
           </button>
-        </div>
-        <div className="min-w-0 flex-1 space-y-1">
-          {renderRow("origin")}
-          {renderRow("destination")}
         </div>
         {onBack && (
           <div className="relative flex w-11 shrink-0 flex-col gap-1">

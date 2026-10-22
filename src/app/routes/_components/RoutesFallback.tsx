@@ -23,7 +23,6 @@ export function RoutesFallback() {
         <>
           <div className="px-4 pt-3 pb-1 lg:pt-0" aria-hidden="true">
             <div className="flex gap-1">
-              <div className="w-11 shrink-0" />
               <div className="min-w-0 flex-1 space-y-1">
                 <SearchFieldSkeleton width="w-28" />
                 <SearchFieldSkeleton width="w-36" />
