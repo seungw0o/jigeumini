@@ -3,7 +3,15 @@ import { ChevronRightIcon } from "@/assets/icons";
 import { LeaveBadge } from "@/components/LeaveBadge";
 import { BusNumber, StaleBadge } from "@/components/StatusChips";
 import { TimeRibbon } from "@/components/TimeRibbon";
-import { ESTIMATE_NOTE, formatDistance, formatFare, realtimeNote, totalLabel, transferLabel } from "@/utils/format";
+import {
+  ESTIMATE_NOTE,
+  formatDistance,
+  formatFare,
+  isLiveTimed,
+  realtimeNote,
+  totalLabel,
+  transferLabel,
+} from "@/utils/format";
 import { formatShortClock } from "@/utils/ribbon";
 import type { BusLeg, TransitRoute } from "@/utils/types";
 
@@ -41,16 +49,20 @@ export function RouteSummary({
         <BusSequence route={route} />
         <StaleBadge secondsAgo={secondsAgo} onRefresh={onRefresh} />
       </div>
-      <div className="mt-5 flex">
-        <LeaveBadge route={route} size="lg" />
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <h1 id="route-summary-title" className="min-w-0 truncate text-lg font-bold text-fg tabular">
+          {totalLabel(route)}
+        </h1>
+        <LeaveBadge route={route} />
       </div>
-      <h1 id="route-summary-title" className="mt-2 text-xl font-bold text-fg tabular">
-        {totalLabel(route)}
-      </h1>
-      <p className="mt-1 text-sm text-fg-secondary tabular">
-        도착 예상 <span className="font-semibold text-fg">{formatShortClock(route.arriveAt)}</span>
-      </p>
-      <p className="mt-3 text-xs text-fg-muted tabular">
+      <p className="mt-1 text-xs text-fg-secondary tabular">
+        {isLiveTimed(route) && (
+          <>
+            {formatShortClock(route.leaveAt)} 출발 –{" "}
+            <span className="font-semibold text-fg">{formatShortClock(route.arriveAt)}</span> 도착 예상
+            {route.realtime === "partial" && " 이후"} ·{" "}
+          </>
+        )}
         {formatFare(route.fare)} · {transferLabel(route.transferCount)}
         {walkM > 0 && ` · 도보 ${formatDistance(walkM)}`}
       </p>

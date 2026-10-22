@@ -48,7 +48,8 @@ function innerLabelCandidates(seg: RibbonSegment, variant: Variant, leaveIn: num
     case "transfer":
       return variant === "full" ? [`환승 대기 ${m}`, `환승 ${m}`, m] : [m];
     case "bus":
-      return seg.routeNo ? [seg.routeNo] : [];
+      // 구간 폭이 모자라면 탑승 시간부터 줄이고, 마지막엔 번호만 남긴다
+      return seg.routeNo ? [`${seg.routeNo} · ${m}`, `${seg.routeNo} ${m}`, seg.routeNo] : [m];
   }
 }
 

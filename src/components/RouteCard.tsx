@@ -125,29 +125,30 @@ export function RouteCard({
         aria-label={`${totalLabel(route)}, ${arriveSpoken}, ${realtimeBadgeLabel(route) ?? leaveLabel(route)}`}
         className="flex items-center justify-between gap-3 rounded-md after:absolute after:inset-0 after:rounded-lg"
       >
-        <span className="min-w-0 truncate text-xl font-bold text-fg tabular">{totalLabel(route)}</span>
-        <LeaveBadge route={route} size="lg" />
+        <span className="min-w-0 truncate text-lg font-bold text-fg tabular">{totalLabel(route)}</span>
+        <LeaveBadge route={route} />
       </Link>
-      {(live || pending) && (
-        <p className="mt-0.5 text-sm text-fg-secondary tabular">
-          {live ? (
-            <>
-              도착 예상 <span className="font-semibold text-fg">{arrive}</span>
-              {arriveSuffix}
-            </>
-          ) : (
-            "도착 예상 확인 중"
-          )}
-        </p>
-      )}
-      {note && <p className="mt-0.5 text-xs text-fg-secondary">{note}</p>}
-
-      <TimeRibbon route={route} now={now} variant="compact" className="mt-4" />
-
-      <p className="mt-3 flex min-w-0 text-xs whitespace-nowrap text-fg-muted tabular">
+      {/* 시간 범위·요금·환승을 한 줄 요약으로 (오너 요청: 큰 글자 대신 깔끔한 요약 줄) */}
+      <p className="mt-1 flex min-w-0 text-xs whitespace-nowrap text-fg-secondary tabular">
+        {(live || pending) && (
+          <span className="shrink-0">
+            {live ? (
+              <>
+                {formatShortClock(route.leaveAt)} 출발 – <span className="font-semibold text-fg">{arrive}</span> 도착 예상
+                {arriveSuffix}
+              </>
+            ) : (
+              "도착 예상 확인 중"
+            )}
+            &nbsp;·&nbsp;
+          </span>
+        )}
         <span className="shrink-0">{formatFare(route.fare)} ·&nbsp;</span>
         <span className="truncate">{transferLabel(route.transferCount)}</span>
       </p>
+      {note && <p className="mt-0.5 text-xs text-fg-secondary">{note}</p>}
+
+      <TimeRibbon route={route} now={now} variant="compact" className="mt-4" />
 
       {lastBus && (
         <ol className="mt-3 flex flex-col gap-2 border-t border-divider pt-3">
