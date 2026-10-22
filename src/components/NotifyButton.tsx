@@ -6,28 +6,59 @@ import type { NotifyState } from "@/utils/types";
 
 const DENIED_HINT = "브라우저 설정에서 알림을 허용해 주세요";
 
-const VIEW: Record<NotifyState, { label: string; tone: string; next: NotifyState }> = {
-  idle: { label: "알림 받기", tone: "border-line-strong bg-surface text-ink-2 hover:bg-canvas", next: "on" },
-  on: { label: "알림 켜짐", tone: "border-transparent bg-accent-soft text-accent-strong", next: "idle" },
-  denied: { label: "알림 차단됨", tone: "border-transparent bg-canvas text-muted", next: "denied" },
+type Variant = "block" | "primary" | "compact";
+
+const LABEL: Record<NotifyState, string> = {
+  idle: "출발 알림 받기",
+  on: "출발 알림 켜짐",
+  denied: "알림 차단됨",
 };
 
-export function NotifyButton({ state, onChange }: { state: NotifyState; onChange: (next: NotifyState) => void }) {
+const NEXT: Record<NotifyState, NotifyState> = { idle: "on", on: "idle", denied: "denied" };
+
+const TONE: Record<Variant, Record<NotifyState, string>> = {
+  block: {
+    idle: "h-9 w-full rounded-md border border-line-strong bg-surface text-accent hover:bg-fill",
+    on: "h-9 w-full rounded-md border border-accent/40 bg-accent-soft text-accent-strong",
+    denied: "h-9 w-full rounded-md border border-line bg-fill text-subtle",
+  },
+  primary: {
+    idle: "h-11 rounded-full bg-accent px-5 text-white hover:bg-accent-strong",
+    on: "h-11 rounded-full border border-accent bg-surface px-5 text-accent",
+    denied: "h-11 rounded-full bg-canvas px-5 text-subtle",
+  },
+  compact: {
+    idle: "h-8 rounded-full border border-line-strong bg-surface px-3 text-ink-2 hover:bg-fill",
+    on: "h-8 rounded-full bg-accent-soft px-3 text-accent-strong",
+    denied: "h-8 rounded-full bg-canvas px-3 text-subtle",
+  },
+};
+
+export function NotifyButton({
+  state,
+  onChange,
+  variant = "compact",
+}: {
+  state: NotifyState;
+  onChange: (next: NotifyState) => void;
+  variant?: Variant;
+}) {
   const hintId = useId();
-  const view = VIEW[state];
   const Icon = state === "on" ? CheckIcon : state === "denied" ? BellOffIcon : BellIcon;
 
   return (
     <>
       <button
         type="button"
-        onClick={() => onChange(view.next)}
+        onClick={() => onChange(NEXT[state])}
         aria-pressed={state === "on"}
         aria-describedby={state === "denied" ? hintId : undefined}
-        className={`inline-flex h-11 min-w-32 shrink-0 items-center justify-center gap-1.5 rounded-md border px-3 text-sm font-semibold whitespace-nowrap ${view.tone}`}
+        className={`relative inline-flex shrink-0 items-center justify-center gap-1.5 text-sm font-semibold whitespace-nowrap ${
+          variant === "compact" ? "before:absolute before:-inset-1.5" : ""
+        } ${TONE[variant][state]}`}
       >
-        <Icon size={18} className="shrink-0" />
-        {view.label}
+        <Icon size={variant === "compact" ? 15 : 17} className="shrink-0" />
+        {LABEL[state]}
       </button>
       {state === "denied" && (
         <span id={hintId} className="sr-only">

@@ -1,23 +1,40 @@
 import { mockRouteSearch } from "@/app/_mocks/routes";
-import { BottomSheet } from "@/components/BottomSheet";
-import { MapLayout } from "@/components/MapLayout";
 import { MapView } from "@/components/MapView";
 import { RouteListSkeleton } from "@/components/StateViews";
+import { RoutesLayout } from "./RoutesLayout";
 import { RoutesToolbar } from "./RoutesToolbar";
+
+const pulse = "bg-canvas animate-pulse motion-reduce:animate-none";
 
 export function RoutesFallback() {
   return (
-    <MapLayout
-      header={<div aria-hidden="true" className="h-[90px] rounded-lg border border-line bg-surface shadow-float lg:shadow-none" />}
-      map={<MapView label="경로 지도" />}
-      panel={
-        <BottomSheet label="경로 목록" snaps={[0.3, 0.62, 0.9]} initialSnap={1}>
-          <div className="mx-auto w-full max-w-xl">
-            <RoutesToolbar baseTime={mockRouteSearch.baseTime} secondsAgo={mockRouteSearch.updatedSecondsAgo} />
-            <RouteListSkeleton count={3} />
+    <RoutesLayout
+      header={
+        <>
+          <div className="px-4 pt-3" aria-hidden="true">
+            <div className={`h-[88px] rounded-lg ${pulse}`} />
           </div>
-        </BottomSheet>
+          <div aria-hidden="true" className="flex h-14 items-center gap-2 border-b border-line px-4">
+            <div className={`h-9 w-[88px] rounded-full ${pulse}`} />
+            <div className={`h-9 w-[72px] rounded-full ${pulse}`} />
+          </div>
+          <div aria-hidden="true" className="flex h-12 items-center gap-5 border-b border-line px-4">
+            {[44, 44, 52, 84].map((w, i) => (
+              <div key={i} className={`h-4 rounded-sm ${pulse}`} style={{ width: w }} />
+            ))}
+          </div>
+          <RoutesToolbar
+            baseTime={mockRouteSearch.baseTime}
+            secondsAgo={mockRouteSearch.updatedSecondsAgo}
+            sort="arrival"
+          />
+        </>
       }
-    />
+      map={<MapView label="경로 지도" />}
+    >
+      <div className="pt-2">
+        <RouteListSkeleton count={3} />
+      </div>
+    </RoutesLayout>
   );
 }

@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Sans_KR } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const plex = IBM_Plex_Sans_KR({
-  variable: "--font-plex",
-  weight: ["400", "500", "600", "700"],
-  preload: false,
+const pretendard = localFont({
+  src: "../../node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2",
+  variable: "--font-pretendard",
+  weight: "100 900",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -25,7 +26,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ko" className={`${plex.variable} h-full antialiased`}>
+    <html lang="ko" className={`${pretendard.variable} h-full antialiased`}>
       <body className="min-h-full">{children}</body>
     </html>
   );

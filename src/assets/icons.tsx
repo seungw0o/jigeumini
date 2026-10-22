@@ -147,6 +147,92 @@ export const HistoryIcon = (p: IconProps) => (
   </Svg>
 );
 
+export const ChevronDownIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m6 9 6 6 6-6" />
+  </Svg>
+);
+
+export const StarIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m12 3.8 2.5 5.1 5.6.8-4 3.9 1 5.6-5.1-2.7-5 2.7.9-5.6-4-3.9 5.6-.8L12 3.8Z" />
+  </Svg>
+);
+
+export const StarFilledIcon = (p: IconProps) => (
+  <Svg {...p} fill="currentColor" stroke="none">
+    <path d="m12 3.8 2.5 5.1 5.6.8-4 3.9 1 5.6-5.1-2.7-5 2.7.9-5.6-4-3.9 5.6-.8L12 3.8Z" />
+  </Svg>
+);
+
+export const DirectionsIcon = (p: IconProps) => (
+  <Svg {...p} strokeWidth={2.4}>
+    <path d="M6 19v-5.5A3.5 3.5 0 0 1 9.5 10H18M14 6l4 4-4 4" />
+  </Svg>
+);
+
+export const BusStopIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="6" y="3" width="12" height="9" rx="2" />
+    <path d="M12 12v9M9 21h6M9 7.5h6" />
+  </Svg>
+);
+
+export const SubwayIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="6" y="3.5" width="12" height="13" rx="3" />
+    <path d="M6 10h12M9 20l1.5-3.5M15 20l-1.5-3.5" />
+    <circle cx="9.5" cy="13.3" r="0.8" fill="currentColor" stroke="none" />
+    <circle cx="14.5" cy="13.3" r="0.8" fill="currentColor" stroke="none" />
+  </Svg>
+);
+
+export const MapIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 21s-6-5.2-6-10.2a6 6 0 0 1 12 0C18 15.8 12 21 12 21Z" />
+    <circle cx="12" cy="10.6" r="2.2" />
+  </Svg>
+);
+
+export const RouteIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="6.5" cy="17.5" r="2" />
+    <circle cx="17.5" cy="6.5" r="2" />
+    <path d="M8.5 17.5H15a2.75 2.75 0 0 0 0-5.5H9a2.75 2.75 0 0 1 0-5.5h6.5" />
+  </Svg>
+);
+
+export const MoreIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="5.5" r="1.2" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="18.5" r="1.2" fill="currentColor" stroke="none" />
+  </Svg>
+);
+
+export const BusGlyph = ({ size = 16, ...rest }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true" focusable="false" {...rest}>
+    <path
+      fill="currentColor"
+      d="M4.5 1.5h7A2.5 2.5 0 0 1 14 4v7.5a1 1 0 0 1-1 1v1.25a.75.75 0 0 1-1.5 0V12.5h-7v1.25a.75.75 0 0 1-1.5 0V12.5a1 1 0 0 1-1-1V4a2.5 2.5 0 0 1 2.5-2.5Zm-.5 3V8h8V4.5H4Zm1 6.25a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8Zm6 0a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8Z"
+    />
+  </svg>
+);
+
+export const WalkGlyph = ({ size = 16, ...rest }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true" focusable="false" {...rest}>
+    <circle cx="8.6" cy="2.6" r="1.4" fill="currentColor" />
+    <path
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m6 14.5 1.6-4.3 1.6 1.6v2.7M7.6 10.2l.6-4-2 1.2-.7 2.2M8.2 6.2l1.6 1.9 1.9.6"
+    />
+  </svg>
+);
+
 export const TransferIcon = (p: IconProps) => (
   <Svg {...p}>
     <path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5" />

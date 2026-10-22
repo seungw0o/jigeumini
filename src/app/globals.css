@@ -1,43 +1,62 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-plex), "Apple SD Gothic Neo", sans-serif;
+  --font-sans: var(--font-pretendard), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 
-  --color-ink: #14171c;
-  --color-ink-2: #3a414b;
-  --color-muted: #5b6370;
-  --color-line: #e2e5e9;
-  --color-line-strong: #c9ced5;
-  --color-canvas: #f4f5f7;
+  --color-ink: #191b1f;
+  --color-ink-2: #43474e;
+  --color-muted: #6e737c;
+  --color-subtle: #9a9fa7;
+  --color-line: #ebedf0;
+  --color-line-strong: #d5d8dd;
+  --color-canvas: #f2f3f5;
+  --color-fill: #f6f7f8;
   --color-surface: #ffffff;
 
-  --color-accent: #0a6c74;
-  --color-accent-strong: #075158;
-  --color-accent-soft: #e3f1f2;
+  /* 브랜드 포인트: "N분 뒤 출발"과 주요 버튼에만 */
+  --color-accent: #1e5eff;
+  --color-accent-strong: #1748cc;
+  --color-accent-soft: #ebf1ff;
 
-  --color-danger: #b42318;
-  --color-danger-soft: #fdecea;
-  --color-warn: #8a5300;
-  --color-warn-soft: #fdf3e1;
+  --color-live: #e5372c;
 
-  --color-bus-express: #c62f28;
-  --color-bus-trunk: #2459c8;
-  --color-bus-branch: #23793a;
-  --color-bus-village: #5f6b12;
-  --color-bus-outer: #9a5b00;
-  --color-walk: #c3c8cf;
+  --color-danger: #d92d20;
+  --color-danger-soft: #fdeceb;
+  --color-warn: #b35c00;
+  --color-warn-soft: #fff4e5;
 
-  --color-map: #e9ece8;
+  --color-bus-express: #e2382f;
+  --color-bus-trunk: #2f66dc;
+  --color-bus-branch: #1f9a45;
+  --color-bus-village: #5f8f0e;
+  --color-bus-outer: #c77300;
+  --color-walk: #e3e6ea;
+  --color-walk-text: #8b919b;
+
+  --color-pin-origin: #1f9a45;
+  --color-pin-destination: #e2382f;
+  --color-current: #2f6bff;
+
+  --color-map: #eef0ec;
   --color-map-road: #ffffff;
-  --color-map-water: #cfe0ea;
-  --color-map-park: #dbe7d6;
+  --color-map-water: #cddff0;
+  --color-map-park: #dcebd5;
+
+  --text-2xs: 11px;
+  --text-2xs--line-height: 14px;
+  --text-13: 13px;
+  --text-13--line-height: 18px;
+  --text-15: 15px;
+  --text-15--line-height: 21px;
 
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
 
-  --shadow-float: 0 1px 2px rgb(20 23 28 / 0.08), 0 4px 12px rgb(20 23 28 / 0.08);
-  --shadow-sheet: 0 -2px 16px rgb(20 23 28 / 0.1);
+  --shadow-float: 0 0 1px rgb(0 0 0 / 0.18), 0 2px 8px rgb(0 0 0 / 0.12);
+  --shadow-pill: 0 0 1px rgb(0 0 0 / 0.16), 0 3px 10px rgb(0 0 0 / 0.1);
+  --shadow-sheet: 0 -1px 0 rgb(0 0 0 / 0.04), 0 -4px 16px rgb(0 0 0 / 0.08);
+  --shadow-bar: 0 -1px 0 var(--color-line);
 }
 
 html {
@@ -45,9 +64,11 @@ html {
 }
 
 body {
-  background: var(--color-canvas);
+  background: var(--color-surface);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  font-size: 14px;
+  letter-spacing: -0.01em;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
@@ -59,4 +80,11 @@ body {
 
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
