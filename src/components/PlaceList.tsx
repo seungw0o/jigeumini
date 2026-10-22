@@ -1,8 +1,8 @@
-import { CloseIcon, HistoryIcon, PinIcon, StarIcon, SubwayIcon } from "@/assets/icons";
+import { CloseIcon, HistoryIcon, PinIcon, StarIcon } from "@/assets/icons";
 import { formatDistance } from "@/utils/format";
 import type { Place } from "@/utils/types";
 
-const ICONS = { pin: PinIcon, history: HistoryIcon, star: StarIcon, subway: SubwayIcon };
+const ICONS = { pin: PinIcon, history: HistoryIcon, star: StarIcon };
 
 export function PlaceList({
   places,

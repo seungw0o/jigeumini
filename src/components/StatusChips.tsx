@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { BusGlyph, ClockIcon, RefreshIcon } from "@/assets/icons";
 import { BUS_TYPE_META } from "@/utils/format";
 import type { BusArrival, BusType } from "@/utils/types";
@@ -92,27 +91,6 @@ export function ArrivalChip({ arrival, missed = false }: { arrival: BusArrival; 
     <span className="inline-flex h-6 max-w-full items-center rounded-full bg-fill px-2">
       <ArrivalText arrival={arrival} missed={missed} />
     </span>
-  );
-}
-
-export function PillButton({
-  children,
-  onClick,
-  label,
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-  label?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className="relative inline-flex h-7 shrink-0 items-center rounded-full border border-line-strong bg-surface px-2.5 text-xs font-medium text-ink-2 before:absolute before:-inset-2 hover:bg-fill"
-    >
-      {children}
-    </button>
   );
 }
 

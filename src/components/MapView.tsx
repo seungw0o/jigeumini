@@ -36,9 +36,9 @@ function escapeHtml(s: string): string {
 }
 
 function bubbleHtml(label: string, color: string): string {
-  return `<div style="position:relative;padding-bottom:6px;filter:drop-shadow(0 1px 1.5px rgb(0 0 0/.28)) drop-shadow(0 2px 5px rgb(0 0 0/.12))"><div style="display:flex;align-items:center;gap:1px;height:24px;padding:0 5px 0 8px;border-radius:6px 6px 6px 2px;background:${color};color:var(--color-surface);font:700 13px/1 ${FONT};letter-spacing:-0.01em;white-space:nowrap">${escapeHtml(
+  return `<div style="padding-bottom:6px;filter:drop-shadow(0 1px 2px rgb(0 0 0/.25))"><div style="display:flex;align-items:center;height:22px;padding:0 6px;border:2px solid var(--color-surface);border-radius:4px;background:${color};color:var(--color-surface);font:700 13px/1 ${FONT};white-space:nowrap">${escapeHtml(
     label,
-  )}<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="display:block"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div><svg width="9" height="7" viewBox="0 0 9 7" aria-hidden="true" style="position:absolute;left:0;bottom:0;display:block"><path d="M0 7 1.2 0H9Z" fill="${color}"/></svg></div>`;
+  )}</div></div>`;
 }
 
 function pinHtml(tone: "origin" | "destination"): string {
@@ -56,7 +56,7 @@ function dotHtml(tone: "stop" | "transfer" | "current"): string {
   return `<span style="display:block;box-sizing:border-box;width:${size}px;height:${size}px;border-radius:9999px;background:var(--color-surface);border:${border}"></span>`;
 }
 
-const PLACE_HTML = `<span style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:9999px;background:var(--color-surface);box-shadow:var(--shadow-float)"><span style="display:block;width:10px;height:10px;border-radius:9999px;background:var(--color-accent)"></span></span>`;
+const PLACE_HTML = `<span style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:9999px;background:var(--color-surface);box-shadow:var(--shadow-float)"><span style="display:block;width:10px;height:10px;border-radius:9999px;background:var(--color-brand);box-shadow:0 0 0 2px var(--color-ink)"></span></span>`;
 
 function pillHtml(name: string): string {
   return `<span style="position:absolute;left:50%;bottom:calc(100% - 4px);transform:translateX(-50%);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 10px;border-radius:9999px;background:var(--color-surface);color:var(--color-ink);font:600 12px/16px ${FONT};box-shadow:var(--shadow-float)">${escapeHtml(

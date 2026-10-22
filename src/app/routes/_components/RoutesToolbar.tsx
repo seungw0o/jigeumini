@@ -2,11 +2,12 @@
 
 import { ChevronDownIcon } from "@/assets/icons";
 import { StaleBadge } from "@/components/StatusChips";
+import { formatShortClock } from "@/utils/ribbon";
 import type { RouteSortKey } from "@/utils/types";
 
 export const SORT_OPTIONS: { key: RouteSortKey; label: string }[] = [
-  { key: "arrival", label: "빠른 도착순" },
-  { key: "walk", label: "적게 걷는 순" },
+  { key: "arrival", label: "도착 빠른 순" },
+  { key: "walk", label: "도보 짧은 순" },
   { key: "transfer", label: "환승 적은 순" },
 ];
 
@@ -32,13 +33,12 @@ export function RoutesToolbar({
       <div className="flex min-w-0 items-center gap-2.5">
         <button
           type="button"
-          aria-haspopup="listbox"
-          aria-expanded="false"
-          className="-ml-1 inline-flex h-11 shrink-0 items-center gap-0.5 px-1 text-sm whitespace-nowrap"
+          aria-label={`출발 시각 지금 ${formatShortClock(baseTime)}`}
+          className="-ml-1 inline-flex h-11 shrink-0 items-center gap-1 rounded-md px-1 text-sm whitespace-nowrap focus-visible:outline-offset-[-2px]"
         >
-          <span className="font-semibold text-accent tabular">오늘 {baseTime}</span>
-          <span className="ml-1 font-semibold text-ink">출발</span>
-          <ChevronDownIcon size={16} className="text-ink-2" />
+          <span className="font-bold text-ink">지금</span>
+          <span className="font-medium text-ink-2 tabular">{formatShortClock(baseTime)} 출발</span>
+          <ChevronDownIcon size={16} className="text-muted" />
         </button>
         <span className="min-w-0 max-[359px]:hidden">
           <StaleBadge secondsAgo={secondsAgo} onRefresh={onRefresh} />
@@ -52,7 +52,7 @@ export function RoutesToolbar({
           onChange={(e) => {
             if (isSortKey(e.target.value)) onSortChange?.(e.target.value);
           }}
-          className="h-11 cursor-pointer appearance-none bg-transparent pr-6 pl-1 text-13 text-ink-2 disabled:cursor-default"
+          className="h-11 cursor-pointer appearance-none rounded-md bg-transparent pr-6 pl-1 text-13 font-medium text-ink-2 focus-visible:outline-offset-[-2px] disabled:cursor-default"
         >
           {SORT_OPTIONS.map((o) => (
             <option key={o.key} value={o.key}>
@@ -60,7 +60,7 @@ export function RoutesToolbar({
             </option>
           ))}
         </select>
-        <ChevronDownIcon size={15} className="pointer-events-none absolute right-1 text-ink-2" />
+        <ChevronDownIcon size={15} className="pointer-events-none absolute right-1 text-muted" />
       </label>
     </div>
   );

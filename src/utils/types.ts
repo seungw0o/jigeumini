@@ -126,3 +126,36 @@ export interface MapMarker {
   label?: string;
   tone: MarkerTone;
 }
+
+/** 타임 리본 구간: 집 대기 / 도보 / 첫 정류장 여유 / 환승 대기 / 탑승 */
+export type RibbonSegmentKind = "home" | "walk" | "stop" | "transfer" | "bus";
+
+/** 지금부터 도착까지 시간축 위의 한 구간. start/end는 "HH:MM" */
+export interface RibbonSegment {
+  kind: RibbonSegmentKind;
+  start: string;
+  end: string;
+  minutes: number;
+  /** bus 구간만 */
+  routeNo?: string;
+  busType?: BusType;
+  /** stop / transfer 구간만: 기다리는 정류장 */
+  stopName?: string;
+}
+
+/** 시간축 위의 사건. offset은 지금부터 지난 분 */
+export interface RibbonMark {
+  kind: "now" | "leave" | "board" | "arrive";
+  time: string;
+  offset: number;
+  /** board만 */
+  routeNo?: string;
+}
+
+export interface Ribbon {
+  now: string;
+  segments: RibbonSegment[];
+  marks: RibbonMark[];
+  /** 지금부터 도착까지 (segments minutes 합) */
+  totalMinutes: number;
+}

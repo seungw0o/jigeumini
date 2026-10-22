@@ -1,12 +1,15 @@
 import type { ReactNode } from "react";
 import { BusGlyph } from "@/assets/icons";
+import { LeaveBadge } from "@/components/LeaveBadge";
 import { ArrivalText, BusBadge, MissedBusNotice } from "@/components/StatusChips";
-import { BUS_TYPE_META, formatDistance, leaveLabel } from "@/utils/format";
-import type { BusLeg, Leg, TransitRoute } from "@/utils/types";
+import { BUS_TYPE_META, formatDistance } from "@/utils/format";
+import { buildRibbon, formatShortClock } from "@/utils/ribbon";
+import type { BusLeg, Leg, Ribbon, TransitRoute } from "@/utils/types";
 
-type Segment = { kind: "walk" } | { kind: "bus"; color: string } | null;
+type Segment = { kind: "home" } | { kind: "walk" } | { kind: "bus"; color: string } | null;
 
 type Marker =
+  | { kind: "home" }
   | { kind: "origin" }
   | { kind: "destination" }
   | { kind: "board"; color: string }
@@ -15,6 +18,7 @@ type Marker =
 type StepData = {
   key: string;
   time?: string;
+  emphasize?: boolean;
   incoming: Segment;
   outgoing: Segment;
   marker?: Marker;
@@ -31,6 +35,9 @@ function Rail({ segment, className }: { segment: Segment; className: string }) {
   if (!segment) return null;
   if (segment.kind === "walk") {
     return <span className={`absolute left-1/2 w-0 -translate-x-px border-l-2 border-dotted border-walk-text ${className}`} />;
+  }
+  if (segment.kind === "home") {
+    return <span className={`absolute left-1/2 w-1 -translate-x-1/2 bg-brand ${className}`} />;
   }
   return (
     <span
@@ -66,6 +73,10 @@ function Pin({ color, text }: { color: string; text: string }) {
 
 function MarkerGlyph({ marker }: { marker: Marker }) {
   switch (marker.kind) {
+    case "home":
+      return (
+        <span className="absolute top-6 left-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-xs bg-brand ring-2 ring-surface" />
+      );
     case "origin":
       return <Pin color="var(--color-pin-origin)" text="출발" />;
     case "destination":
@@ -90,7 +101,7 @@ function MarkerGlyph({ marker }: { marker: Marker }) {
 }
 
 function Step({ step, divider, tightBottom }: { step: StepData; divider: boolean; tightBottom: boolean }) {
-  const { time, incoming, outgoing, marker, walk } = step;
+  const { time, emphasize, incoming, outgoing, marker, walk } = step;
   const pinned = marker?.kind === "origin";
   return (
     <li className="flex">
@@ -98,9 +109,9 @@ function Step({ step, divider, tightBottom }: { step: StepData; divider: boolean
         {time && (
           <time
             dateTime={time}
-            className="inline-flex h-5 items-center rounded-[3px] border border-line-strong bg-surface px-1 text-xs text-ink-2 tabular"
+            className={`flex h-5 items-center text-13 tabular ${emphasize ? "font-semibold text-ink" : "text-muted"}`}
           >
-            {time}
+            {formatShortClock(time)}
           </time>
         )}
       </div>
@@ -130,14 +141,25 @@ function StopTitle({ children }: { children: ReactNode }) {
   return <p className="text-15 font-bold text-ink">{children}</p>;
 }
 
-function BoardContent({ leg }: { leg: BusLeg }) {
+function WaitTag({ children }: { children: ReactNode }) {
+  return (
+    <span className="inline-flex h-5 shrink-0 items-center rounded-sm bg-canvas px-1.5 text-xs font-semibold text-ink-2 tabular">
+      {children}
+    </span>
+  );
+}
+
+function BoardContent({ leg, transferWait }: { leg: BusLeg; transferWait?: number }) {
   const visible = leg.arrivals.slice(0, leg.catchIndex + 2);
   const firstMissed = leg.arrivals[0]?.status;
   const caught = leg.arrivals[leg.catchIndex]?.status;
 
   return (
     <>
-      <StopTitle>{leg.boardStop.name} 승차</StopTitle>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <StopTitle>{leg.boardStop.name} 승차</StopTitle>
+        {transferWait !== undefined && <WaitTag>환승 대기 {transferWait}분</WaitTag>}
+      </div>
       <p className="text-xs text-muted tabular">{leg.boardStop.arsId}</p>
       <div className="mt-2 flex items-start gap-2.5">
         <span className="flex h-[18px] items-center">
@@ -167,24 +189,50 @@ function hasBusAfter(legs: Leg[], index: number): boolean {
   return legs.slice(index + 1).some((leg) => leg.kind === "bus");
 }
 
-function buildSteps(route: TransitRoute, originName: string, destinationName: string): StepData[] {
+function transferWaitOf(ribbon: Ribbon, leg: BusLeg): number {
+  return ribbon.segments.find((seg) => seg.kind === "transfer" && seg.end === leg.boardAt)?.minutes ?? leg.waitMinutes;
+}
+
+function buildSteps(route: TransitRoute, now: string, originName: string, destinationName: string): StepData[] {
   const { legs } = route;
-  const steps: StepData[] = [
-    {
-      key: "origin",
-      time: route.leaveAt,
+  const ribbon = buildRibbon(route, now);
+  const homeMinutes = ribbon.segments[0]?.kind === "home" ? ribbon.segments[0].minutes : 0;
+  const steps: StepData[] = [];
+
+  if (homeMinutes > 0) {
+    steps.push({
+      key: "home",
+      time: now,
       incoming: null,
-      outgoing: segmentOf(legs[0]),
-      marker: { kind: "origin" },
+      outgoing: { kind: "home" },
+      marker: { kind: "home" },
       content: (
         <>
-          <StopTitle>{originName}</StopTitle>
-          <p className="text-13 font-semibold text-accent tabular">{leaveLabel(route)}</p>
+          <StopTitle>집에서 {homeMinutes}분</StopTitle>
+          <p className="text-xs text-muted tabular">지금 {formatShortClock(now)}</p>
         </>
       ),
-    },
-  ];
+    });
+  }
 
+  steps.push({
+    key: "origin",
+    time: route.leaveAt,
+    emphasize: true,
+    incoming: homeMinutes > 0 ? { kind: "home" } : null,
+    outgoing: segmentOf(legs[0]),
+    marker: { kind: "origin" },
+    content: (
+      <>
+        <StopTitle>{originName}</StopTitle>
+        <div className="mt-1 flex">
+          <LeaveBadge route={route} size="sm" />
+        </div>
+      </>
+    ),
+  });
+
+  let seenBus = false;
   legs.forEach((leg, i) => {
     if (leg.kind === "walk") {
       steps.push({
@@ -208,8 +256,9 @@ function buildSteps(route: TransitRoute, originName: string, destinationName: st
       incoming: segmentOf(legs[i - 1]),
       outgoing: segmentOf(leg),
       marker: { kind: "board", color },
-      content: <BoardContent leg={leg} />,
+      content: <BoardContent leg={leg} transferWait={seenBus ? transferWaitOf(ribbon, leg) : undefined} />,
     });
+    seenBus = true;
     steps.push({
       key: `alight-${i}`,
       time: leg.alightAt,
@@ -217,13 +266,9 @@ function buildSteps(route: TransitRoute, originName: string, destinationName: st
       outgoing: segmentOf(legs[i + 1]),
       marker: { kind: "alight", color },
       content: (
-        <p className="flex min-w-0 items-center gap-1.5">
+        <p className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
           <span className="text-15 font-bold text-ink">{leg.alightStop.name} 하차</span>
-          {hasBusAfter(legs, i) && (
-            <span className="inline-flex h-[18px] shrink-0 items-center rounded-[3px] bg-fill px-1 text-2xs font-semibold text-ink-2">
-              환승
-            </span>
-          )}
+          {hasBusAfter(legs, i) && <WaitTag>환승</WaitTag>}
         </p>
       ),
     });
@@ -248,14 +293,16 @@ function buildSteps(route: TransitRoute, originName: string, destinationName: st
 
 export function StepTimeline({
   route,
+  now,
   originName,
   destinationName,
 }: {
   route: TransitRoute;
+  now: string;
   originName: string;
   destinationName: string;
 }) {
-  const steps = buildSteps(route, originName, destinationName);
+  const steps = buildSteps(route, now, originName, destinationName);
 
   return (
     <ol aria-label="이동 단계" className="pl-4">

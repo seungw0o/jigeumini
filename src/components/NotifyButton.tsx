@@ -18,18 +18,18 @@ const NEXT: Record<NotifyState, NotifyState> = { idle: "on", on: "idle", denied:
 
 const TONE: Record<Variant, Record<NotifyState, string>> = {
   block: {
-    idle: "h-9 w-full rounded-md border border-line-strong bg-surface text-accent hover:bg-fill",
-    on: "h-9 w-full rounded-md border border-accent/40 bg-accent-soft text-accent-strong",
+    idle: "h-9 w-full rounded-md bg-brand text-ink hover:bg-brand-strong",
+    on: "h-9 w-full rounded-md border border-brand-ink/30 bg-brand-soft text-brand-ink",
     denied: "h-9 w-full rounded-md border border-line bg-fill text-subtle",
   },
   primary: {
-    idle: "h-11 rounded-full bg-accent px-5 text-white hover:bg-accent-strong",
-    on: "h-11 rounded-full border border-accent bg-surface px-5 text-accent",
-    denied: "h-11 rounded-full bg-canvas px-5 text-subtle",
+    idle: "h-11 rounded-lg bg-brand px-5 text-ink hover:bg-brand-strong",
+    on: "h-11 rounded-lg border border-brand-ink/30 bg-brand-soft px-5 text-brand-ink",
+    denied: "h-11 rounded-lg bg-canvas px-5 text-muted",
   },
   compact: {
     idle: "h-8 rounded-full border border-line-strong bg-surface px-3 text-ink-2 hover:bg-fill",
-    on: "h-8 rounded-full bg-accent-soft px-3 text-accent-strong",
+    on: "h-8 rounded-full bg-brand-soft px-3 text-brand-ink",
     denied: "h-8 rounded-full bg-canvas px-3 text-subtle",
   },
 };

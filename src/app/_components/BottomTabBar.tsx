@@ -31,10 +31,16 @@ export function BottomTabBar({
                 type="button"
                 aria-current={current ? "page" : undefined}
                 onClick={() => onSelect(key)}
-                className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-2xs focus-visible:outline-offset-[-2px] ${
+                className={`relative flex flex-1 flex-col items-center justify-center gap-0.5 text-2xs focus-visible:outline-offset-[-2px] ${
                   current ? "font-bold text-ink" : "text-muted hover:text-ink-2"
                 }`}
               >
+                {current && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-0 left-1/2 h-[3px] w-6 -translate-x-1/2 rounded-b-sm bg-brand"
+                  />
+                )}
                 <Icon size={24} />
                 {label}
               </button>

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { BusStopIcon, HistoryIcon, StarFilledIcon, SubwayIcon } from "@/assets/icons";
+import { BusStopIcon, HistoryIcon, StarFilledIcon } from "@/assets/icons";
 
-export type ChipKey = "favorites" | "stops" | "subway" | "recentRoutes" | "home";
+export type ChipKey = "favorites" | "stops" | "recentRoutes" | "home";
 
 function HomeIcon({ size = 16, className }: { size?: number; className?: string }) {
   return (
@@ -19,9 +19,8 @@ function HomeIcon({ size = 16, className }: { size?: number; className?: string 
 }
 
 const CHIPS: { key: ChipKey; label: string; icon: ReactNode }[] = [
-  { key: "favorites", label: "즐겨찾기", icon: <StarFilledIcon size={16} className="text-[#f5a400]" /> },
+  { key: "favorites", label: "즐겨찾기", icon: <StarFilledIcon size={16} className="text-brand" /> },
   { key: "stops", label: "정류장", icon: <BusStopIcon size={16} strokeWidth={2.2} className="text-bus-trunk" /> },
-  { key: "subway", label: "지하철역", icon: <SubwayIcon size={16} strokeWidth={2.2} className="text-bus-branch" /> },
   { key: "recentRoutes", label: "최근 경로", icon: <HistoryIcon size={16} strokeWidth={2.2} className="text-ink-2" /> },
   { key: "home", label: "집", icon: <HomeIcon size={16} className="text-bus-outer" /> },
 ];
@@ -47,9 +46,9 @@ export function CategoryChips({
             type="button"
             aria-pressed={pressed}
             onClick={() => onToggle(chip.key)}
-            className={`relative flex h-8 shrink-0 items-center gap-1 rounded-full px-3 text-13 font-semibold whitespace-nowrap shadow-float transition-colors before:absolute before:-inset-x-0 before:-inset-y-1 lg:shadow-none ${
+            className={`relative flex h-8 shrink-0 items-center gap-1 rounded-md px-3 text-13 font-semibold whitespace-nowrap shadow-float transition-colors before:absolute before:inset-x-0 before:-inset-y-1.5 lg:shadow-none ${
               pressed
-                ? "bg-ink text-white"
+                ? "bg-ink text-white lg:border lg:border-ink"
                 : "bg-surface text-ink hover:bg-fill lg:border lg:border-line"
             }`}
           >

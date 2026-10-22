@@ -56,8 +56,8 @@ export function MapControlButton({
       aria-label={label}
       aria-pressed={pressed}
       onClick={onClick}
-      className={`flex size-11 items-center justify-center rounded-full bg-surface shadow-float transition-colors hover:bg-fill active:bg-canvas [&>svg]:size-[22px] ${
-        pressed ? "text-accent" : "text-ink-2"
+      className={`flex size-11 items-center justify-center rounded-lg bg-surface shadow-float transition-colors hover:bg-fill active:bg-canvas [&>svg]:size-[22px] ${
+        pressed ? "text-brand-ink" : "text-ink-2"
       }`}
     >
       {children}
@@ -84,7 +84,7 @@ export function DefaultMapControls({
         <LayersIcon size={22} />
       </MapControlButton>
       <MapControlButton label="즐겨찾기 표시" pressed={favoritesOn} onClick={onFavorites}>
-        {favoritesOn ? <StarFilledIcon size={22} className="text-[#f5a400]" /> : <StarIcon size={22} />}
+        {favoritesOn ? <StarFilledIcon size={22} className="text-brand" /> : <StarIcon size={22} />}
       </MapControlButton>
       <div className="mt-2.5 flex">
         <MapControlButton label="현재 위치로 이동" onClick={onLocate}>

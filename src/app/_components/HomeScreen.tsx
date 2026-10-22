@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Logo } from "@/assets/Logo";
 import { BottomSheet } from "@/components/BottomSheet";
 import { DefaultMapControls, MapLayout } from "@/components/MapLayout";
 import { MapView, type MapMarker } from "@/components/MapView";
@@ -36,7 +37,6 @@ const TAB_BAR_RATIO = 0.07;
 const HEADER_HEIGHT_PX = 104;
 
 const INITIAL_FAVORITES: Place[] = [mockPlaces[0], mockPlaces[1], mockPlaces[4]];
-const SUBWAY_PLACES = mockPlaces.filter((p) => p.category === "지하철역");
 
 const PLACE_MARKERS: MapMarker[] = mockPlaces.map((p) => ({
   id: p.id,
@@ -211,12 +211,6 @@ export function HomeScreen() {
         />
       </SheetSection>
     );
-  } else if (view === "subway") {
-    sheetContent = (
-      <SheetSection title="지하철역">
-        <PlaceList places={SUBWAY_PLACES} onSelect={setSelected} icon="subway" />
-      </SheetSection>
-    );
   } else if (view === "stops") {
     sheetContent = (
       <SheetSection title="정류장">
@@ -312,6 +306,9 @@ export function HomeScreen() {
         header={
           <div ref={headerRef}>
             <h1 className="sr-only">지금이니? 대전 버스 길찾기</h1>
+            <div aria-hidden="true" className="mb-3 hidden h-8 items-center lg:flex">
+              <Logo size="md" />
+            </div>
             {routeMode ? (
               <RouteSearchBar
                 origin={origin}
