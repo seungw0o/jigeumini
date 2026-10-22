@@ -3,7 +3,7 @@ import { ChevronRightIcon } from "@/assets/icons";
 import { LeaveBadge } from "@/components/LeaveBadge";
 import { BusNumber, StaleBadge } from "@/components/StatusChips";
 import { TimeRibbon } from "@/components/TimeRibbon";
-import { ESTIMATE_NOTE, formatFare, realtimeNote, totalLabel, transferLabel } from "@/utils/format";
+import { ESTIMATE_NOTE, formatDistance, formatFare, realtimeNote, totalLabel, transferLabel } from "@/utils/format";
 import { formatShortClock } from "@/utils/ribbon";
 import type { BusLeg, TransitRoute } from "@/utils/types";
 
@@ -34,24 +34,31 @@ export function RouteSummary({
   onRefresh: () => void;
 }) {
   const note = realtimeNote(route);
+  const walkM = route.legs.reduce((sum, leg) => (leg.kind === "walk" ? sum + leg.distanceM : sum), 0);
   return (
-    <section aria-labelledby="route-summary-title" className="border-b border-border px-4 pt-2 pb-4 lg:pt-4">
+    <section aria-labelledby="route-summary-title" className="border-b border-divider px-gutter pt-3 pb-6 lg:pt-6">
       <div className="flex min-h-6 items-center justify-between gap-3">
         <BusSequence route={route} />
         <StaleBadge secondsAgo={secondsAgo} onRefresh={onRefresh} />
       </div>
-      <h1 id="route-summary-title" className="mt-2 flex items-center justify-between gap-3">
-        <span className="shrink-0 text-[26px] leading-8 font-bold text-fg tabular">{totalLabel(route)}</span>
+      <div className="mt-5 flex">
         <LeaveBadge route={route} size="lg" />
+      </div>
+      <h1 id="route-summary-title" className="mt-2 text-xl font-bold text-fg tabular">
+        {totalLabel(route)}
       </h1>
-      <p className="mt-1 text-xs text-fg-muted tabular">
-        <span className="text-fg-secondary">도착 예상</span>{" "}
-        <span className="text-sm font-semibold text-fg">{formatShortClock(route.arriveAt)}</span> ·{" "}
-        {formatFare(route.fare)} · {transferLabel(route.transferCount)}
+      <p className="mt-1 text-sm text-fg-secondary tabular">
+        도착 예상 <span className="font-semibold text-fg">{formatShortClock(route.arriveAt)}</span>
       </p>
-      {note && <p className="mt-1 text-xs break-keep text-fg-muted">{note}</p>}
-      <p className="mt-1 text-xs text-fg-muted">{ESTIMATE_NOTE}</p>
-      <TimeRibbon route={route} now={now} variant="full" className="mt-4" />
+      <p className="mt-3 text-xs text-fg-muted tabular">
+        {formatFare(route.fare)} · {transferLabel(route.transferCount)}
+        {walkM > 0 && ` · 도보 ${formatDistance(walkM)}`}
+      </p>
+      {note && <p className="mt-3 text-xs break-keep text-realtime-missing">{note}</p>}
+      {route.realtime !== "unavailable" && (
+        <p className={`${note ? "mt-1" : "mt-3"} text-xs break-keep text-fg-muted`}>{ESTIMATE_NOTE}</p>
+      )}
+      <TimeRibbon route={route} now={now} variant="full" className="mt-5" />
     </section>
   );
 }

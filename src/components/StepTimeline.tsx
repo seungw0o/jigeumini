@@ -75,7 +75,7 @@ function MarkerGlyph({ marker }: { marker: Marker }) {
   switch (marker.kind) {
     case "before":
       return (
-        <span className="absolute top-6 left-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-xs bg-brand ring-2 ring-surface" />
+        <span className="absolute top-6 left-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-brand" />
       );
     case "origin":
       return <Pin color="var(--color-map-origin)" text="출발" />;
@@ -84,7 +84,7 @@ function MarkerGlyph({ marker }: { marker: Marker }) {
     case "board":
       return (
         <span
-          className="absolute top-6 left-1/2 flex size-[22px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 bg-surface"
+          className="absolute top-6 left-1/2 flex size-5.5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 bg-surface"
           style={{ borderColor: marker.color, color: marker.color }}
         >
           <BusGlyph size={12} />
@@ -105,7 +105,7 @@ function Step({ step, divider, tightBottom }: { step: StepData; divider: boolean
   const pinned = marker?.kind === "origin";
   return (
     <li className="flex">
-      <div className={`w-[52px] shrink-0 ${walk ? "" : "pt-3.5"}`}>
+      <div className={`w-13 shrink-0 ${walk ? "" : "pt-3.5"}`}>
         {time && (
           <time
             dateTime={time}
@@ -127,8 +127,8 @@ function Step({ step, divider, tightBottom }: { step: StepData; divider: boolean
         )}
       </div>
       <div
-        className={`min-w-0 flex-1 pr-4 pl-2.5 ${walk ? "pt-0.5" : "pt-3.5"} ${tightBottom ? "pb-2" : "pb-3.5"} ${
-          divider ? "border-b border-border" : ""
+        className={`min-w-0 flex-1 pr-gutter pl-3 ${walk ? "pt-0.5" : "pt-3.5"} ${tightBottom ? "pb-2" : "pb-4"} ${
+          divider ? "border-b border-divider" : ""
         }`}
       >
         {step.content}
@@ -138,12 +138,12 @@ function Step({ step, divider, tightBottom }: { step: StepData; divider: boolean
 }
 
 function StopTitle({ children }: { children: ReactNode }) {
-  return <p className="text-sm font-bold text-fg">{children}</p>;
+  return <p className="text-sm font-semibold text-fg">{children}</p>;
 }
 
 function WaitTag({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex h-5 shrink-0 items-center rounded-sm bg-bg px-1.5 text-xs font-semibold text-fg-secondary tabular">
+    <span className="inline-flex h-5 shrink-0 items-center rounded-sm bg-surface-muted px-1.5 text-xs font-semibold text-fg-secondary tabular ring-1 ring-border ring-inset">
       {children}
     </span>
   );
@@ -176,14 +176,16 @@ function BoardContent({
         {transferWait !== undefined && !leg.liveIssue && <WaitTag>환승 대기 {transferWait}분</WaitTag>}
       </div>
       <p className="text-xs text-fg-muted tabular">{leg.boardStop.arsId}</p>
-      <div className="mt-2 flex items-start gap-2.5">
-        <span className="flex h-[18px] items-center">
+      <div className="mt-2.5 flex items-start gap-2.5">
+        <span className="flex h-4.5 items-center">
           <BusBadge routeNo={leg.routeNo} busType={leg.busType} />
         </span>
         <ul className="flex min-w-0 flex-col gap-0.5">
-          {statusText && <li className="flex min-h-[18px] min-w-0 items-center text-xs text-fg-muted">{statusText}</li>}
+          {statusText && (
+            <li className="flex min-h-4.5 min-w-0 items-center text-xs text-realtime-missing">{statusText}</li>
+          )}
           {visible.map((arrival, i) => (
-            <li key={i} className="flex min-h-[18px] min-w-0 items-center">
+            <li key={i} className="flex min-h-4.5 min-w-0 items-center">
               <ArrivalText arrival={arrival} missed={i < leg.catchIndex} />
             </li>
           ))}
@@ -229,7 +231,9 @@ function buildSteps(route: TransitRoute, now: string, originName: string, destin
       marker: { kind: "before" },
       content: (
         <>
-          <StopTitle>출발 전 {beforeMinutes}분</StopTitle>
+          <StopTitle>
+            출발 전 <span className="tabular">{route.leaveInMinutes}분</span>
+          </StopTitle>
           <p className="text-xs text-fg-muted tabular">지금 {formatShortClock(now)}</p>
         </>
       ),
@@ -246,7 +250,7 @@ function buildSteps(route: TransitRoute, now: string, originName: string, destin
     content: (
       <>
         <StopTitle>{originName}</StopTitle>
-        <div className="mt-1 flex">
+        <div className="mt-1.5 flex">
           <LeaveBadge route={route} size="sm" />
         </div>
       </>
@@ -262,8 +266,8 @@ function buildSteps(route: TransitRoute, now: string, originName: string, destin
         outgoing: segmentOf(leg),
         walk: true,
         content: (
-          <p className="text-xs text-fg-muted tabular">
-            도보 {formatDistance(leg.distanceM)} · <strong className="font-bold text-fg-secondary">{leg.minutes}분</strong>
+          <p className="inline-flex h-6 items-center rounded-full bg-walk px-2.5 text-xs text-walk-fg tabular">
+            도보 {formatDistance(leg.distanceM)} · <strong className="ml-1 font-semibold">{leg.minutes}분</strong>
           </p>
         ),
       });
@@ -295,7 +299,7 @@ function buildSteps(route: TransitRoute, now: string, originName: string, destin
       marker: { kind: "alight", color },
       content: (
         <p className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
-          <span className="text-sm font-bold text-fg">{leg.alightStop.name} 하차</span>
+          <span className="text-sm font-semibold text-fg">{leg.alightStop.name} 하차</span>
           {hasBusAfter(legs, i) && <WaitTag>환승</WaitTag>}
         </p>
       ),
@@ -335,7 +339,7 @@ export function StepTimeline({
   const steps = buildSteps(route, now, originName, destinationName);
 
   return (
-    <ol aria-label="이동 단계" className="pl-4">
+    <ol aria-label="이동 단계" className="py-2 pl-gutter">
       {steps.map((step, i) => {
         const next = steps[i + 1];
         const nextIsWalk = next?.walk === true;

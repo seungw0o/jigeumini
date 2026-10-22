@@ -13,10 +13,6 @@ import { RouteSummary } from "./RouteSummary";
 
 const SHEET_SNAPS = [0.32, 0.55, 0.92];
 
-function SectionGap() {
-  return <div aria-hidden="true" className="h-2 bg-bg" />;
-}
-
 export function RouteDetailFrame({
   paths,
   markers,
@@ -55,10 +51,10 @@ export function RouteFooterBar({
   showNotify?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 bg-surface px-4 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-bar">
+    <div className="flex min-h-row items-center justify-between gap-4 bg-surface px-gutter pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-bar">
       <div className="min-w-0">
         <LeaveBadge route={route} size="md" />
-        <p className="mt-1 truncate text-xs text-fg-muted tabular">
+        <p className="mt-1.5 truncate text-xs text-fg-muted tabular">
           도착 예상 {formatShortClock(route.arriveAt)} · {totalLabel(route)}
         </p>
       </div>
@@ -86,15 +82,10 @@ export function RouteDetailSections({
     <>
       <RouteSummary route={route} now={now} secondsAgo={secondsAgo} onRefresh={onRefresh} />
       <StepTimeline route={route} now={now} originName={originName} destinationName={destinationName} />
-      {route.transferCount > 0 && (
-        <>
-          <SectionGap />
-          <TransferPanel route={route} secondsAgo={secondsAgo} onRefresh={onRefresh} />
-        </>
-      )}
-      <SectionGap />
-      <RideInsightPlaceholder />
-      <SectionGap />
+      <div className="flex flex-col gap-3 border-t border-divider px-gutter pt-5 pb-8">
+        {route.transferCount > 0 && <TransferPanel route={route} secondsAgo={secondsAgo} onRefresh={onRefresh} />}
+        <RideInsightPlaceholder />
+      </div>
     </>
   );
 }

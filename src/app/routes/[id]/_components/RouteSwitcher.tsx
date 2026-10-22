@@ -41,7 +41,7 @@ export function RouteSwitcher({
         <Link
           href={`/routes${suffix}`}
           aria-label="경로 목록으로"
-          className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-surface text-fg shadow-float hover:bg-surface-muted lg:border lg:border-border lg:shadow-none"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-surface text-fg shadow-float hover:bg-surface-muted lg:bg-action-secondary lg:shadow-none lg:hover:bg-action-secondary-pressed"
         >
           <BackIcon />
         </Link>
@@ -57,16 +57,12 @@ export function RouteSwitcher({
                   ref={active ? activeRef : undefined}
                   href={`/routes/${route.id}${suffix}`}
                   aria-current={active ? "page" : undefined}
-                  className={`relative flex h-10 items-center gap-2 rounded-md border bg-surface pr-3 pl-2.5 text-xs whitespace-nowrap tabular shadow-float lg:shadow-none ${
+                  className={`flex h-11 items-center gap-2 rounded-full border px-3.5 text-xs whitespace-nowrap tabular shadow-float lg:shadow-none ${
                     active
-                      ? "border-brand-ink text-fg ring-1 ring-brand-ink ring-inset"
-                      : "border-border text-fg-secondary hover:bg-surface-muted"
+                      ? "border-surface-inverse bg-surface-inverse text-fg-inverse"
+                      : "border-border bg-surface text-fg-secondary hover:bg-surface-muted"
                   }`}
                 >
-                  <span
-                    aria-hidden="true"
-                    className={`h-4 w-1 shrink-0 rounded-xs ${active ? "bg-brand" : "bg-border-strong"}`}
-                  />
                   <BusSequence route={route} size="sm" />
                   <span>
                     약 <span className={active ? "font-bold" : "font-semibold"}>{formatShortClock(route.arriveAt)}</span>{" "}

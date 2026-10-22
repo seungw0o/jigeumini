@@ -32,16 +32,16 @@ export function TransferPanel({
   const waitKnown = (leg: BusLeg) => live && !leg.liveIssue;
 
   return (
-    <section aria-labelledby="transfer-panel-title" className="px-4 pt-2.5 pb-3">
+    <section aria-labelledby="transfer-panel-title" className="rounded-lg border border-border bg-surface px-4 pt-3 pb-4">
       <div className="flex min-h-8 items-center justify-between gap-3">
         <h2 id="transfer-panel-title" className="truncate text-sm font-bold text-fg">
           환승 실시간
         </h2>
         <StaleBadge secondsAgo={secondsAgo} onRefresh={onRefresh} />
       </div>
-      <ul className="divide-y divide-divider">
+      <ul className="mt-1 divide-y divide-divider">
         {transfers.map(({ prev, next }) => (
-          <li key={`${prev.routeNo}-${next.routeNo}-${next.boardAt}`} className="py-2">
+          <li key={`${prev.routeNo}-${next.routeNo}-${next.boardAt}`} className="py-3 first:pt-2 last:pb-0">
             <p className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-fg tabular">
               <span className="inline-flex items-center gap-1">
                 <BusNumber routeNo={prev.routeNo} busType={prev.busType} size="sm" />
@@ -59,7 +59,7 @@ export function TransferPanel({
                 승차
               </span>
             </p>
-            <p className="mt-1 text-xs text-fg-muted tabular">{arrivalText(prev, "버스 ", route)}</p>
+            <p className="mt-2 text-xs text-fg-muted tabular">{arrivalText(prev, "버스 ", route)}</p>
             <p className="text-xs text-fg-muted tabular">
               {arrivalText(next, "환승 버스 ", route)}
               {waitKnown(next) && ` · 환승 대기 ${next.waitMinutes}분`}
@@ -68,7 +68,9 @@ export function TransferPanel({
         ))}
       </ul>
       {route.quickTransferChance !== undefined && busLegs.slice(1).every(waitKnown) && (
-        <p className="text-xs text-fg-muted tabular">바로 환승 {route.quickTransferChance}%</p>
+        <p className="mt-3 inline-flex h-6 items-center rounded-full bg-status-ok-soft px-2.5 text-xs font-semibold text-status-ok tabular">
+          바로 환승 {route.quickTransferChance}%
+        </p>
       )}
     </section>
   );
@@ -76,28 +78,28 @@ export function TransferPanel({
 
 export function RideInsightPlaceholder() {
   return (
-    <section aria-labelledby="ride-insight-title" className="px-4 py-3">
-      <div className="rounded-md border border-dashed border-border-strong px-3 py-2.5">
+    <section aria-labelledby="ride-insight-title">
+      <div className="rounded-lg border border-dashed border-border-strong bg-surface-muted px-4 py-3.5">
         <div className="flex items-center gap-1.5">
           <h2 id="ride-insight-title" className="truncate text-xs font-semibold text-fg-secondary">
             탑승 중 예측
           </h2>
-          <span className="inline-flex h-[18px] shrink-0 items-center rounded-[3px] bg-surface-muted px-1 text-2xs text-fg-muted">
+          <span className="inline-flex h-5 shrink-0 items-center rounded-sm bg-surface px-1.5 text-xs text-fg-muted ring-1 ring-border ring-inset">
             준비 중
           </span>
         </div>
-        <p className="mt-0.5 text-xs text-fg-muted">버스 평균 속도로 환승 가능성을 계산할 예정이에요.</p>
-        <dl className="mt-1.5 flex flex-wrap gap-x-4 text-xs text-fg-subtle tabular">
+        <p className="mt-1 text-xs text-fg-muted">버스 평균 속도로 환승 가능성을 계산할 예정이에요.</p>
+        <dl className="mt-2 flex flex-wrap gap-x-4 text-xs text-fg-muted tabular">
           <div className="flex gap-1">
             <dt>평균 속도</dt>
-            <dd>
+            <dd className="text-fg-subtle">
               <span aria-hidden="true">—</span>
               <span className="sr-only">준비 중</span>
             </dd>
           </div>
           <div className="flex gap-1">
             <dt>환승 가능성</dt>
-            <dd>
+            <dd className="text-fg-subtle">
               <span aria-hidden="true">—</span>
               <span className="sr-only">준비 중</span>
             </dd>
