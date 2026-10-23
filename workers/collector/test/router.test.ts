@@ -87,4 +87,36 @@ describe("router CORS + /me", () => {
       expect(res.headers.get("Access-Control-Allow-Origin")).toBeNull();
     }
   });
+
+  it.each(["PUT", "DELETE"])("preflight %s /favorites/123 from allowed origin -> 204 with CORS headers", async (method) => {
+    const res = await call("/favorites/123", {
+      method: "OPTIONS",
+      headers: {
+        Origin: ORIGIN,
+        "Access-Control-Request-Method": method,
+        "Access-Control-Request-Headers": "authorization, content-type",
+      },
+    });
+    expect(res.status).toBe(204);
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(ORIGIN);
+    expect(res.headers.get("Access-Control-Allow-Methods")).toContain("PUT");
+    expect(res.headers.get("Access-Control-Allow-Methods")).toContain("DELETE");
+    expect(res.headers.get("Access-Control-Allow-Headers")).toContain("Authorization");
+    expect(res.headers.get("Access-Control-Allow-Headers")).toContain("Content-Type");
+  });
+
+  it("preflight /favorites/123 from disallowed origin -> no ACAO", async () => {
+    const res = await call("/favorites/123", {
+      method: "OPTIONS",
+      headers: { Origin: "https://evil.example", "Access-Control-Request-Method": "PUT" },
+    });
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBeNull();
+  });
+
+  it("GET /favorites without auth from allowed origin -> 401 + ACAO", async () => {
+    const res = await call("/favorites", { headers: { Origin: ORIGIN } });
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: "missing" });
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(ORIGIN);
+  });
 });

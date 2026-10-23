@@ -1,6 +1,7 @@
 import { parseAllowedOrigins, preflightResponse, withCors } from "./cors";
 import { enabledStopIds, health, stopStats } from "./db";
 import type { Env } from "./env";
+import { handleFavorites } from "./favorites";
 import { json } from "./json";
 import { handleMe } from "./me";
 
@@ -37,6 +38,10 @@ export default {
       if (url.pathname === "/me") {
         if (request.method !== "GET") return json({ error: "method not allowed" }, 405);
         return handleMe(request, env.FIREBASE_PROJECT_ID);
+      }
+
+      if (url.pathname === "/favorites" || url.pathname.startsWith("/favorites/")) {
+        return handleFavorites(request, env.DB, env.FIREBASE_PROJECT_ID);
       }
 
       return json({ error: "not found" }, 404);

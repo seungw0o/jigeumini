@@ -36,3 +36,16 @@ CREATE TABLE IF NOT EXISTS collector_errors (
   code TEXT NOT NULL,
   message TEXT NOT NULL
 );
+
+-- 사용자별 즐겨찾기 장소. uid는 검증된 Firebase ID 토큰에서만 온다.
+CREATE TABLE IF NOT EXISTS favorites (
+  uid TEXT NOT NULL,
+  place_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  address TEXT NOT NULL,
+  category TEXT NOT NULL,
+  lat REAL NOT NULL,
+  lng REAL NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (uid, place_id)
+);
