@@ -13,7 +13,6 @@ const SEARCH_DEBOUNCE_MS = 250;
 export function MainSearchBar({
   onSelect,
   onRoute,
-  search,
   near = null,
   recent,
   quietRoute = false,
@@ -22,8 +21,6 @@ export function MainSearchBar({
   onRoute: () => void;
   /** 화면에 다른 primary 액션이 있을 때 길찾기 버튼을 보조 스타일로 낮춘다 */
   quietRoute?: boolean;
-  /** 목 데이터 동기 검색. 없으면 카카오 장소 검색을 쓴다 */
-  search?: (q: string) => Place[];
   near?: LatLng | null;
   recent: Place[];
 }) {
@@ -36,16 +33,15 @@ export function MainSearchBar({
   const [activeIndex, setActiveIndex] = useState(-1);
 
   const query = value.trim();
-  const live = usePlaceSearch(query, { near, enabled: !search });
+  const live = usePlaceSearch(query, { near });
   const [settledQuery, setSettledQuery] = useState(query);
   useEffect(() => {
     const id = setTimeout(() => setSettledQuery(query), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(id);
   }, [query]);
 
-  const options = query ? (search ? search(query) : live.places) : recent;
+  const options = query ? live.places : recent;
   const searching =
-    !search &&
     query !== "" &&
     options.length === 0 &&
     (query !== settledQuery || live.isFetching);

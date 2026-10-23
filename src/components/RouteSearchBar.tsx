@@ -3,7 +3,6 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { usePlaceSearch } from "@/apis/queries/usePlaceSearch.query";
 import { CloseIcon, HistoryIcon, LocateIcon, MoreIcon, PinIcon, SwapIcon } from "@/assets/icons";
-import { mockCurrentPosition } from "@/app/_mocks/places";
 import { formatDistance } from "@/utils/format";
 import type { LatLng, Place } from "@/utils/types";
 
@@ -29,8 +28,7 @@ export function RouteSearchBar({
   onChange,
   onSubmit,
   onBack,
-  search,
-  currentPosition = mockCurrentPosition,
+  currentPosition = null,
   recent,
   compact = false,
 }: {
@@ -39,8 +37,6 @@ export function RouteSearchBar({
   onChange: (next: { origin: Place | null; destination: Place | null }) => void;
   onSubmit?: () => void;
   onBack?: () => void;
-  /** 목 데이터 동기 검색. 없으면 카카오 장소 검색을 쓴다 */
-  search?: (q: string) => Place[];
   /** "현재 위치" 옵션의 좌표. null이면 옵션을 숨긴다 */
   currentPosition?: LatLng | null;
   recent: Place[];
@@ -62,7 +58,7 @@ export function RouteSearchBar({
 
   const values: Record<Field, Place | null> = { origin, destination };
   const query = field && draft !== null ? draft.trim() : "";
-  const live = usePlaceSearch(query, { near: currentPosition, enabled: !search });
+  const live = usePlaceSearch(query, { near: currentPosition });
   const [settledQuery, setSettledQuery] = useState(query);
   useEffect(() => {
     const id = setTimeout(() => setSettledQuery(query), SEARCH_DEBOUNCE_MS);
@@ -71,7 +67,7 @@ export function RouteSearchBar({
 
   let options: Option[] = [];
   if (field && query) {
-    options = (search ? search(query) : live.places).map((place) => ({
+    options = live.places.map((place) => ({
       key: `r-${place.id}`,
       kind: "result",
       place,
@@ -85,7 +81,6 @@ export function RouteSearchBar({
     ];
   }
   const searching =
-    !search &&
     query !== "" &&
     options.length === 0 &&
     (query !== settledQuery || live.isFetching);

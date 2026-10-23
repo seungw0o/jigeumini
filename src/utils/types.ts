@@ -1,4 +1,4 @@
-// 도메인 타입. 목 데이터(src/app/_mocks)와 실제 API 매핑 결과가 모두 이 모양을 따른다.
+// 도메인 타입. 실제 API 매핑 결과가 이 모양을 따른다.
 // 시간 문자열은 모두 "HH:MM" (24시간제, Asia/Seoul).
 
 export type LatLng = { lat: number; lng: number };
