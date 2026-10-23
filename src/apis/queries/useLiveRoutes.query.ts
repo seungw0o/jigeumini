@@ -5,6 +5,7 @@ import type { FailFlag, RoutePair } from "@/utils/routeQuery";
 import type { TransitRoute } from "@/utils/types";
 import { useMemo } from "react";
 import { useArrivals } from "./useArrivals.query";
+import { useMargins } from "./useMargins.query";
 import { useRoutePlan } from "./useRoutePlan.query";
 
 export interface LiveRoutesResult {
@@ -42,6 +43,7 @@ export function useLiveRoutes(
   const plan = planQuery.data;
   const nodeIds = useMemo(() => nodeIdsOf(plan), [plan]);
   const arrivalsQuery = useArrivals(nodeIds, options);
+  const margins = useMargins();
 
   const arrivals = arrivalsQuery.data;
   const dataUpdatedAt = arrivalsQuery.dataUpdatedAt;
@@ -58,8 +60,8 @@ export function useLiveRoutes(
       const error: LiveError = { code: "NETWORK", message: "실시간 도착 정보를 불러오지 못했어요" };
       record = Object.fromEntries(nodeIds.map((id) => [id, { ok: false, error }]));
     }
-    return estimateRoutes(plan.routes, record, { fetchedAtMs: dataUpdatedAt || nowMs, nowMs });
-  }, [plan, arrivals, arrivalsFailed, nodeIds, dataUpdatedAt, nowMs]);
+    return estimateRoutes(plan.routes, record, { fetchedAtMs: dataUpdatedAt || nowMs, nowMs }, margins);
+  }, [plan, arrivals, arrivalsFailed, nodeIds, dataUpdatedAt, nowMs, margins]);
 
   let status: LiveRoutesResult["status"] = "ready";
   if (!enabled) status = "idle";

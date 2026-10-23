@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import type { DaejeonArrival } from "@/apis/daejeon/types";
 import type { PlannedBusLeg, PlannedLeg, PlannedRoute, PlannedWalkLeg, StopArrivals } from "@/apis/live/types";
+import type { MarginsResponse } from "@/apis/margins/types";
 import { estimateRoute, estimateRoutes, kstClock } from "./estimate";
 import { buildRibbon } from "./ribbon";
 import type { BusLeg, TransitRoute } from "./types";
@@ -174,6 +175,48 @@ describe("estimateRoutes", () => {
     ];
     const stops = { S1: ok(eta("318", 1140)), S2: ok(eta("604", 600)) };
     expect(estimateRoutes(plans, stops, CLOCK).map((r) => r.id)).toEqual(["fast", "slow", "unavailable"]);
+  });
+});
+
+describe("data-based margin", () => {
+  // 도보 420초(7분) -> 리드 5분 버킷, P10 -250초 -> 여유 5분
+  const marginsOf = (n: number): MarginsResponse => ({
+    windowDays: 14,
+    generatedAt: "2026-10-22T00:00:00+09:00",
+    stops: [{ nodeId: "S1", n, p10Sec: -250, byLead: [{ leadMin: 5, n, p10Sec: -250 }] }],
+  });
+  const stops = { S1: ok(eta("318", 1140)) };
+
+  test("a) uses the stop's P10 margin and leaves 3 minutes earlier", () => {
+    const base = estimateRoute(direct318, stops, CLOCK);
+    const route = estimateRoute(direct318, stops, CLOCK, marginsOf(200));
+    expect(base).toMatchObject({ leaveAt: "09:58", marginMinutes: 2 });
+    expect(route).toMatchObject({ leaveAt: "09:55", leaveInMinutes: 7, marginMinutes: 5 });
+  });
+
+  test("a) skips a bus catchable with 2 minutes but not with 5", () => {
+    const both = { S1: ok(eta("318", 540), eta("318", 1140)) };
+    const base = busLegs(estimateRoute(direct318, both, CLOCK))[0];
+    const route = estimateRoute(direct318, both, CLOCK, marginsOf(200));
+    const [leg] = busLegs(route);
+    expect(base).toMatchObject({ catchIndex: 0, boardAt: "09:57" });
+    expect(leg).toMatchObject({ catchIndex: 1, boardAt: "10:07" });
+    expect(route.marginMinutes).toBe(5);
+  });
+
+  test("b) a stop with n < 100 keeps the 2-minute margin", () => {
+    const route = estimateRoute(direct318, stops, CLOCK, marginsOf(99));
+    expect(route).toEqual(estimateRoute(direct318, stops, CLOCK));
+    expect(route.marginMinutes).toBe(2);
+  });
+
+  test("c) undefined margins match the 3-argument call", () => {
+    expect(estimateRoute(direct318, stops, CLOCK, undefined)).toEqual(estimateRoute(direct318, stops, CLOCK));
+  });
+
+  test("d) estimateRoutes passes margins through", () => {
+    const routes = estimateRoutes([direct318], stops, CLOCK, marginsOf(200));
+    expect(routes[0]).toMatchObject({ leaveAt: "09:55", marginMinutes: 5 });
   });
 });
 
