@@ -51,6 +51,12 @@ export interface ErrorStats {
   p90Sec: number;
 }
 
+/** nearest-rank 백분위: 오름차순 정렬 후 index max(0, ceil(p*len)-1) */
+export function nearestRank(values: number[], p: number): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.max(0, Math.ceil(p * sorted.length) - 1)];
+}
+
 /** nearest-rank 백분위 */
 export function summarize(values: number[]): ErrorStats {
   const sorted = [...values].sort((a, b) => a - b);

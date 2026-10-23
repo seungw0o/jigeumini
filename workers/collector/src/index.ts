@@ -3,6 +3,7 @@ import { enabledStopIds, health, stopStats } from "./db";
 import type { Env } from "./env";
 import { handleFavorites } from "./favorites";
 import { json } from "./json";
+import { stopMargins } from "./margins";
 import { handleMe } from "./me";
 
 export { StopMonitor } from "./monitor";
@@ -33,6 +34,12 @@ export default {
         const stop = url.searchParams.get("stop") ?? "";
         if (!/^\d{7}$/.test(stop)) return json({ error: "stop must be a 7-digit BUS_NODE_ID" }, 400);
         return json(await stopStats(env.DB, stop));
+      }
+
+      if (request.method === "GET" && url.pathname === "/margins") {
+        const res = json(await stopMargins(env.DB, Date.now()));
+        res.headers.set("Cache-Control", "public, max-age=600");
+        return res;
       }
 
       if (url.pathname === "/me") {
