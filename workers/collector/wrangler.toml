@@ -4,6 +4,12 @@ main = "src/index.ts"
 compatibility_date = "2026-10-01"
 workers_dev = true
 
+[vars]
+# Firebase 프로젝트 ID (지금은 DEV 프로젝트, 프로덕션은 Vercel 배포 때 새 프로젝트로 바꾼다)
+FIREBASE_PROJECT_ID = "igeumini-28609"
+# CORS 허용 Origin, 쉼표로 구분. 프로덕션 Vercel 도메인은 오너가 나중에 추가한다
+ALLOWED_ORIGINS = "http://localhost:3000"
+
 [[durable_objects.bindings]]
 name = "STOP_MONITOR"
 class_name = "StopMonitor"
