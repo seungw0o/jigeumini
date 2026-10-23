@@ -36,6 +36,11 @@ export class StopMonitor extends DurableObject<Env> {
     const storage = this.ctx.storage;
     const nodeId = await storage.get<string>("nodeId");
     if (!nodeId) return;
+    const watched = await this.env.DB.prepare("SELECT 1 FROM watched_stops WHERE node_id = ? AND enabled = 1").bind(nodeId).first();
+    if (!watched) {
+      await storage.put({ stopReason: "disabled" });
+      return;
+    }
     const now = Date.now();
     const tracks = (await storage.get<Tracks>("tracks")) ?? {};
     const tick = (await storage.get<number>("tick")) ?? 0;
