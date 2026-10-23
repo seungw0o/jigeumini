@@ -1,6 +1,6 @@
 // 카카오 경로(PlannedRoute) + 대전 실시간 도착 정보 -> 화면용 TransitRoute. 순수 함수(시각은 clock으로 받는다).
 // 모든 계산은 절대 시각(ms) 위에서 하고, 마지막에 "HH:MM"(KST)으로 바꾼다.
-// 1. W = 첫 버스 전까지 도보(초), MARGIN = DEPARTURE_MARGIN_MIN(분).
+// 1. W = 첫 버스 전까지 도보(초), MARGIN = pickMarginMinutes(분; 정류장 데이터, 없으면 DEPARTURE_MARGIN_MIN).
 // 2. 버스 구간 후보 = 승차 정류장 도착 목록 중 routeNos에 든 노선. 운행 중이면 fetchedAt + ETA,
 //    차고지 대기면 예정 출발 시각(차고지 기준이라 근사치), 시각을 모르면 버린다. 빠른 순 정렬.
 // 3. arrivals가 없으면 loading. 첫 버스 정류장 정보를 못 받았으면 unavailable,
@@ -11,7 +11,9 @@
 
 import type { DaejeonArrival } from "@/apis/daejeon/types";
 import type { PlannedBusLeg, PlannedRoute, StopArrivals } from "@/apis/live/types";
+import type { MarginsResponse } from "@/apis/margins/types";
 import { DEPARTURE_MARGIN_MIN } from "./departure";
+import { pickMarginMinutes } from "./margin";
 import { toClock, toMinutes } from "./ribbon";
 import type { BusArrival, BusType, Leg, LegLiveIssue, RealtimeState, TransitRoute } from "./types";
 
@@ -92,12 +94,18 @@ export function estimateRoute(
   plan: PlannedRoute,
   arrivals: Record<string, StopArrivals> | undefined,
   clock: LiveClock,
+  margins?: MarginsResponse,
 ): TransitRoute {
   const { fetchedAtMs, nowMs } = clock;
   const firstBus = plan.legs.findIndex((l) => l.kind === "bus");
   const walkBeforeS = plan.legs
     .slice(0, firstBus < 0 ? plan.legs.length : firstBus)
     .reduce((sum, l) => sum + l.seconds, 0);
+  const firstBusLeg = firstBus >= 0 ? plan.legs[firstBus] : undefined;
+  const marginMin =
+    firstBusLeg?.kind === "bus"
+      ? pickMarginMinutes(firstBusLeg.board.nodeId, walkBeforeS, margins)
+      : DEPARTURE_MARGIN_MIN;
   const candidates = plan.legs.map((l) => (l.kind === "bus" && arrivals ? candidatesOf(l, arrivals, fetchedAtMs) : null));
 
   // 첫 버스: 걸어가서 여유까지 두고 닿을 수 있는 첫 차
@@ -106,13 +114,13 @@ export function estimateRoute(
   if (!arrivals) realtime = "loading";
   else if (firstBus >= 0) {
     const list = candidates[firstBus];
-    const earliestMs = nowMs + (walkBeforeS + DEPARTURE_MARGIN_MIN * 60) * 1000;
+    const earliestMs = nowMs + (walkBeforeS + marginMin * 60) * 1000;
     firstChoice = list?.find((c) => c.atMs >= earliestMs);
     if (!list) realtime = "unavailable";
     else if (!firstChoice) realtime = "noBus";
   }
   const live = realtime === "live";
-  const leaveByMs = firstChoice ? firstChoice.atMs - walkBeforeS * 1000 - DEPARTURE_MARGIN_MIN * MIN_MS : nowMs;
+  const leaveByMs = firstChoice ? firstChoice.atMs - walkBeforeS * 1000 - marginMin * MIN_MS : nowMs;
 
   let t = leaveByMs;
   let partial = false;
@@ -174,7 +182,7 @@ export function estimateRoute(
     totalMinutes: Math.ceil(t / MIN_MS) - Math.floor(nowMs / MIN_MS),
     travelMinutes: Math.round(plan.legs.reduce((sum, l) => sum + l.seconds, 0) / 60),
     waitMinutes: legs.reduce((sum, l) => sum + (l.kind === "bus" ? l.waitMinutes : 0), 0),
-    marginMinutes: firstChoice ? DEPARTURE_MARGIN_MIN : 0,
+    marginMinutes: firstChoice ? marginMin : 0,
     fare: plan.fare,
     transferCount: plan.transferCount,
     legs,
@@ -188,10 +196,11 @@ export function estimateRoutes(
   plans: PlannedRoute[],
   arrivals: Record<string, StopArrivals> | undefined,
   clock: LiveClock,
+  margins?: MarginsResponse,
 ): TransitRoute[] {
   const rank = (r: TransitRoute) => (r.realtime === "live" || r.realtime === "partial" ? 0 : 1);
   return plans
-    .map((plan) => estimateRoute(plan, arrivals, clock))
+    .map((plan) => estimateRoute(plan, arrivals, clock, margins))
     .sort(
       (a, b) =>
         rank(a) - rank(b) ||
