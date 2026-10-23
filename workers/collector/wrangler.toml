@@ -1,0 +1,29 @@
+# 대전 BIS 도착 예측 오차 수집기. 비밀값(DATA_GO_KR_KEY, ADMIN_TOKEN)은 여기 두지 않는다: wrangler secret put / 로컬은 .dev.vars
+name = "jigeumini-collector"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[vars]
+# 원시 관측 행은 N번째 틱마다만 쓴다 (D1 무료 하루 100,000 rows written). 도착/오차 감지는 매 틱(60초) 그대로 한다
+OBSERVATION_EVERY_N_TICKS = "5"
+
+[[durable_objects.bindings]]
+name = "STOP_MONITOR"
+class_name = "StopMonitor"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["StopMonitor"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "jigeumini"
+database_id = "9451712e-8f78-4d6e-9be0-8c54b4491e79"
+
+[triggers]
+# 05:20 KST = 20:20 UTC 전날
+crons = ["20 20 * * *"]
+
+[observability]
+enabled = true
