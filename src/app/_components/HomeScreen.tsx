@@ -17,7 +17,9 @@ import { PlaceList } from "@/components/PlaceList";
 import { PlaceSummary } from "@/components/PlaceSummary";
 import { RouteSearchBar } from "@/components/RouteSearchBar";
 import { LocationDeniedState, OutsideServiceAreaState } from "@/components/StateViews";
+import { useFavorites } from "@/apis/queries/useFavorites.query";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import { useRecentSearches } from "@/hooks/useRecentSearches";
 import { placeToRouteEnd, routePairQuery } from "@/utils/routeQuery";
 import type { LatLng, Place } from "@/utils/types";
 import { BottomTabBar, type TabKey } from "./BottomTabBar";
@@ -86,8 +88,9 @@ export function HomeScreen() {
   const [selectedPlace, setSelected] = useState<Place | null>(null);
   const [routeMode, setRouteMode] = useState(false);
   const [view, setView] = useState<SheetView>(null);
-  const [favorites, setFavorites] = useState<Place[]>([]);
-  const [recent, setRecent] = useState<Place[]>([]);
+  // 즐겨찾기는 서버(D1), 최근 검색은 localStorage에 유지
+  const { favorites, isFavorite, toggleFavorite } = useFavorites();
+  const { recent, addRecent, removeRecent, clearRecent } = useRecentSearches();
   const [editingRecent, setEditingRecent] = useState(false);
   const [layersOn, setLayersOn] = useState(false);
   const [mapKey, setMapKey] = useState(0);
@@ -129,11 +132,7 @@ export function HomeScreen() {
       (p): p is Place =>
         p !== null && p.id !== "current" && p.id !== origin?.id && p.id !== destination?.id,
     );
-    if (picked.length > 0) {
-      setRecent((list) =>
-        [...picked, ...list.filter((p) => !picked.some((x) => x.id === p.id))].slice(0, 8),
-      );
-    }
+    if (picked.length > 0) addRecent(...picked);
     const newest = [next.destination, next.origin].find(
       (p) =>
         p !== null &&
@@ -154,21 +153,13 @@ export function HomeScreen() {
 
   function selectFromSearch(place: Place) {
     setSelected(place);
-    setRecent((list) => [place, ...list.filter((p) => p.id !== place.id)].slice(0, 8));
+    addRecent(place);
   }
 
   function toggleView(key: Exclude<SheetView, null>) {
     setSelected(null);
     setEditingRecent(false);
     setView((v) => (v === key ? null : key));
-  }
-
-  function toggleFavorite(place: Place) {
-    setFavorites((list) =>
-      list.some((p) => p.id === place.id)
-        ? list.filter((p) => p.id !== place.id)
-        : [...list, place],
-    );
   }
 
   function focusOriginInput() {
@@ -207,7 +198,7 @@ export function HomeScreen() {
     sheetContent = (
       <PlaceSummary
         place={selectedPlace}
-        favorite={favorites.some((p) => p.id === selectedPlace.id)}
+        favorite={isFavorite(selectedPlace.id)}
         onToggleFavorite={toggleFavorite}
         onSetOrigin={(p) => {
           setSelected(null);
@@ -279,24 +270,34 @@ export function HomeScreen() {
         title="최근 검색"
         action={
           recent.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setEditingRecent((v) => !v)}
-              className="-mr-3 h-11 rounded-md px-3 text-xs font-semibold text-fg-secondary hover:bg-surface-muted hover:text-fg"
-            >
-              {editingRecent ? "완료" : "편집"}
-            </button>
+            <div className="flex items-center gap-1">
+              {editingRecent && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearRecent();
+                    setEditingRecent(false);
+                  }}
+                  className="h-11 rounded-md px-3 text-xs font-semibold text-fg-secondary hover:bg-surface-muted hover:text-fg"
+                >
+                  전체 삭제
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setEditingRecent((v) => !v)}
+                className="-mr-3 h-11 rounded-md px-3 text-xs font-semibold text-fg-secondary hover:bg-surface-muted hover:text-fg"
+              >
+                {editingRecent ? "완료" : "편집"}
+              </button>
+            </div>
           )
         }
       >
         <PlaceList
           places={recent}
           onSelect={setSelected}
-          onRemove={
-            editingRecent
-              ? (p) => setRecent((list) => list.filter((x) => x.id !== p.id))
-              : undefined
-          }
+          onRemove={editingRecent ? (p) => removeRecent(p.id) : undefined}
           icon="history"
           emptyText="최근 검색한 장소가 없어요"
         />

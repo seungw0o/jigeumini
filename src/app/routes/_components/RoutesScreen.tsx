@@ -8,6 +8,7 @@ import { MapView } from "@/components/MapView";
 import { NotifyDeniedHint } from "@/components/NotifyButton";
 import { RouteCard } from "@/components/RouteCard";
 import { RouteSearchBar } from "@/components/RouteSearchBar";
+import { useRecentSearches } from "@/hooks/useRecentSearches";
 import { EmptyState, ErrorState, RouteListSkeleton } from "@/components/StateViews";
 import { isLiveTimed } from "@/utils/format";
 import { routeMarkers, routePaths } from "@/utils/mapData";
@@ -26,6 +27,9 @@ import { StaleBadge } from "@/components/StatusChips";
 import { RoutesToolbar } from "./RoutesToolbar";
 
 const NO_PATHS: MapPath[] = [];
+
+// 경로 화면 안에서만 쓰는 임시 장소 id (최근 검색에 넣지 않는다)
+const SYNTHETIC_IDS = ["live-origin", "live-destination", "current"];
 
 const BADGE: Record<RouteSortKey, string> = {
   arrival: "가장 빨리 도착",
@@ -99,6 +103,7 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
   const notifyDenied = params.get("notify") === "denied";
   const failQuery = fail ? `&fail=${fail}` : "";
   const live = useLiveRoutes(pair, { fail });
+  const { recent, addRecent } = useRecentSearches();
 
   const [ends] = useState<Ends>(() => ({
     origin: endPlace(pair.origin, "live-origin"),
@@ -127,6 +132,13 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
     visible.length > 0 && visible.every((r) => !isLiveTimed(r) && r.realtime !== "loading");
 
   function changePlaces(next: { origin: Place | null; destination: Place | null }) {
+    // 이번에 새로 고른 장소만 최근 검색에 넣는다 (도착지를 먼저 = 최신)
+    const picked: Place[] = [];
+    for (const slot of ["destination", "origin"] as const) {
+      const place = next[slot];
+      if (place && !SYNTHETIC_IDS.includes(place.id) && place.id !== latest.current[slot]?.id) picked.push(place);
+    }
+    if (picked.length > 0) addRecent(...picked);
     latest.current = next;
     setPlaces(next);
   }
@@ -152,7 +164,7 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
                 onChange={changePlaces}
                 onSubmit={submit}
                 onBack={() => router.push("/")}
-                recent={[]}
+                recent={recent}
               />
             </div>
             <RoutesToolbar
