@@ -1,4 +1,4 @@
-import { enabledStopIds, health, pruneObservations, stopStats } from "./db";
+import { enabledStopIds, health, stopStats } from "./db";
 import type { Env } from "./env";
 
 export { StopMonitor } from "./monitor";
@@ -49,8 +49,7 @@ export default {
     ctx.waitUntil(
       (async () => {
         const started = await kickAll(env);
-        const pruned = await pruneObservations(env.DB, Date.now());
-        console.log("cron: started", started.length, "stops, pruned", pruned, "observations");
+        console.log("cron: started", started.length, "stops");
       })(),
     );
   },

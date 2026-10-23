@@ -1,15 +1,13 @@
 import { afterEach, describe, expect, test } from "vitest";
 import { fixture, restoreAll, stubFetch } from "../../../src/apis/__fixtures__/fetch-stub";
-import { POLL_INTERVAL_MS, runTick, type ArrivalRow, type CollectorErrorRow, type ObservationRow, type Sink, type TickInput } from "../src/collector";
+import { POLL_INTERVAL_MS, runTick, type ArrivalRow, type CollectorErrorRow, type Sink, type TickInput } from "../src/collector";
 import { fetchStopArrivals } from "../src/daejeon";
 import { MIN, serviceResult, T0 } from "./helpers";
 
 class MemorySink implements Sink {
-  observations: ObservationRow[] = [];
   arrivals: ArrivalRow[] = [];
   errors: CollectorErrorRow[] = [];
-  async save(rows: { observations: ObservationRow[]; arrivals: ArrivalRow[] }) {
-    this.observations.push(...rows.observations);
+  async save(rows: { arrivals: ArrivalRow[] }) {
     this.arrivals.push(...rows.arrivals);
   }
   async logError(row: CollectorErrorRow) {
@@ -21,8 +19,6 @@ const KEY = "worker-test-key";
 const input = (sink: Sink, overrides: Partial<TickInput> = {}): TickInput => ({
   nodeId: "8001318",
   now: T0,
-  tick: 0,
-  observationEvery: 5,
   tracks: {},
   sink,
   fetchArrivals: (nodeId) => fetchStopArrivals(KEY, nodeId),
@@ -67,21 +63,13 @@ describe("runTick loop control", () => {
 });
 
 describe("runTick rows", () => {
-  test("live fixture: observations on every Nth tick only, depot rows keep MSG_TP 07 with no ETA", async () => {
+  test("live fixture: polls the stop by BusStopID and writes nothing until a bus arrives", async () => {
     const calls = stubFetch(() => ({ body: fixture("daejeon-arrivals-stopid.xml"), contentType: "text/xml" }));
     const sink = new MemorySink();
-    await runTick(input(sink, { tick: 0 }));
-    await runTick(input(sink, { tick: 1, now: T0 + MIN }));
+    const first = await runTick(input(sink));
+    await runTick(input(sink, { now: T0 + MIN, tracks: first.tracks }));
     expect(calls[0].url.searchParams.get("BusStopID")).toBe("8001318");
-    expect(sink.observations).toHaveLength(6);
-    expect(sink.observations.find((row) => row.routeNo === "318")).toMatchObject({ msgTp: "07", etaSeconds: null, stopsAway: null });
-    expect(sink.observations.find((row) => row.routeNo === "912")).toMatchObject({
-      msgTp: "03",
-      etaSeconds: 160,
-      stopsAway: 3,
-      observedAt: "2026-10-23T09:00:00+09:00",
-      infoAt: "2026-10-22T14:48:06+09:00",
-    });
+    expect(sink.arrivals).toEqual([]);
   });
 
   test("arrival detected across ticks writes one arrival row with its 3-min bucket error", async () => {
@@ -89,7 +77,7 @@ describe("runTick rows", () => {
     stubFetch(() => ({ body: serviceResult({ route: "318", plate: "A", msg: "03", sec: 170 }), contentType: "text/xml" }));
     const first = await runTick(input(sink, { now: T0 - 3 * MIN }));
     stubFetch(() => ({ body: serviceResult({ route: "318", plate: "A", msg: "01" }), contentType: "text/xml" }));
-    await runTick(input(sink, { now: T0, tick: 1, tracks: first.tracks }));
+    await runTick(input(sink, { now: T0, tracks: first.tracks }));
     expect(sink.arrivals).toEqual([
       {
         nodeId: "8001318",

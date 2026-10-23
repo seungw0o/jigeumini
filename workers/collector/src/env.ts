@@ -5,5 +5,4 @@ export interface Env {
   STOP_MONITOR: DurableObjectNamespace<StopMonitor>;
   DATA_GO_KR_KEY?: string;
   ADMIN_TOKEN?: string;
-  OBSERVATION_EVERY_N_TICKS?: string;
 }

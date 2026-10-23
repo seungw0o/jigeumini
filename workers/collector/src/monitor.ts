@@ -7,8 +7,6 @@ import { isCollecting, kstIso, nextCollectionStart } from "./kst";
 import type { Tracks } from "./tracker";
 import { ApiError } from "../../../src/apis/errors";
 
-const DEFAULT_OBSERVATION_EVERY = 5;
-
 /** 정류소(BUS_NODE_ID) 하나를 맡는다. 알람이 60초마다 도착 정보를 읽고 도착과 예측 오차를 D1에 쓴다 */
 export class StopMonitor extends DurableObject<Env> {
   /** 루프를 (다시) 켠다. 이미 돌고 있으면 알람을 앞당기기만 한다. 알람은 객체당 하나라 루프가 겹치지 않는다 */
@@ -45,15 +43,12 @@ export class StopMonitor extends DurableObject<Env> {
     const tracks = (await storage.get<Tracks>("tracks")) ?? {};
     const tick = (await storage.get<number>("tick")) ?? 0;
     const serviceKey = this.env.DATA_GO_KR_KEY?.trim();
-    const observationEvery = Number(this.env.OBSERVATION_EVERY_N_TICKS) || DEFAULT_OBSERVATION_EVERY;
 
     let result: TickResult;
     try {
       result = await runTick({
         nodeId,
         now,
-        tick,
-        observationEvery,
         tracks,
         sink: new D1Sink(this.env.DB),
         fetchArrivals: (id) => {
