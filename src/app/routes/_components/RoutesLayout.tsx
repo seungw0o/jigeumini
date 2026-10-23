@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { Logo } from "@/assets/Logo";
 
@@ -7,7 +8,9 @@ export function RoutesLayout({ header, children, map }: { header: ReactNode; chi
       <div className="min-h-dvh bg-bg lg:h-dvh lg:min-h-0 lg:overflow-y-auto lg:border-r lg:border-border">
         <div className="bg-surface">
           <div className="hidden h-row items-center px-4 lg:flex">
-            <Logo size="md" />
+            <Link href="/" aria-label="지도 홈으로" className="rounded-md">
+              <Logo size="md" />
+            </Link>
           </div>
           {header}
         </div>

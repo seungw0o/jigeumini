@@ -401,8 +401,18 @@ export function HomeScreen() {
         header={
           <div ref={headerRef}>
             <h1 className="sr-only">지금이니? 대전 버스 길찾기</h1>
-            <div aria-hidden="true" className="mb-4 hidden h-8 items-center lg:flex">
-              <Logo size="md" />
+            <div className="mb-4 hidden h-8 items-center lg:flex">
+              <button
+                type="button"
+                aria-label="지도 홈으로"
+                onClick={() => {
+                  setSelected(null);
+                  selectTab("map");
+                }}
+                className="cursor-pointer rounded-md"
+              >
+                <Logo size="md" />
+              </button>
             </div>
             {routeMode ? (
               <RouteSearchBar

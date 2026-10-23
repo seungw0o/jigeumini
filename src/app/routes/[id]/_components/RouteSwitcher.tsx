@@ -35,7 +35,9 @@ export function RouteSwitcher({
   return (
     <div>
       <div className="mb-3 hidden lg:flex">
-        <Logo size="sm" />
+        <Link href="/" aria-label="지도 홈으로" className="rounded-md">
+          <Logo size="sm" />
+        </Link>
       </div>
       <nav aria-label="경로 선택" className="flex items-center gap-2">
         <Link
