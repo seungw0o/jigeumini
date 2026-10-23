@@ -1,10 +1,10 @@
+import { parseAllowedOrigins, preflightResponse, withCors } from "./cors";
 import { enabledStopIds, health, stopStats } from "./db";
 import type { Env } from "./env";
+import { json } from "./json";
+import { handleMe } from "./me";
 
 export { StopMonitor } from "./monitor";
-
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8" } });
 
 async function kickAll(env: Env) {
   const stopIds = await enabledStopIds(env.DB);
@@ -23,13 +23,23 @@ async function isAdmin(request: Request, env: Env): Promise<boolean> {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const allowed = parseAllowedOrigins(env.ALLOWED_ORIGINS);
 
-    if (request.method === "GET" && url.pathname === "/health") return json(await health(env.DB));
+    async function route(): Promise<Response> {
+      if (request.method === "GET" && url.pathname === "/health") return json(await health(env.DB));
 
-    if (request.method === "GET" && url.pathname === "/stats") {
-      const stop = url.searchParams.get("stop") ?? "";
-      if (!/^\d{7}$/.test(stop)) return json({ error: "stop must be a 7-digit BUS_NODE_ID" }, 400);
-      return json(await stopStats(env.DB, stop));
+      if (request.method === "GET" && url.pathname === "/stats") {
+        const stop = url.searchParams.get("stop") ?? "";
+        if (!/^\d{7}$/.test(stop)) return json({ error: "stop must be a 7-digit BUS_NODE_ID" }, 400);
+        return json(await stopStats(env.DB, stop));
+      }
+
+      if (url.pathname === "/me") {
+        if (request.method !== "GET") return json({ error: "method not allowed" }, 405);
+        return handleMe(request, env.FIREBASE_PROJECT_ID);
+      }
+
+      return json({ error: "not found" }, 404);
     }
 
     if (url.pathname === "/admin/kick" || url.pathname === "/admin/status") {
@@ -42,7 +52,10 @@ export default {
       });
     }
 
-    return json({ error: "not found" }, 404);
+    // 관리자 경로는 브라우저에서 부르지 않는다: CORS 헤더도 프리플라이트도 없다
+    if (url.pathname.startsWith("/admin/")) return json({ error: "not found" }, 404);
+    if (request.method === "OPTIONS") return preflightResponse(request, allowed);
+    return withCors(await route(), request, allowed);
   },
 
   async scheduled(_controller, env, ctx) {
