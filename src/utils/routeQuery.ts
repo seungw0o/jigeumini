@@ -54,11 +54,6 @@ export function parseRoutePair(params: ParamReader): RoutePair | null {
   };
 }
 
-/** 목 데이터 데모: ?mock=1 이거나 기존 데모 상태(?state=...)가 있을 때 */
-export function isMockMode(params: ParamReader): boolean {
-  return params.get("mock") === "1" || params.get("state") !== null;
-}
-
 /** QA용 강제 실패: ?fail=routes(카카오 경로 실패) / ?fail=arrivals(실시간 도착 실패) */
 export function readFailFlag(params: ParamReader): FailFlag | null {
   const value = params.get("fail");

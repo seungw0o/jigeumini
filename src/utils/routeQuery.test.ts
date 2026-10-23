@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { DEFAULT_ROUTE_PAIR, isMockMode, parseCoord, parseRoutePair, readFailFlag, routePairQuery } from "./routeQuery";
+import { DEFAULT_ROUTE_PAIR, parseCoord, parseRoutePair, readFailFlag, routePairQuery } from "./routeQuery";
 
 describe("routeQuery", () => {
   test("round-trips a pair through the query string", () => {
@@ -8,7 +8,7 @@ describe("routeQuery", () => {
     expect(parseRoutePair(params)).toEqual(DEFAULT_ROUTE_PAIR);
   });
 
-  test("rejects mock place ids and malformed coordinates", () => {
+  test("rejects place ids and malformed coordinates", () => {
     expect(parseRoutePair(new URLSearchParams("from=p-daedeok-univ&to=p-galleria"))).toBeNull();
     expect(parseCoord("36.3,")).toBeNull();
     expect(parseCoord("136.3,127.3")).toBeNull();
@@ -20,10 +20,7 @@ describe("routeQuery", () => {
     expect(pair?.destination.name).toBe("도착지");
   });
 
-  test("detects mock mode and fail flags", () => {
-    expect(isMockMode(new URLSearchParams("mock=1"))).toBe(true);
-    expect(isMockMode(new URLSearchParams("state=empty"))).toBe(true);
-    expect(isMockMode(new URLSearchParams(""))).toBe(false);
+  test("detects fail flags", () => {
     expect(readFailFlag(new URLSearchParams("fail=arrivals"))).toBe("arrivals");
     expect(readFailFlag(new URLSearchParams("fail=other"))).toBeNull();
   });
