@@ -181,11 +181,7 @@ function MockRoutesScreen() {
               <ListHeader secondsAgo={search.updatedSecondsAgo} onRefresh={noop} note={LIST_NOTE} />
               <ul className={LIST}>
                 {visible.map((route, i) => (
-                  <li
-                    key={route.id}
-                    onMouseEnter={() => setSelectedId(route.id)}
-                    onFocus={() => setSelectedId(route.id)}
-                  >
+                  <li key={route.id}>
                     <RouteCard
                       route={route}
                       href={`/routes/${route.id}`}
@@ -193,6 +189,8 @@ function MockRoutesScreen() {
                       badge={i === 0 ? BADGE[sort] : undefined}
                       notifyState={notifyDenied ? "denied" : (notify[route.id] ?? "idle")}
                       onNotifyChange={(next) => setNotify((prev) => ({ ...prev, [route.id]: next }))}
+                      selected={route.id === selected?.id}
+                      onSelect={() => setSelectedId(route.id)}
                     />
                   </li>
                 ))}
@@ -336,11 +334,7 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
               <ListHeader secondsAgo={live.secondsAgo} onRefresh={live.refresh} note={realtimeFailed ? null : LIST_NOTE} />
               <ul className={LIST}>
                 {visible.map((route, i) => (
-                  <li
-                    key={route.id}
-                    onMouseEnter={() => setSelectedId(route.id)}
-                    onFocus={() => setSelectedId(route.id)}
-                  >
+                  <li key={route.id}>
                     <RouteCard
                       route={route}
                       href={`/routes/${route.id}?${pairQuery}${failQuery}`}
@@ -348,6 +342,8 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
                       badge={i === 0 && isLiveTimed(route) ? BADGE[sort] : undefined}
                       notifyState={notifyDenied ? "denied" : (notify[route.id] ?? "idle")}
                       onNotifyChange={(next) => setNotify((prev) => ({ ...prev, [route.id]: next }))}
+                      selected={route.id === selected?.id}
+                      onSelect={() => setSelectedId(route.id)}
                     />
                   </li>
                 ))}

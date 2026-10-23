@@ -24,20 +24,16 @@ export function RoutesToolbar({
   onSortChange?: (next: RouteSortKey) => void;
 }) {
   return (
-    <div className="flex h-14 items-center justify-between gap-2 border-b border-divider px-4">
-      <div className="flex min-w-0 items-center gap-2">
-        <button
-          type="button"
-          aria-label={baseTime ? `출발 시각 지금 ${formatShortClock(baseTime)}` : "출발 시각 지금"}
-          className="inline-flex h-11 shrink-0 items-center gap-1 rounded-md bg-action-secondary px-2.5 text-sm whitespace-nowrap text-action-secondary-fg hover:bg-action-secondary-pressed"
-        >
-          <span className="font-bold text-fg">지금</span>
-          <span className="font-medium text-fg-secondary tabular">
-            {baseTime ? `${formatShortClock(baseTime)} 출발` : "출발"}
-          </span>
-          <ChevronDownIcon size={16} className="text-fg-muted" />
-        </button>
-      </div>
+    <div className="flex h-14 items-center gap-1.5 border-b border-divider px-4">
+      <button
+        type="button"
+        aria-label={baseTime ? `출발 시각 지금 ${formatShortClock(baseTime)}` : "출발 시각 지금"}
+        className="inline-flex h-11 shrink-0 cursor-pointer items-center gap-1 rounded-md bg-transparent px-2.5 text-sm whitespace-nowrap text-fg-secondary hover:bg-action-secondary"
+      >
+        <span className="font-bold text-fg">지금</span>
+        <span className="font-medium tabular">{baseTime ? `${formatShortClock(baseTime)} 출발` : "출발"}</span>
+        <ChevronDownIcon size={16} className="text-fg-muted" />
+      </button>
       <label className="relative inline-flex h-11 shrink-0 items-center">
         <span className="sr-only">정렬</span>
         <select
