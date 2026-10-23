@@ -1,21 +1,10 @@
-import type { ArrivalRow, CollectorErrorRow, ObservationRow, Sink } from "./collector";
-import { kstIso } from "./kst";
-
-export const OBSERVATION_RETENTION_DAYS = 14;
+import type { ArrivalRow, CollectorErrorRow, Sink } from "./collector";
 
 export class D1Sink implements Sink {
   constructor(private readonly db: D1Database) {}
 
-  async save({ observations, arrivals }: { observations: ObservationRow[]; arrivals: ArrivalRow[] }): Promise<void> {
+  async save({ arrivals }: { arrivals: ArrivalRow[] }): Promise<void> {
     const statements: D1PreparedStatement[] = [];
-    const insertObservation = this.db.prepare(
-      "INSERT INTO observations (node_id, route_no, route_cd, plate_no, observed_at, info_at, msg_tp, eta_seconds, stops_away) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    );
-    for (const row of observations) {
-      statements.push(
-        insertObservation.bind(row.nodeId, row.routeNo, row.routeCd, row.plateNo, row.observedAt, row.infoAt, row.msgTp, row.etaSeconds, row.stopsAway),
-      );
-    }
     const insertArrival = this.db.prepare(
       "INSERT INTO arrivals (node_id, route_no, plate_no, arrived_at, inferred) VALUES (?, ?, ?, ?, ?)",
     );
@@ -46,20 +35,13 @@ export async function enabledStopIds(db: D1Database): Promise<string[]> {
   return results.map((row) => row.node_id);
 }
 
-/** observed_at은 모두 +09:00 ISO라 문자열 비교로 기간을 자를 수 있다 */
-export async function pruneObservations(db: D1Database, now: number): Promise<number> {
-  const cutoff = kstIso(now - OBSERVATION_RETENTION_DAYS * 24 * 60 * 60 * 1000);
-  const result = await db.prepare("DELETE FROM observations WHERE observed_at < ?").bind(cutoff).run();
-  return result.meta.changes ?? 0;
-}
-
 export async function health(db: D1Database) {
-  const [watched, last] = await db.batch<{ n?: number; observed_at?: string }>([
+  const [watched, last] = await db.batch<{ n?: number; arrived_at?: string }>([
     db.prepare("SELECT COUNT(*) AS n FROM watched_stops WHERE enabled = 1"),
-    // id 역순 1행: MAX(observed_at)은 전체를 훑어서 rows read가 커진다
-    db.prepare("SELECT observed_at FROM observations ORDER BY id DESC LIMIT 1"),
+    // id 역순 1행: MAX(arrived_at)은 전체를 훑어서 rows read가 커진다
+    db.prepare("SELECT arrived_at FROM arrivals ORDER BY id DESC LIMIT 1"),
   ]);
-  return { ok: true, watched: watched.results[0]?.n ?? 0, lastObservationAt: last.results[0]?.observed_at ?? null };
+  return { ok: true, watched: watched.results[0]?.n ?? 0, lastArrivalAt: last.results[0]?.arrived_at ?? null };
 }
 
 export interface ErrorStats {
@@ -80,7 +62,7 @@ export async function stopStats(db: D1Database, nodeId: string) {
   const [counts, errors] = await db.batch<Record<string, unknown>>([
     db
       .prepare(
-        "SELECT (SELECT COUNT(*) FROM observations WHERE node_id = ?1) AS observations, (SELECT COUNT(*) FROM arrivals WHERE node_id = ?1) AS arrivals, (SELECT COUNT(*) FROM prediction_errors WHERE node_id = ?1) AS errors",
+        "SELECT (SELECT COUNT(*) FROM arrivals WHERE node_id = ?1) AS arrivals, (SELECT COUNT(*) FROM prediction_errors WHERE node_id = ?1) AS errors",
       )
       .bind(nodeId),
     db.prepare("SELECT route_no, lead_bucket_min, error_sec FROM prediction_errors WHERE node_id = ?").bind(nodeId),
@@ -97,7 +79,7 @@ export async function stopStats(db: D1Database, nodeId: string) {
 
   return {
     stop: nodeId,
-    counts: counts.results[0] ?? { observations: 0, arrivals: 0, errors: 0 },
+    counts: counts.results[0] ?? { arrivals: 0, errors: 0 },
     routes: [...byRoute.entries()]
       .sort(([a], [b]) => a.localeCompare(b, "ko", { numeric: true }))
       .map(([routeNo, route]) => ({

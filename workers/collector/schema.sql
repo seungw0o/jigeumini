@@ -8,20 +8,6 @@ CREATE TABLE IF NOT EXISTS watched_stops (
   created_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS observations (
-  id INTEGER PRIMARY KEY,
-  node_id TEXT NOT NULL,
-  route_no TEXT NOT NULL,
-  route_cd TEXT NOT NULL,
-  plate_no TEXT,
-  observed_at TEXT NOT NULL,
-  info_at TEXT,
-  msg_tp TEXT NOT NULL,
-  eta_seconds INTEGER,
-  stops_away INTEGER
-);
-CREATE INDEX IF NOT EXISTS observations_node_observed ON observations (node_id, observed_at);
-
 CREATE TABLE IF NOT EXISTS arrivals (
   id INTEGER PRIMARY KEY,
   node_id TEXT NOT NULL,

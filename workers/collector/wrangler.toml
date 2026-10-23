@@ -4,10 +4,6 @@ main = "src/index.ts"
 compatibility_date = "2026-10-01"
 workers_dev = true
 
-[vars]
-# 원시 관측 행은 N번째 틱마다만 쓴다 (D1 무료 하루 100,000 rows written). 도착/오차 감지는 매 틱(60초) 그대로 한다
-OBSERVATION_EVERY_N_TICKS = "5"
-
 [[durable_objects.bindings]]
 name = "STOP_MONITOR"
 class_name = "StopMonitor"
