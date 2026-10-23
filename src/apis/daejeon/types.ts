@@ -1,4 +1,4 @@
-import type { LatLng } from "@/utils/types";
+import type { LatLng } from "../../utils/types";
 
 /** 대전 ROUTE_TP 1 급행 2 간선 3 지선 4 외곽 5 마을 6 첨단. UI의 BusType에는 첨단이 없어서 따로 둔다 */
 export type BusRouteType = "express" | "trunk" | "branch" | "outer" | "village" | "advanced" | "unknown";
