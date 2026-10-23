@@ -151,6 +151,14 @@ describe("estimateRoute", () => {
     expect(route.totalMinutes).toBe(30);
   });
 
+  test("n) total minutes follow the shown clocks, not seconds within the minute", () => {
+    const stops = { S1: ok(eta("318", 1150)) };
+    const early = estimateRoute(direct318, stops, CLOCK);
+    const late = estimateRoute(direct318, stops, { fetchedAtMs: NOW, nowMs: NOW + 50_000 });
+    expect(early).toMatchObject({ arriveAt: "10:31", totalMinutes: 43 });
+    expect(late).toMatchObject({ arriveAt: "10:31", totalMinutes: 43 });
+  });
+
   test("m) ribbon total matches the route total", () => {
     const route = estimateRoute(direct318, { S1: ok(eta("318", 300), eta("318", 1140)) }, CLOCK);
     expect(Math.abs(buildRibbon(route, kstClock(NOW)).totalMinutes - route.totalMinutes)).toBeLessThanOrEqual(1);

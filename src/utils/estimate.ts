@@ -170,7 +170,8 @@ export function estimateRoute(
     leaveAt: kstClock(leaveByMs),
     leaveInMinutes: Math.floor((leaveByMs - nowMs) / MIN_MS),
     arriveAt: kstClock(Math.ceil(t / MIN_MS) * MIN_MS),
-    totalMinutes: Math.ceil((t - nowMs) / MIN_MS),
+    // 분 단위 시계 차이로 계산해야 화면에 보이는 도착 시각과 맞고, 목록·상세에서 초 차이로 1분씩 어긋나지 않는다
+    totalMinutes: Math.ceil(t / MIN_MS) - Math.floor(nowMs / MIN_MS),
     travelMinutes: Math.round(plan.legs.reduce((sum, l) => sum + l.seconds, 0) / 60),
     waitMinutes: legs.reduce((sum, l) => sum + (l.kind === "bus" ? l.waitMinutes : 0), 0),
     marginMinutes: firstChoice ? DEPARTURE_MARGIN_MIN : 0,
