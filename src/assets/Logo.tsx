@@ -1,3 +1,5 @@
+import { WORDMARK_QUESTION_PATH, WORDMARK_TEXT_PATH, WORDMARK_VIEWBOX } from "./wordmark";
+
 type Tone = "light" | "dark";
 
 type LogoMarkProps = {
@@ -6,31 +8,27 @@ type LogoMarkProps = {
   className?: string;
 };
 
-export function LogoMark({ size = 24, tone = "light", className }: LogoMarkProps) {
-  const frame = tone === "dark" ? "fill-fg-inverse" : "fill-fg";
-  const glass = tone === "dark" ? "stroke-fg-inverse" : "stroke-fg";
+// 앱 아이콘(public/icon.svg)의 정류장 핀 + 시계 마크를 배경 없이 쓴다. viewBox는 아이콘 1024 좌표에서 핀 주변만 잘라낸 것
+// 브랜드 색을 써서 일반 위치 아이콘과 구분되게 한다. 어두운 배경에서도 같은 색을 쓴다
+export function LogoMark({ size = 24, className }: LogoMarkProps) {
+  const pin = "fill-brand";
+  const face = "fill-surface";
+  const hand = "fill-fg stroke-fg";
 
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 32 32"
+      viewBox="208 220 608 608"
       fill="none"
       aria-hidden="true"
       focusable="false"
       className={className}
     >
-      <rect x="7" y="3.5" width="18" height="3" rx="1.5" className={frame} />
-      <rect x="7" y="25.5" width="18" height="3" rx="1.5" className={frame} />
-      <path d="M12.2 11.5h7.6L16 16.2z" className="fill-brand" />
-      <rect x="15" y="15" width="2" height="6.5" className="fill-brand" />
-      <path d="M10.4 25.5v-2.2L16 19.2l5.6 4.1v2.2z" className="fill-brand" />
-      <path
-        d="M9.5 6.5v2.6L14.6 16l-5.1 6.9v2.6M22.5 6.5v2.6L17.4 16l5.1 6.9v2.6"
-        strokeWidth={2}
-        strokeLinejoin="round"
-        className={glass}
-      />
+      <path d="M512 812C512 812 300 600 300 448A212 212 0 1 1 724 448C724 600 512 812 512 812Z" className={pin} />
+      <circle cx="512" cy="448" r="128" className={face} />
+      <path d="M512 448L568 388" strokeWidth={36} strokeLinecap="round" className={hand} />
+      <circle cx="512" cy="448" r="24" className={hand} />
     </svg>
   );
 }
@@ -57,21 +55,15 @@ export function Logo({ size = "md", tone = "light", className }: LogoProps) {
     >
       <span className="sr-only">지금이니?</span>
       <LogoMark size={s.mark} tone={tone} />
-      <span
+      <svg
+        viewBox={WORDMARK_VIEWBOX}
         aria-hidden="true"
-        className={`font-bold leading-none tracking-normal ${s.text} ${dark ? "text-fg-inverse" : "text-fg"}`}
+        focusable="false"
+        className={`h-[0.91em] w-auto shrink-0 ${s.text}`}
       >
-        지
-        {dark ? (
-          <span className="text-brand">금</span>
-        ) : (
-          <span className="relative inline-block">
-            <span className="absolute inset-x-0 bottom-0 h-[0.45em] rounded-[2px] bg-brand" />
-            <span className="relative">금</span>
-          </span>
-        )}
-        이니?
-      </span>
+        <path d={WORDMARK_TEXT_PATH} className={dark ? "fill-fg-inverse" : "fill-fg"} />
+        <path d={WORDMARK_QUESTION_PATH} className="fill-brand" />
+      </svg>
     </span>
   );
 }
