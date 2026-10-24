@@ -133,7 +133,7 @@ export interface MapPath {
   label?: string;
 }
 
-export type MarkerTone = "origin" | "destination" | "stop" | "transfer" | "current" | "place";
+export type MarkerTone = "origin" | "destination" | "stop" | "transfer" | "current" | "place" | "favorite";
 
 export interface MapMarker {
   id: string;

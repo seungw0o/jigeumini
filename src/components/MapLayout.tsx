@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { LayersIcon, LocateIcon, StarFilledIcon, StarIcon } from "@/assets/icons";
+import { LocateIcon } from "@/assets/icons";
 
 /**
  * 지도 화면 공통 골격.
@@ -67,30 +67,10 @@ export function MapControlButton({
   );
 }
 
-export function DefaultMapControls({
-  onLocate,
-  onLayers,
-  layersOn,
-  onFavorites,
-  favoritesOn,
-}: {
-  onLocate?: () => void;
-  onLayers?: () => void;
-  layersOn?: boolean;
-  onFavorites?: () => void;
-  favoritesOn?: boolean;
-}) {
+export function DefaultMapControls({ onLocate }: { onLocate?: () => void }) {
   return (
-    <>
-      <MapControlButton label="지도 레이어" pressed={layersOn} onClick={onLayers}>
-        <LayersIcon size={22} />
-      </MapControlButton>
-      <MapControlButton label="즐겨찾기 표시" pressed={favoritesOn} onClick={onFavorites}>
-        {favoritesOn ? <StarFilledIcon size={22} /> : <StarIcon size={22} />}
-      </MapControlButton>
-      <MapControlButton label="현재 위치로 이동" onClick={onLocate}>
-        <LocateIcon size={22} />
-      </MapControlButton>
-    </>
+    <MapControlButton label="현재 위치로 이동" onClick={onLocate}>
+      <LocateIcon size={22} />
+    </MapControlButton>
   );
 }

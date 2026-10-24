@@ -70,6 +70,8 @@ function dotHtml(tone: "stop" | "transfer" | "current"): string {
 
 const PLACE_HTML = `<span style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:9999px;background:var(--color-surface);box-shadow:var(--shadow-float)"><span style="display:block;width:10px;height:10px;border-radius:9999px;background:var(--color-brand);box-shadow:0 0 0 2px var(--color-fg)"></span></span>`;
 
+const FAVORITE_HTML = `<span style="display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:28px;height:28px;border-radius:9999px;background:var(--color-brand);border:2px solid var(--color-surface);box-shadow:var(--shadow-float)"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" fill="var(--color-fg)"/></svg></span>`;
+
 function pillHtml(name: string): string {
   return `<span style="position:absolute;left:50%;bottom:calc(100% - 4px);transform:translateX(-50%);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 10px;border-radius:var(--radius-sm);background:var(--color-surface);color:var(--color-fg);font:600 var(--text-xs)/var(--text-xs--line-height) ${FONT};box-shadow:var(--shadow-float)">${escapeHtml(
     name,
@@ -79,12 +81,14 @@ function pillHtml(name: string): string {
 function markerHtml(tone: MarkerTone): string {
   if (tone === "origin" || tone === "destination") return pinHtml(tone);
   if (tone === "place") return PLACE_HTML;
+  if (tone === "favorite") return FAVORITE_HTML;
   return dotHtml(tone);
 }
 
 const MARKER_Z: Record<MarkerTone, number> = {
   stop: 3,
   transfer: 4,
+  favorite: 5,
   place: 5,
   current: 6,
   origin: 7,
@@ -105,6 +109,13 @@ function pathMidpoint(points: LatLng[]): LatLng {
   }
   return points[points.length - 1];
 }
+
+const isTappable = (m: MapMarker) => m.tone === "place" || m.tone === "favorite";
+// 즐겨찾기는 항상 깔려 있어서, 화면 맞춤에 넣으면 열 때마다 지도가 저장한 곳 전부로 축소된다
+const fitPoints = (paths: MapPath[], markers: MapMarker[]) => [
+  ...paths.flatMap((p) => p.points),
+  ...markers.filter((m) => m.tone !== "favorite").map((m) => m.position),
+];
 
 function placeLabel(m: MapMarker): string {
   return m.label ? `${m.label} 정보 보기` : "장소 정보 보기";
@@ -137,9 +148,7 @@ function PlaceholderMap({
 }: MapViewProps) {
   const [ref, size] = useSize<HTMLDivElement>();
 
-  const pts = focus
-    ? focusBox(focus)
-    : [...paths.flatMap((p) => p.points), ...markers.map((m) => m.position)];
+  const pts = focus ? focusBox(focus) : fitPoints(paths, markers);
   if (pts.length === 0 && center) pts.push(center);
 
   let project: ((p: LatLng) => { x: number; y: number }) | null = null;
@@ -245,7 +254,7 @@ function PlaceholderMap({
             const pin = m.tone === "origin" || m.tone === "destination";
             const selected = m.tone === "place" && m.id === selectedId;
             const style = { left: q.x, top: q.y, zIndex: MARKER_Z[m.tone] + (selected ? 10 : 0) };
-            if (m.tone === "place") {
+            if (isTappable(m)) {
               return (
                 <button
                   key={m.id}
@@ -259,7 +268,7 @@ function PlaceholderMap({
                 >
                   <span
                     className="contents"
-                    dangerouslySetInnerHTML={{ __html: PLACE_HTML + (selected && m.label ? pillHtml(m.label) : "") }}
+                    dangerouslySetInnerHTML={{ __html: markerHtml(m.tone) + (selected && m.label ? pillHtml(m.label) : "") }}
                   />
                 </button>
               );
@@ -399,11 +408,11 @@ function KakaoMap({
     for (const m of markers) {
       const selected = m.tone === "place" && m.id === selectedId;
       const zIndex = MARKER_Z[m.tone] + (selected ? 10 : 0);
-      if (m.tone === "place") {
+      if (isTappable(m)) {
         const el = document.createElement(onMarkerClick ? "button" : "span");
         el.style.cssText =
           "position:relative;display:flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;border:0;border-radius:9999px;background:none";
-        el.innerHTML = PLACE_HTML + (selected && m.label ? pillHtml(m.label) : "");
+        el.innerHTML = markerHtml(m.tone) + (selected && m.label ? pillHtml(m.label) : "");
         if (onMarkerClick) {
           el.setAttribute("type", "button");
           el.setAttribute("aria-label", placeLabel(m));
@@ -427,9 +436,7 @@ function KakaoMap({
     const el = ref.current;
     if (!kakao || !el) return;
     const { maps, map } = kakao;
-    const pts = focus
-      ? focusBox(focus)
-      : [...paths.flatMap((p) => p.points), ...markers.map((m) => m.position)];
+    const pts = focus ? focusBox(focus) : fitPoints(paths, markers);
     const fit = () => {
       if (pts.length > 1) {
         const bounds = new maps.LatLngBounds();
