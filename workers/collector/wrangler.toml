@@ -5,10 +5,10 @@ compatibility_date = "2026-10-01"
 workers_dev = true
 
 [vars]
-# Firebase 프로젝트 ID (지금은 DEV 프로젝트, 프로덕션은 Vercel 배포 때 새 프로젝트로 바꾼다)
-FIREBASE_PROJECT_ID = "igeumini-28609"
-# CORS 허용 Origin, 쉼표로 구분. 프로덕션 Vercel 도메인은 오너가 나중에 추가한다
-ALLOWED_ORIGINS = "http://localhost:3000"
+# 토큰을 받을 Firebase 프로젝트 ID, 쉼표로 구분 (dev, prod)
+FIREBASE_PROJECT_IDS = "igeumini-28609,jigeumini-prod"
+# CORS 허용 Origin, 쉼표로 구분
+ALLOWED_ORIGINS = "http://localhost:3000,https://jigeumini.vercel.app"
 
 [[durable_objects.bindings]]
 name = "STOP_MONITOR"

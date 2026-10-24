@@ -58,7 +58,7 @@ function call(path: string, init: CallInit = {}) {
   const payload = init.raw ?? (init.body === undefined ? undefined : JSON.stringify(init.body));
   if (payload !== undefined) headers["Content-Type"] = "application/json";
   const request = new Request(`https://w.test${path}`, { method: init.method ?? "GET", headers, body: payload });
-  return handleFavorites(request, db, PROJECT, { keys, now: init.now ?? NOW });
+  return handleFavorites(request, db, [PROJECT], { keys, now: init.now ?? NOW });
 }
 
 const put = (uid: string, id: string, b: unknown = body(), now?: Date) => call(`/favorites/${id}`, { method: "PUT", uid, body: b, now });
@@ -78,7 +78,7 @@ describe("handleFavorites auth", () => {
       throw new TypeError("fetch failed");
     };
     const request = new Request("https://w.test/favorites", { headers: { Authorization: `Bearer ${tokens[A]}` } });
-    const res = await handleFavorites(request, db, PROJECT, { keys: failing, now: NOW });
+    const res = await handleFavorites(request, db, [PROJECT], { keys: failing, now: NOW });
     expect(res.status).toBe(503);
     expect(await res.json()).toEqual({ error: "auth unavailable" });
     expect(JSON.stringify(spy.mock.calls)).not.toContain(tokens[A]);

@@ -6,7 +6,8 @@ export interface Env {
   DATA_GO_KR_KEY?: string;
   ADMIN_TOKEN?: string;
   /** Firebase 프로젝트 ID. ID 토큰의 aud, iss 검증에 쓴다 (wrangler [vars]) */
-  FIREBASE_PROJECT_ID: string;
+  /** 쉼표로 구분한 Firebase 프로젝트 id (dev, prod) */
+  FIREBASE_PROJECT_IDS: string;
   /** CORS 허용 Origin, 쉼표로 구분 (wrangler [vars]) */
   ALLOWED_ORIGINS?: string;
 }

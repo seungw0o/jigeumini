@@ -1,10 +1,10 @@
 import { authenticate, type VerifyOptions } from "./auth";
 import { json } from "./json";
 
-export async function handleMe(request: Request, projectId: string, options?: VerifyOptions): Promise<Response> {
+export async function handleMe(request: Request, projectIds: readonly string[], options?: VerifyOptions): Promise<Response> {
   let result;
   try {
-    result = await authenticate(request, projectId, options);
+    result = await authenticate(request, projectIds, options);
   } catch (err) {
     // 토큰이나 헤더가 섞이지 않도록 메시지만 기록한다
     console.error("auth key fetch failed:", err instanceof Error ? err.message : "unknown");
