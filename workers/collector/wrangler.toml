@@ -1,0 +1,31 @@
+# 대전 BIS 도착 예측 오차 수집기. 비밀값(DATA_GO_KR_KEY, ADMIN_TOKEN)은 여기 두지 않는다: wrangler secret put / 로컬은 .dev.vars
+name = "jigeumini-collector"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[vars]
+# Firebase 프로젝트 ID (지금은 DEV 프로젝트, 프로덕션은 Vercel 배포 때 새 프로젝트로 바꾼다)
+FIREBASE_PROJECT_ID = "igeumini-28609"
+# CORS 허용 Origin, 쉼표로 구분. 프로덕션 Vercel 도메인은 오너가 나중에 추가한다
+ALLOWED_ORIGINS = "http://localhost:3000"
+
+[[durable_objects.bindings]]
+name = "STOP_MONITOR"
+class_name = "StopMonitor"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["StopMonitor"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "jigeumini"
+database_id = "9451712e-8f78-4d6e-9be0-8c54b4491e79"
+
+[triggers]
+# 05:20 KST = 20:20 UTC 전날
+crons = ["20 20 * * *"]
+
+[observability]
+enabled = true

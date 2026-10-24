@@ -1,3 +1,7 @@
+packages:
+  - "."
+  - "workers/collector"
+
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
