@@ -34,19 +34,29 @@ function withKidCheck(keys: KeySet): KeySet {
   };
 }
 
+const issuerOf = (projectId: string) => `https://securetoken.google.com/${projectId}`;
+
+export function parseProjectIds(value: string | undefined): string[] {
+  return (value ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter((id) => id.length > 0);
+}
+
 export async function verifyIdToken(
   token: string,
-  projectId: string,
+  projectIds: readonly string[],
   options: VerifyOptions = {},
 ): Promise<{ uid: string }> {
+  if (projectIds.length === 0) throw new AuthError("invalid");
   const now = options.now ?? new Date();
   const nowSec = Math.floor(now.getTime() / 1000);
 
   let payload;
   try {
     ({ payload } = await jwtVerify(token, withKidCheck(options.keys ?? remoteKeys), {
-      issuer: `https://securetoken.google.com/${projectId}`,
-      audience: projectId,
+      issuer: projectIds.map(issuerOf),
+      audience: [...projectIds],
       algorithms: ["RS256"],
       requiredClaims: ["exp", "iat", "sub", "auth_time"],
       clockTolerance: CLOCK_TOLERANCE_SECONDS,
@@ -71,6 +81,10 @@ export async function verifyIdToken(
     throw err;
   }
 
+  // 목록을 넣으면 jose는 iss와 aud를 따로 검사한다. 두 값이 같은 프로젝트를 가리키는지 따로 확인한다
+  const { aud, iss } = payload;
+  if (typeof aud !== "string" || iss !== issuerOf(aud)) throw new AuthError("invalid");
+
   const limit = nowSec + CLOCK_TOLERANCE_SECONDS;
   const { iat, auth_time: authTime, sub } = payload;
   if (typeof iat !== "number" || iat > limit) throw new AuthError("invalid");
@@ -85,7 +99,7 @@ export type AuthResult = { ok: true; uid: string } | { ok: false; reason: AuthFa
 
 export async function authenticate(
   request: Request,
-  projectId: string,
+  projectIds: readonly string[],
   options?: VerifyOptions,
 ): Promise<AuthResult> {
   const header = request.headers.get("Authorization");
@@ -93,7 +107,7 @@ export async function authenticate(
   const match = /^Bearer +(\S+)$/i.exec(header);
   if (!match) return { ok: false, reason: "invalid" };
   try {
-    const { uid } = await verifyIdToken(match[1], projectId, options);
+    const { uid } = await verifyIdToken(match[1], projectIds, options);
     return { ok: true, uid };
   } catch (err) {
     if (err instanceof AuthError) return { ok: false, reason: err.reason };

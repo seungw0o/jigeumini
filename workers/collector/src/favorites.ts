@@ -149,7 +149,7 @@ async function deleteFavorite(db: D1Database, uid: string, placeId: string): Pro
 export async function handleFavorites(
   request: Request,
   db: D1Database,
-  projectId: string,
+  projectIds: readonly string[],
   options?: VerifyOptions,
 ): Promise<Response> {
   const { pathname } = new URL(request.url);
@@ -166,7 +166,7 @@ export async function handleFavorites(
 
   let auth;
   try {
-    auth = await authenticate(request, projectId, options);
+    auth = await authenticate(request, projectIds, options);
   } catch (err) {
     // 토큰이나 헤더가 섞이지 않도록 메시지만 기록한다
     console.error("auth key fetch failed:", err instanceof Error ? err.message : "unknown");

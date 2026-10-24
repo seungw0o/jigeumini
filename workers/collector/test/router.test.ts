@@ -4,7 +4,7 @@ import worker from "../src/index";
 
 const ORIGIN = "http://localhost:3000";
 const env = {
-  FIREBASE_PROJECT_ID: "test-project",
+  FIREBASE_PROJECT_IDS: "test-project",
   ALLOWED_ORIGINS: ORIGIN,
   DB: {},
   STOP_MONITOR: {},

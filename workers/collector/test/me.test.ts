@@ -35,20 +35,20 @@ const req = (token?: string) =>
 
 describe("handleMe", () => {
   it("valid token -> 200 {uid}", async () => {
-    const res = await handleMe(req(await sign()), PROJECT, { keys, now: NOW });
+    const res = await handleMe(req(await sign()), [PROJECT], { keys, now: NOW });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ uid: "user-1" });
   });
 
   it("no header -> 401 missing + WWW-Authenticate", async () => {
-    const res = await handleMe(req(), PROJECT, { keys, now: NOW });
+    const res = await handleMe(req(), [PROJECT], { keys, now: NOW });
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ error: "missing" });
     expect(res.headers.get("WWW-Authenticate")).toBe("Bearer");
   });
 
   it("expired token -> 401 expired", async () => {
-    const res = await handleMe(req(await sign(NOW_SEC - 3600)), PROJECT, { keys, now: NOW });
+    const res = await handleMe(req(await sign(NOW_SEC - 3600)), [PROJECT], { keys, now: NOW });
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ error: "expired" });
   });
@@ -58,7 +58,7 @@ describe("handleMe", () => {
     // 마지막 글자는 패딩 비트라 바꿔도 같은 바이트가 될 수 있어 서명 중간 글자를 바꾼다
     const at = token.lastIndexOf(".") + 10;
     const tampered = token.slice(0, at) + (token[at] === "A" ? "B" : "A") + token.slice(at + 1);
-    const res = await handleMe(req(tampered), PROJECT, { keys, now: NOW });
+    const res = await handleMe(req(tampered), [PROJECT], { keys, now: NOW });
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ error: "invalid" });
   });
@@ -69,7 +69,7 @@ describe("handleMe", () => {
     const failing: KeySet = () => {
       throw new TypeError("fetch failed");
     };
-    const res = await handleMe(req(token), PROJECT, { keys: failing, now: NOW });
+    const res = await handleMe(req(token), [PROJECT], { keys: failing, now: NOW });
     expect(res.status).toBe(503);
     expect(await res.json()).toEqual({ error: "auth unavailable" });
     expect(spy).toHaveBeenCalled();
