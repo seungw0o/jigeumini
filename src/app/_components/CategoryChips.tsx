@@ -1,11 +1,10 @@
 import type { ReactNode } from "react";
-import { BusStopIcon, HistoryIcon, PinIcon, StarFilledIcon } from "@/assets/icons";
+import { HistoryIcon, PinIcon, StarFilledIcon } from "@/assets/icons";
 
-export type ChipKey = "favorites" | "stops" | "recentRoutes" | "frequent";
+export type ChipKey = "favorites" | "recentRoutes" | "frequent";
 
 const CHIPS: { key: ChipKey; label: string; icon: ReactNode }[] = [
   { key: "favorites", label: "즐겨찾기", icon: <StarFilledIcon size={16} className="text-brand" /> },
-  { key: "stops", label: "정류장", icon: <BusStopIcon size={16} strokeWidth={2.2} className="text-bus-trunk" /> },
   { key: "recentRoutes", label: "최근 경로", icon: <HistoryIcon size={16} strokeWidth={2.2} /> },
   { key: "frequent", label: "자주 가는 곳", icon: <PinIcon size={16} strokeWidth={2.2} /> },
 ];

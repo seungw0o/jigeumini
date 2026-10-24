@@ -91,14 +91,16 @@ export function HomeScreen() {
   // 즐겨찾기는 서버(D1), 최근 검색은 localStorage에 유지
   const { favorites, isFavorite, toggleFavorite } = useFavorites();
   const { recent, addRecent, removeRecent, clearRecent } = useRecentSearches();
-  const [editingRecent, setEditingRecent] = useState(false);
-  const [layersOn, setLayersOn] = useState(false);
   const [mapKey, setMapKey] = useState(0);
   const headerRef = useRef<HTMLDivElement>(null);
 
   const baseMarkers = useMemo<MapMarker[]>(() => {
     const list: MapMarker[] = [];
     if (livePosition) list.push({ id: "current", position: livePosition, tone: "current" });
+    for (const fav of favorites) {
+      if (fav.id === selectedPlace?.id) continue;
+      list.push({ id: `fav-${fav.id}`, position: fav.position, label: fav.name, tone: "favorite" });
+    }
     if (selectedPlace) {
       list.push({
         id: selectedPlace.id,
@@ -108,7 +110,7 @@ export function HomeScreen() {
       });
     }
     return list;
-  }, [livePosition, selectedPlace]);
+  }, [livePosition, selectedPlace, favorites]);
 
   // 길찾기 중 고른 출발지(현재 위치 제외)·목적지 핀. originChoice는 state라 렌더마다 새 객체가 아니다
   const markers = useMemo<MapMarker[]>(() => {
@@ -158,7 +160,6 @@ export function HomeScreen() {
 
   function toggleView(key: Exclude<SheetView, null>) {
     setSelected(null);
-    setEditingRecent(false);
     setView((v) => (v === key ? null : key));
   }
 
@@ -175,7 +176,6 @@ export function HomeScreen() {
     setRouteMode(false);
     if (key === "map") {
       setView(null);
-      setEditingRecent(false);
     } else if (key === "favorites") {
       toggleView("favorites");
     } else {
@@ -231,12 +231,6 @@ export function HomeScreen() {
         />
       </SheetSection>
     );
-  } else if (view === "stops") {
-    sheetContent = (
-      <SheetSection title="정류장">
-        <PlaceList places={[]} onSelect={setSelected} emptyText="주변 정류장을 찾는 중이에요" />
-      </SheetSection>
-    );
   } else if (view === "recentRoutes") {
     sheetContent = (
       <SheetSection title="최근 경로">
@@ -270,34 +264,20 @@ export function HomeScreen() {
         title="최근 검색"
         action={
           recent.length > 0 && (
-            <div className="flex items-center gap-1">
-              {editingRecent && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    clearRecent();
-                    setEditingRecent(false);
-                  }}
-                  className="h-11 rounded-md px-3 text-xs font-semibold text-fg-secondary hover:bg-surface-muted hover:text-fg"
-                >
-                  전체 삭제
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setEditingRecent((v) => !v)}
-                className="-mr-3 h-11 rounded-md px-3 text-xs font-semibold text-fg-secondary hover:bg-surface-muted hover:text-fg"
-              >
-                {editingRecent ? "완료" : "편집"}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={clearRecent}
+              className="-mr-3 h-11 rounded-md px-3 text-xs font-semibold text-fg-secondary hover:bg-surface-muted hover:text-fg"
+            >
+              전체 삭제
+            </button>
           )
         }
       >
         <PlaceList
           places={recent}
           onSelect={setSelected}
-          onRemove={editingRecent ? (p) => removeRecent(p.id) : undefined}
+          onRemove={(p) => removeRecent(p.id)}
           icon="history"
           emptyText="최근 검색한 장소가 없어요"
         />
@@ -322,14 +302,14 @@ export function HomeScreen() {
             obscuredBottom={SHEET_SNAPS[initialSnap] + TAB_BAR_RATIO}
             selectedId={selectedPlace?.id}
             focus={focus}
+            onMarkerClick={(id) => {
+              const fav = favorites.find((p) => `fav-${p.id}` === id);
+              if (fav) setSelected(fav);
+            }}
           />
         }
         controls={
           <DefaultMapControls
-            layersOn={layersOn}
-            onLayers={() => setLayersOn((v) => !v)}
-            favoritesOn={view === "favorites"}
-            onFavorites={() => toggleView("favorites")}
             onLocate={() => {
               geo.retry();
               setMapKey((k) => k + 1);

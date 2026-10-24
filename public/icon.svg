@@ -1,11 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#1d1b18"/>
-  <g transform="translate(16 16) scale(0.8) translate(-16 -16)">
-    <rect x="7" y="3.5" width="18" height="3" rx="1.5" fill="#ffffff"/>
-    <rect x="7" y="25.5" width="18" height="3" rx="1.5" fill="#ffffff"/>
-    <path d="M12.2 11.5h7.6L16 16.2z" fill="#f5a524"/>
-    <rect x="15" y="15" width="2" height="6.5" fill="#f5a524"/>
-    <path d="M10.4 25.5v-2.2L16 19.2l5.6 4.1v2.2z" fill="#f5a524"/>
-    <path d="M9.5 6.5v2.6L14.6 16l-5.1 6.9v2.6M22.5 6.5v2.6L17.4 16l5.1 6.9v2.6" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="208 220 608 608">
+  <path d="M512 812C512 812 300 600 300 448A212 212 0 1 1 724 448C724 600 512 812 512 812Z" fill="#f5a524"/>
+  <circle cx="512" cy="448" r="128" fill="#ffffff"/>
+  <path d="M512 448L568 388" stroke="#1d1b18" stroke-width="36" stroke-linecap="round"/>
+  <circle cx="512" cy="448" r="24" fill="#1d1b18"/>
 </svg>

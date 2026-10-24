@@ -98,7 +98,7 @@ export function MainSearchBar({
         }}
       >
         <div className="flex h-control items-center rounded-md bg-surface pl-3.5 shadow-float has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-focus-ring lg:bg-surface-muted lg:pl-4 lg:shadow-none">
-          <LogoMark size={22} className="shrink-0 lg:hidden" />
+          <LogoMark size={26} className="shrink-0 lg:hidden" />
           <SearchIcon size={20} className="hidden shrink-0 text-fg-muted lg:block" />
           <input
             type="text"
