@@ -1,3 +1,5 @@
+import { alertScheduler } from "./alert-monitor";
+import { handleAlerts, handlePushSubscription } from "./alerts";
 import { parseAllowedOrigins, preflightResponse, withCors } from "./cors";
 import { enabledStopIds, health, stopStats } from "./db";
 import type { Env } from "./env";
@@ -8,6 +10,7 @@ import { stopMargins } from "./margins";
 import { handleMe } from "./me";
 
 export { StopMonitor } from "./monitor";
+export { AlertMonitor } from "./alert-monitor";
 
 async function kickAll(env: Env) {
   const stopIds = await enabledStopIds(env.DB);
@@ -50,6 +53,14 @@ export default {
 
       if (url.pathname === "/favorites" || url.pathname.startsWith("/favorites/")) {
         return handleFavorites(request, env.DB, parseProjectIds(env.FIREBASE_PROJECT_IDS));
+      }
+
+      if (url.pathname === "/push/subscription") {
+        return handlePushSubscription(request, env.DB, parseProjectIds(env.FIREBASE_PROJECT_IDS));
+      }
+
+      if (url.pathname === "/alerts" || url.pathname.startsWith("/alerts/")) {
+        return handleAlerts(request, env.DB, alertScheduler(env.ALERT_MONITOR), parseProjectIds(env.FIREBASE_PROJECT_IDS));
       }
 
       return json({ error: "not found" }, 404);
