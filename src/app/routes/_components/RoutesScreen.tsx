@@ -8,6 +8,7 @@ import { MapView } from "@/components/MapView";
 import { NotifyDeniedHint } from "@/components/NotifyButton";
 import { RouteCard } from "@/components/RouteCard";
 import { RouteSearchBar } from "@/components/RouteSearchBar";
+import { useDepartureAlerts } from "@/hooks/useDepartureAlerts";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
 import { EmptyState, ErrorState, RouteListSkeleton } from "@/components/StateViews";
 import { isLiveTimed } from "@/utils/format";
@@ -21,7 +22,7 @@ import {
   type FailFlag,
   type RoutePair,
 } from "@/utils/routeQuery";
-import type { MapMarker, MapPath, NotifyState, Place, RouteSortKey, TransitRoute } from "@/utils/types";
+import type { MapMarker, MapPath, Place, RouteSortKey, TransitRoute } from "@/utils/types";
 import { RoutesLayout } from "./RoutesLayout";
 import { StaleBadge } from "@/components/StatusChips";
 import { RoutesToolbar } from "./RoutesToolbar";
@@ -104,6 +105,7 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
   const failQuery = fail ? `&fail=${fail}` : "";
   const live = useLiveRoutes(pair, { fail });
   const { recent, addRecent } = useRecentSearches();
+  const alerts = useDepartureAlerts(pairQuery, live.plan);
 
   const [ends] = useState<Ends>(() => ({
     origin: endPlace(pair.origin, "live-origin"),
@@ -112,7 +114,6 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
   const [places, setPlaces] = useState<{ origin: Place | null; destination: Place | null }>(ends);
   // RouteSearchBar는 onChange 직후 같은 이벤트에서 onSubmit을 부르므로 최신 값을 따로 들고 있는다
   const latest = useRef(places);
-  const [notify, setNotify] = useState<Record<string, NotifyState>>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sort, setSort] = useState<RouteSortKey>("arrival");
   const [mapData, setMapData] = useState<MapData>(() => baseMapData(ends));
@@ -205,7 +206,7 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
                   </button>
                 </div>
               )}
-              {notifyDenied && (
+              {(notifyDenied || alerts.denied) && (
                 <div className={NOTICE}>
                   <NotifyDeniedHint />
                 </div>
@@ -219,8 +220,9 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
                       href={`/routes/${route.id}?${pairQuery}${failQuery}`}
                       now={live.baseTime}
                       badge={i === 0 && isLiveTimed(route) ? BADGE[sort] : undefined}
-                      notifyState={notifyDenied ? "denied" : (notify[route.id] ?? "idle")}
-                      onNotifyChange={(next) => setNotify((prev) => ({ ...prev, [route.id]: next }))}
+                      notifyState={notifyDenied ? "denied" : alerts.stateOf(route.id)}
+                      onNotifyChange={(next) => alerts.toggle(route.id, next)}
+                      showInstallHint={alerts.installHintFor === route.id}
                       selected={route.id === selected?.id}
                       onSelect={() => setSelectedId(route.id)}
                     />

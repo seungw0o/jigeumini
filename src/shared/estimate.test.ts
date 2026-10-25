@@ -3,8 +3,8 @@ import type { DaejeonArrival } from "@/apis/daejeon/types";
 import type { PlannedBusLeg, PlannedLeg, PlannedRoute, PlannedWalkLeg, StopArrivals } from "@/apis/live/types";
 import type { MarginsResponse } from "@/apis/margins/types";
 import { estimateRoute, estimateRoutes, kstClock } from "./estimate";
-import { buildRibbon } from "./ribbon";
-import type { BusLeg, TransitRoute } from "./types";
+import { buildRibbon } from "@/utils/ribbon";
+import type { BusLeg, TransitRoute } from "@/utils/types";
 
 const NOW = Date.parse("2026-10-22T09:48:00+09:00");
 const CLOCK = { fetchedAtMs: NOW, nowMs: NOW };

@@ -5,6 +5,9 @@ import { BellIcon, BellOffIcon, CheckIcon } from "@/assets/icons";
 import type { NotifyState } from "@/utils/types";
 
 const DENIED_HINT = "브라우저 설정에서 알림을 허용해 주세요";
+// 웹 푸시는 홈 화면에 추가한 앱에서만 된다 (iOS Safari)
+const INSTALL_HINT = "홈 화면에 추가하면 출발 알림을 받을 수 있어요";
+const HINT = "truncate text-xs text-fg-muted";
 
 type Variant = "block" | "primary" | "compact";
 
@@ -70,5 +73,13 @@ export function NotifyButton({
 }
 
 export function NotifyDeniedHint() {
-  return <p className="truncate text-xs text-fg-muted">{DENIED_HINT}</p>;
+  return <p className={HINT}>{DENIED_HINT}</p>;
+}
+
+export function NotifyInstallHint() {
+  return (
+    <p role="status" className={HINT}>
+      {INSTALL_HINT}
+    </p>
+  );
 }

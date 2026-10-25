@@ -10,6 +10,13 @@ const WORKER_SHARED_FILES = [
   "src/apis/daejeon/types.ts",
   "src/apis/daejeon/parse.ts",
   "src/utils/types.ts",
+  "src/apis/live/types.ts",
+  "src/apis/margins/types.ts",
+  // 출발 시각 계산: 화면과 Worker 출발 알림이 같은 값을 내야 한다
+  "src/shared/clock.ts",
+  "src/shared/departure.ts",
+  "src/shared/estimate.ts",
+  "src/shared/margin.ts",
 ];
 const WORKER_SHARED_MESSAGE = "Shared with the Cloudflare Worker: no server-only, next/*, @/ alias or process.env here.";
 

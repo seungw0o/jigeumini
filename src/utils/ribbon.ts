@@ -1,16 +1,7 @@
+import { toClock, toMinutes } from "@/shared/clock";
 import type { Ribbon, RibbonMark, RibbonSegment, TransitRoute } from "./types";
 
 const DAY = 24 * 60;
-
-export function toMinutes(hhmm: string): number {
-  const [h, m] = hhmm.split(":").map(Number);
-  return h * 60 + m;
-}
-
-export function toClock(totalMinutes: number): string {
-  const m = ((totalMinutes % DAY) + DAY) % DAY;
-  return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
-}
 
 /** "09:58" -> "9:58" (24시간제, 앞자리 0 없음) */
 export function formatShortClock(hhmm: string): string {
