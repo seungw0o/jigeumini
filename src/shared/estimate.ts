@@ -9,13 +9,13 @@
 //    환승 버스는 정류장에 닿은 시각 이후 첫 후보를 탄다(여유 없음). 못 찾으면 대기 0으로 두고 partial.
 // 5. live/partial이 아니면 지금부터 대기 없이 이어 붙인다(leaveAt = 지금, 여유 0).
 
-import type { DaejeonArrival } from "@/apis/daejeon/types";
-import type { PlannedBusLeg, PlannedRoute, StopArrivals } from "@/apis/live/types";
-import type { MarginsResponse } from "@/apis/margins/types";
+import type { DaejeonArrival } from "../apis/daejeon/types";
+import type { PlannedBusLeg, PlannedRoute, StopArrivals } from "../apis/live/types";
+import type { MarginsResponse } from "../apis/margins/types";
 import { DEPARTURE_MARGIN_MIN } from "./departure";
 import { pickMarginMinutes } from "./margin";
-import { toClock, toMinutes } from "./ribbon";
-import type { BusArrival, BusType, Leg, LegLiveIssue, RealtimeState, TransitRoute } from "./types";
+import { toClock, toMinutes } from "./clock";
+import type { BusArrival, BusType, Leg, LegLiveIssue, RealtimeState, TransitRoute } from "../utils/types";
 
 export interface LiveClock {
   /** 도착 정보를 받은 시각(epoch ms). ETA는 이 시각부터 센다 */

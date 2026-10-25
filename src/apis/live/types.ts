@@ -1,6 +1,6 @@
 // 우리 Route Handler(/api/*)와 브라우저 사이에서 오가는 응답 모양. server-only가 아니라 클라이언트에서도 import한다.
 
-import type { BusType, LatLng, Place } from "@/utils/types";
+import type { BusType, LatLng, Place } from "../../utils/types";
 import type { DaejeonArrival } from "../daejeon/types";
 import type { ApiErrorCode } from "../errors";
 

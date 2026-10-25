@@ -1,6 +1,6 @@
 import type { LiveError, RouteEnd, RoutePlan, StopArrivals } from "@/apis/live/types";
 import { useNow } from "@/hooks/useNow";
-import { estimateRoutes, kstClock } from "@/utils/estimate";
+import { estimateRoutes, kstClock } from "@/shared/estimate";
 import type { FailFlag, RoutePair } from "@/utils/routeQuery";
 import type { TransitRoute } from "@/utils/types";
 import { useMemo } from "react";
