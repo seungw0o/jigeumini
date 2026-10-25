@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLiveRoutes } from "@/apis/queries/useLiveRoutes.query";
+import { useDepartureAlerts } from "@/hooks/useDepartureAlerts";
 import { EmptyState, ErrorState, RouteListSkeleton, StateButton } from "@/components/StateViews";
 import { isLiveTimed } from "@/utils/format";
 import { routeMarkers, routePaths } from "@/utils/mapData";
 import { DEFAULT_ROUTE_PAIR, parseRoutePair, readFailFlag, routePairQuery, type RoutePair } from "@/utils/routeQuery";
-import type { MapMarker, MapPath, NotifyState, Place, TransitRoute } from "@/utils/types";
+import type { MapMarker, MapPath, Place, TransitRoute } from "@/utils/types";
 import { RouteDetailFrame, RouteDetailSections, RouteFooterBar } from "./RouteDetailParts";
 import { RouteSwitcher } from "./RouteSwitcher";
 
@@ -62,9 +63,8 @@ export function LiveRouteDetailScreen({ routeId }: { routeId: string }) {
   const params = useSearchParams();
   const pair = parseRoutePair(params) ?? DEFAULT_ROUTE_PAIR;
   const live = useLiveRoutes(pair, { fail: readFailFlag(params) });
-  const [notifyState, setNotifyState] = useState<NotifyState>("idle");
-
   const query = routePairQuery(pair);
+  const alerts = useDepartureAlerts(query, live.plan);
   const route = live.routes.find((r) => r.id === routeId);
   const mapData = useKeyedValue(mapKeyOf(query, route), () => buildMapData(pair, route));
   const header = <RouteSwitcher routes={live.routes} currentId={routeId} query={query} />;
@@ -105,9 +105,10 @@ export function LiveRouteDetailScreen({ routeId }: { routeId: string }) {
       footer={
         <RouteFooterBar
           route={route}
-          notifyState={notifyState}
-          onNotifyChange={setNotifyState}
+          notifyState={alerts.stateOf(routeId)}
+          onNotifyChange={(next) => alerts.toggle(routeId, next)}
           showNotify={isLiveTimed(route)}
+          showInstallHint={alerts.installHintFor === routeId}
         />
       }
     >

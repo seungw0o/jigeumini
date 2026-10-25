@@ -3,7 +3,7 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { LeaveBadge } from "@/components/LeaveBadge";
 import { MapLayout } from "@/components/MapLayout";
 import { MapView } from "@/components/MapView";
-import { NotifyButton } from "@/components/NotifyButton";
+import { NotifyButton, NotifyInstallHint } from "@/components/NotifyButton";
 import { StepTimeline } from "@/components/StepTimeline";
 import { RideInsightPlaceholder, TransferPanel } from "@/components/TransferPanel";
 import { totalLabel } from "@/utils/format";
@@ -44,11 +44,13 @@ export function RouteFooterBar({
   notifyState,
   onNotifyChange,
   showNotify = true,
+  showInstallHint = false,
 }: {
   route: TransitRoute;
   notifyState: NotifyState;
   onNotifyChange: (next: NotifyState) => void;
   showNotify?: boolean;
+  showInstallHint?: boolean;
 }) {
   return (
     <div className="flex min-h-row items-center justify-between gap-4 bg-surface px-gutter pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-bar">
@@ -57,6 +59,11 @@ export function RouteFooterBar({
         <p className="mt-1.5 truncate text-xs text-fg-muted tabular">
           도착 예상 {formatShortClock(route.arriveAt)} · {totalLabel(route)}
         </p>
+        {showInstallHint && (
+          <div className="mt-1">
+            <NotifyInstallHint />
+          </div>
+        )}
       </div>
       {showNotify && <NotifyButton variant="primary" state={notifyState} onChange={onNotifyChange} />}
     </div>
