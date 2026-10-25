@@ -9,14 +9,25 @@ workers_dev = true
 FIREBASE_PROJECT_IDS = "igeumini-28609,jigeumini-prod"
 # CORS 허용 Origin, 쉼표로 구분
 ALLOWED_ORIGINS = "http://localhost:3000,https://jigeumini.vercel.app"
+# 웹 푸시 VAPID 연락처. 키는 여기 두지 않는다: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY는 wrangler secret put / 로컬은 .dev.vars
+VAPID_SUBJECT = "https://jigeumini.vercel.app"
 
 [[durable_objects.bindings]]
 name = "STOP_MONITOR"
 class_name = "StopMonitor"
 
+# 출발 알림 하나당 객체 하나 (idFromName(alertId))
+[[durable_objects.bindings]]
+name = "ALERT_MONITOR"
+class_name = "AlertMonitor"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["StopMonitor"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["AlertMonitor"]
 
 [[d1_databases]]
 binding = "DB"

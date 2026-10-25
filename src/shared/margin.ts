@@ -1,4 +1,4 @@
-import type { LeadBucketMin, MarginBucket, MarginsResponse } from "@/apis/margins/types";
+import type { LeadBucketMin, MarginBucket, MarginsResponse } from "../apis/margins/types";
 import { DEPARTURE_MARGIN_MIN } from "./departure";
 
 export const MARGIN_MIN_GATE_N = 100;

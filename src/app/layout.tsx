@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { AuthProvider } from "@/components/AuthProvider";
+import { PushSubscriptionSync } from "@/components/PushSubscriptionSync";
 import { QueryProvider } from "@/components/QueryProvider";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import "./globals.css";
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full">
         <AuthProvider>
           <QueryProvider>{children}</QueryProvider>
+          <PushSubscriptionSync />
         </AuthProvider>
         <ServiceWorkerRegister />
       </body>

@@ -1,5 +1,5 @@
-import { toClock, toMinutes } from "./ribbon";
-import type { TransitRoute } from "./types";
+import { toClock, toMinutes } from "./clock";
+import type { TransitRoute } from "../utils/types";
 
 // 화면 표시용 임시 계산. 실제 출발 시각 계산은 owner 코드로 바뀐다.
 
