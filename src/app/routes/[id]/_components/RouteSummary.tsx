@@ -23,7 +23,7 @@ export function BusSequence({ route, size = "md" }: { route: TransitRoute; size?
       {buses.map((leg, i) => (
         <Fragment key={`${leg.routeNo}-${leg.boardAt}`}>
           {i > 0 && <ChevronRightIcon size={size === "sm" ? 12 : 14} className="shrink-0 text-fg-subtle" />}
-          <BusNumber routeNo={leg.routeNo} busType={leg.busType} size={size} />
+          <BusNumber leg={leg} size={size} />
         </Fragment>
       ))}
     </span>

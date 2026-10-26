@@ -44,7 +44,7 @@ export function TransferPanel({
           <li key={`${prev.routeNo}-${next.routeNo}-${next.boardAt}`} className="py-3 first:pt-2 last:pb-0">
             <p className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-fg tabular">
               <span className="inline-flex items-center gap-1">
-                <BusNumber routeNo={prev.routeNo} busType={prev.busType} size="sm" />
+                <BusNumber leg={prev} size="sm" />
                 <time dateTime={prev.alightAt} className="font-semibold">
                   {formatShortClock(prev.alightAt)}
                 </time>
@@ -52,7 +52,7 @@ export function TransferPanel({
               </span>
               <ChevronRightIcon size={14} className="shrink-0 text-fg-subtle" />
               <span className="inline-flex items-center gap-1">
-                <BusNumber routeNo={next.routeNo} busType={next.busType} size="sm" />
+                <BusNumber leg={next} size="sm" />
                 <time dateTime={next.boardAt} className="font-semibold">
                   {formatShortClock(next.boardAt)}
                 </time>

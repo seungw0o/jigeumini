@@ -66,7 +66,7 @@ function BoardRow({
   return (
     <li className="grid grid-cols-[48px_minmax(0,1fr)]">
       <div>
-        <BusNumber routeNo={leg.routeNo} busType={leg.busType} />
+        <BusNumber leg={leg} />
       </div>
       <div className="min-w-0">
         <div className="flex h-5.5 min-w-0 items-center gap-1 text-xs">
