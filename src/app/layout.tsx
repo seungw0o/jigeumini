@@ -4,6 +4,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { PushSubscriptionSync } from "@/components/PushSubscriptionSync";
 import { QueryProvider } from "@/components/QueryProvider";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { Toaster } from "@/components/Toast";
 import "./globals.css";
 
 const pretendard = localFont({
@@ -61,6 +62,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <PushSubscriptionSync />
         </AuthProvider>
         <ServiceWorkerRegister />
+        <Toaster />
       </body>
     </html>
   );
