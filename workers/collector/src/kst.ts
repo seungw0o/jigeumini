@@ -37,6 +37,12 @@ export function kstIso(epochMs: number): string {
   return `${p.year}-${pad(p.month)}-${pad(p.day)}T${pad(p.hour)}:${pad(p.minute)}:${pad(p.second)}+09:00`;
 }
 
+/** "2026-10-23" (KST 날짜) */
+export function kstDate(epochMs: number): string {
+  const p = kstParts(epochMs);
+  return `${p.year}-${pad(p.month)}-${pad(p.day)}`;
+}
+
 export function isCollecting(epochMs: number): boolean {
   const { hour, minute } = kstParts(epochMs);
   const minuteOfDay = hour * 60 + minute;
