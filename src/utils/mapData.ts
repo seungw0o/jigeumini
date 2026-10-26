@@ -4,7 +4,13 @@ import type { MapMarker, MapPath, Place, TransitRoute } from "./types";
 export function routePaths(route: TransitRoute): MapPath[] {
   return route.legs.map((leg, i) =>
     leg.kind === "bus"
-      ? { points: route.path[i], color: BUS_TYPE_META[leg.busType].color, kind: "bus", label: leg.routeNo }
+      ? {
+          points: route.path[i],
+          color: BUS_TYPE_META[leg.busType].color,
+          kind: "bus",
+          label: leg.routeNo,
+          ...(BUS_TYPE_META[leg.busType].fg && { labelColor: BUS_TYPE_META[leg.busType].fg }),
+        }
       : { points: route.path[i], color: "var(--color-walk-fg)", kind: "walk" },
   );
 }

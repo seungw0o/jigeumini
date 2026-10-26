@@ -9,6 +9,7 @@ const WORKER_SHARED_FILES = [
   "src/apis/http.ts",
   "src/apis/daejeon/types.ts",
   "src/apis/daejeon/parse.ts",
+  "src/apis/seoul/parse.ts",
   "src/utils/types.ts",
   "src/apis/live/types.ts",
   "src/apis/margins/types.ts",
@@ -17,6 +18,7 @@ const WORKER_SHARED_FILES = [
   "src/shared/departure.ts",
   "src/shared/estimate.ts",
   "src/shared/margin.ts",
+  "src/shared/region.ts",
 ];
 const WORKER_SHARED_MESSAGE = "Shared with the Cloudflare Worker: no server-only, next/*, @/ alias or process.env here.";
 

@@ -1,12 +1,18 @@
 import { describe, expect, test } from "vitest";
+import { fixture } from "./__fixtures__/fetch-stub";
 import { haversineMeters } from "./geo";
 import {
   alightingTargetOf,
   boardingTargetOf,
   DEFAULT_MAX_MATCH_DISTANCE_M,
   matchStop,
+  normalizeSeoulStopName,
   normalizeStopName,
+  pickServedCandidate,
+  sameNameCandidates,
+  type StopCandidate,
 } from "./matching";
+import { parseSeoulArrivals, parseSeoulStations, readSeoulItems } from "./seoul/parse";
 import type { TagoStop } from "./tago/types";
 
 const stop = (nodeId: string, name: string, arsId: string | null, lat: number, lng: number): TagoStop => ({
@@ -108,5 +114,64 @@ describe("boardingTargetOf / alightingTargetOf", () => {
   test("returns null when data is missing", () => {
     expect(boardingTargetOf({ stopNames: [], path: [] })).toBeNull();
     expect(alightingTargetOf({ stopNames: ["a"], path: [] })).toBeNull();
+  });
+});
+
+describe("Seoul matching (live fixtures 2026-10-26)", () => {
+  const candidatesFrom = (name: string): StopCandidate[] =>
+    parseSeoulStations(readSeoulItems("getStationByPos", JSON.parse(fixture(name)))).map((s) => ({
+      stopId: `seoul:${s.arsId}`,
+      arsId: s.arsId,
+      name: s.name,
+      position: s.position,
+    }));
+  const arrivals02004 = parseSeoulArrivals(readSeoulItems("getStationByUid", JSON.parse(fixture("seoul-arrivals-02004.json"))), "02004");
+
+  test("Kakao's platform suffix is ignored for Seoul names", () => {
+    expect(normalizeSeoulStopName("서울역버스환승센터(5번승강장)(중)")).toBe("서울역버스환승센터");
+  });
+
+  test("길 건너편: 지하철2호선강남역 picks 22012 at ~9m, not the same-name 22011 across the road at ~116m", () => {
+    const [nearest, ...rest] = sameNameCandidates(
+      { name: "지하철2호선강남역", position: { lat: 37.50084994, lng: 127.02630035 } },
+      candidatesFrom("seoul-stations-gangnam.json"),
+      normalizeSeoulStopName,
+    );
+    expect(nearest).toMatchObject({ stopId: "seoul:22012" });
+    expect(nearest.distanceM).toBeLessThan(15);
+    expect(rest.map((c) => c.stopId)).toEqual(["seoul:22011"]);
+  });
+
+  describe("서울역버스환승센터 platforms ~10m apart are split by route", () => {
+    const platform5 = { name: "서울역버스환승센터(5번승강장)(중)", position: { lat: 37.55547292, lng: 126.97256712 } };
+    const candidates = () => sameNameCandidates(platform5, candidatesFrom("seoul-stations-seoulstation.json"), normalizeSeoulStopName);
+    const route402 = { ...arrivals02004[0], routeNo: "402", stopNodeId: "seoul:02005", arsId: "02005" };
+
+    test("same-name candidates in distance order", () => {
+      expect(candidates().map((c) => c.arsId)).toEqual(["02004", "02005", "02006", "02003"]);
+    });
+
+    test("421 is served at the nearest platform 02004", async () => {
+      const picked = await pickServedCandidate(candidates(), ["421"], async (c) => (c.arsId === "02004" ? arrivals02004 : []));
+      expect(picked).toEqual({ candidate: expect.objectContaining({ arsId: "02004" }), complete: true });
+    });
+
+    test("402 is not at 02004, so the next platform that serves it wins", async () => {
+      const picked = await pickServedCandidate(candidates(), ["402"], async (c) =>
+        c.arsId === "02004" ? arrivals02004 : c.arsId === "02005" ? [route402] : [],
+      );
+      expect(picked.candidate?.arsId).toBe("02005");
+    });
+
+    test("a bus no platform knows (e.g. Gyeonggi) falls back to the nearest; a failed lookup marks the pick incomplete", async () => {
+      expect(await pickServedCandidate(candidates(), ["9300"], async () => arrivals02004)).toEqual({
+        candidate: expect.objectContaining({ arsId: "02004" }),
+        complete: true,
+      });
+      const failing = await pickServedCandidate(candidates(), ["402"], async () => {
+        throw new Error("timeout");
+      });
+      expect(failing).toEqual({ candidate: expect.objectContaining({ arsId: "02004" }), complete: false });
+    });
   });
 });

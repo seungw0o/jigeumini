@@ -226,3 +226,24 @@ describe("kstClock", () => {
     expect(kstClock(Date.parse("2026-10-22T23:59:30+09:00") + 60_000)).toBe("00:00");
   });
 });
+
+describe("estimateRoute with Seoul stops", () => {
+  const seoul = (routeNo: string, etaSeconds: number) => ({ ...eta(routeNo, etaSeconds), stopNodeId: "seoul:02004", arsId: "02004" });
+
+  test("Kakao 'N75(심야)' matches the Seoul arrival row 'N75'", () => {
+    const route = estimateRoute(plan([walk(120), bus(["N75(심야)"], 1200, "seoul:02004")]), { "seoul:02004": ok(seoul("N75", 900)) }, CLOCK);
+    expect(route.realtime).toBe("live");
+    expect(busLegs(route)[0].routeNo).toBe("N75");
+  });
+
+  test("a route the Seoul stop does not list at all (e.g. a Gyeonggi bus) is unavailable, not noBus", () => {
+    const route = estimateRoute(plan([walk(120), bus(["9300"], 1200, "seoul:02004")]), { "seoul:02004": ok(seoul("421", 900)) }, CLOCK);
+    expect(route.realtime).toBe("unavailable");
+    expect(busLegs(route)[0].liveIssue).toBe("unavailable");
+  });
+
+  test("Daejeon keeps noBus for a route missing from the list", () => {
+    const route = estimateRoute(plan([walk(120), bus(["604"], 1200, "S1")]), { S1: ok(eta("318", 900)) }, CLOCK);
+    expect(route.realtime).toBe("noBus");
+  });
+});

@@ -15,8 +15,8 @@ const pretendard = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "지금이니? 대전 버스",
-  description: "기다림까지 더한 도착 예상 시간과, 언제까지 나서면 되는지 알려주는 대전 버스 길찾기",
+  title: "지금이니? 대전·서울 버스",
+  description: "기다림까지 더한 도착 예상 시간과, 언제까지 나서면 되는지 알려주는 대전·서울 버스 길찾기",
   applicationName: "지금이니?",
   appleWebApp: {
     capable: true,

@@ -3,7 +3,7 @@ import type { PlannedRoute } from "../../../src/apis/live/types";
 import type { MarginsResponse } from "../../../src/apis/margins/types";
 import { decideAlert, notifyAtOf } from "./alert-schedule";
 import { routeDetailUrl, type AlertScheduler } from "./alerts";
-import { fetchStopArrivals } from "./daejeon";
+import { fetchBoardArrivals } from "./arrivals";
 import type { Env } from "./env";
 import { departureOf, type Departure } from "./leave-by";
 import { stopMargins } from "./margins";
@@ -96,7 +96,7 @@ export class AlertMonitor extends DurableObject<Env> {
     try {
       const serviceKey = this.env.DATA_GO_KR_KEY?.trim();
       if (!serviceKey) throw new Error("DATA_GO_KR_KEY secret is not set");
-      const arrivals = await fetchStopArrivals(serviceKey, row.board_node_id);
+      const arrivals = await fetchBoardArrivals(serviceKey, row.board_node_id);
       const plan = JSON.parse(row.plan_json) as PlannedRoute;
       departure = departureOf(plan, arrivals, { fetchedAtMs: now, nowMs: now }, await this.margins(now));
     } catch (error) {

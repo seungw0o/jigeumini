@@ -79,11 +79,14 @@ export function transferLabel(count: number): string {
 
 export const BUS_TYPE_META: Record<
   BusType,
-  { label: string; color: string }
+  /** fg: 노선 색 위 글자 색, 없으면 흰색(--color-fg-inverse) */
+  { label: string; color: string; fg?: string }
 > = {
   express: { label: "급행", color: "var(--color-bus-express)" },
   trunk: { label: "간선", color: "var(--color-bus-trunk)" },
   branch: { label: "지선", color: "var(--color-bus-branch)" },
   village: { label: "마을", color: "var(--color-bus-village)" },
   outer: { label: "외곽", color: "var(--color-bus-outer)" },
+  wide: { label: "광역", color: "var(--color-bus-wide)" },
+  circular: { label: "순환", color: "var(--color-bus-circular)", fg: "var(--color-fg)" },
 };
