@@ -34,14 +34,11 @@ export function PlaceSummary({
             )}
           </p>
           <p className="mt-0.5 truncate text-xs text-fg-muted">{place.address}</p>
-          <p className="mt-0.5 truncate text-xs text-fg-muted tabular">
-            {place.position.lat.toFixed(5)}, {place.position.lng.toFixed(5)}
-          </p>
         </div>
         <div className="-mr-2 flex shrink-0 items-center">
           <button
             type="button"
-            aria-label="즐겨찾기 추가"
+            aria-label={favorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
             aria-pressed={favorite}
             onClick={() => onToggleFavorite?.(place)}
             className="flex size-11 items-center justify-center rounded-md hover:bg-surface-muted"
@@ -82,38 +79,5 @@ export function PlaceSummary({
         </button>
       </div>
     </section>
-  );
-}
-
-export function PlaceSummarySkeleton() {
-  const block = "rounded-sm bg-skeleton animate-pulse motion-reduce:animate-none";
-  return (
-    <div aria-busy="true" className="px-gutter pt-3 pb-5">
-      <span className="sr-only">장소 정보를 불러오는 중</span>
-      <div aria-hidden="true">
-        <div className="flex items-start gap-2">
-          <div className="min-w-0 flex-1 pt-1">
-            <div className="flex h-6 items-center">
-              <div className={`h-[18px] w-2/5 ${block}`} />
-            </div>
-            <div className="mt-0.5 flex h-[18px] items-center">
-              <div className={`h-3 w-1/4 ${block}`} />
-            </div>
-            <div className="mt-0.5 flex h-[18px] items-center">
-              <div className={`h-3 w-3/5 ${block}`} />
-            </div>
-            <div className="mt-0.5 flex h-[18px] items-center">
-              <div className={`h-3 w-2/5 ${block}`} />
-            </div>
-          </div>
-          <div className="-mr-2 h-11 w-[88px] shrink-0" />
-        </div>
-
-        <div className="mt-4 flex items-center gap-2">
-          <div className="h-control flex-1 rounded-md bg-skeleton animate-pulse motion-reduce:animate-none" />
-          <div className="h-control flex-[2] rounded-md bg-skeleton animate-pulse motion-reduce:animate-none" />
-        </div>
-      </div>
-    </div>
   );
 }

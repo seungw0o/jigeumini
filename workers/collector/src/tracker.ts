@@ -1,11 +1,11 @@
 import type { DaejeonArrival } from "../../../src/apis/daejeon/types";
 
 /** 사라진 버스를 도착으로 볼 마지막 예측 상한 */
-export const VANISH_ARRIVAL_MAX_ETA_SEC = 120;
+const VANISH_ARRIVAL_MAX_ETA_SEC = 120;
 /** 마지막으로 본 뒤 이보다 오래 지났으면(루프가 멈췄던 경우) 사라짐을 도착으로 보지 않는다 */
-export const VANISH_MAX_GAP_MS = 3 * 60 * 1000;
+const VANISH_MAX_GAP_MS = 3 * 60 * 1000;
 /** 오차 계산에 쓰는 가장 먼 리드(10분 + 허용치)보다 넉넉하게 */
-export const PREDICTION_KEEP_MS = 20 * 60 * 1000;
+const PREDICTION_KEEP_MS = 20 * 60 * 1000;
 
 export interface Prediction {
   observedAt: number;

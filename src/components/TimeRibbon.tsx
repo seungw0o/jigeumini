@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { BUS_TYPE_META, isLiveTimed, isTight } from "@/utils/format";
+import { regionOf, type Region } from "@/shared/region";
+import { busColor, isLiveTimed, isTight } from "@/utils/format";
 import { buildRibbon, formatShortClock } from "@/utils/ribbon";
 import type { RibbonMark, RibbonSegment, TransitRoute } from "@/utils/types";
 
@@ -68,6 +69,7 @@ function Segment({
   isLast,
   variant,
   leaveIn,
+  region,
 }: {
   seg: RibbonSegment;
   offset: number;
@@ -75,7 +77,9 @@ function Segment({
   isLast: boolean;
   variant: Variant;
   leaveIn: number | null;
+  region: Region | null;
 }) {
+  const colors = seg.kind === "bus" && seg.busType ? busColor(seg.busType, region) : null;
   const size = VARIANT[variant];
   const isBus = seg.kind === "bus";
   const fontPx = isBus ? size.busPx : size.textPx;
@@ -91,7 +95,8 @@ function Segment({
       style={{
         left: `${toPct(offset, total)}%`,
         width: isLast ? `${widthPct}%` : `calc(${widthPct}% - 1px)`,
-        backgroundColor: isBus && seg.busType ? BUS_TYPE_META[seg.busType].color : undefined,
+        backgroundColor: colors?.color,
+        color: colors?.fg,
       }}
     >
       {label}
@@ -349,6 +354,8 @@ export function TimeRibbon({
   const full = variant === "full" ? layoutFullLabels(ribbon.marks, total, size.nominal) : null;
   const hasBefore = ribbon.segments[0]?.kind === "before";
   const leaveIn = isTight(route) ? null : route.leaveInMinutes;
+  const firstBus = route.legs.find((leg) => leg.kind === "bus");
+  const region = firstBus ? regionOf(firstBus.boardStop.position) : null;
 
   return (
     <div className={`tracking-normal ${className ?? ""}`}>
@@ -383,6 +390,7 @@ export function TimeRibbon({
                   isLast={i === positioned.length - 1}
                   variant={variant}
                   leaveIn={leaveIn}
+                  region={region}
                 />
               ))}
           </div>

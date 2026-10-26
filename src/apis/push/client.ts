@@ -8,13 +8,15 @@ export interface Alert {
   routeId: string;
   pairQuery: string;
   routeNo: string;
+  /** 탈 버스 번호들(환승 순서). 이전 워커는 보내지 않는다 */
+  busNos?: string[];
   boardNodeId: string;
   status: AlertStatus;
   leaveByAt: string | null;
   createdAt: string;
 }
 
-export interface AlertRequestBody {
+interface AlertRequestBody {
   routeId: string;
   pairQuery: string;
   plan: PlannedRoute;

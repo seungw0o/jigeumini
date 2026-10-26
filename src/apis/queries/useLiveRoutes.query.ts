@@ -8,7 +8,7 @@ import { useArrivals } from "./useArrivals.query";
 import { useMargins } from "./useMargins.query";
 import { useRoutePlan } from "./useRoutePlan.query";
 
-export interface LiveRoutesResult {
+interface LiveRoutesResult {
   status: "idle" | "loading" | "error" | "ready";
   error: LiveError | null;
   origin: RouteEnd | null;

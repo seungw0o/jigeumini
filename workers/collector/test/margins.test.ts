@@ -3,6 +3,7 @@ import { nearestRank } from "../src/db";
 import type { Env } from "../src/env";
 import worker from "../src/index";
 import { kstIso } from "../src/kst";
+import { foldNewErrors } from "../src/margin-hist";
 import { stopMargins } from "../src/margins";
 import { createTestD1 } from "./d1-sqlite";
 import { T0 } from "./helpers";
@@ -20,6 +21,7 @@ async function seed(db: ReturnType<typeof createTestD1>, rows: { node?: string; 
       .bind(r.node ?? "8001318", ROUTE, PLATE, r.lead, kstIso(r.at ?? T0 - DAY), r.err, 9, 4)
       .run();
   }
+  await foldNewErrors(db, T0);
 }
 
 describe("nearestRank p10", () => {
@@ -38,18 +40,31 @@ describe("stopMargins", () => {
     expect(stops[0].p10Sec).toBe(-20);
   });
 
-  it("window excludes a 29-day-old row and includes a 27-day-old one", async () => {
+  it("histograms are cumulative: windowDays counts from the oldest error", async () => {
     const db = createTestD1();
     await seed(db, [
       { lead: 3, err: -500, at: T0 - 29 * DAY },
       { lead: 3, err: -100, at: T0 - 27 * DAY },
     ]);
     const res = await stopMargins(db, T0);
-    expect(res.windowDays).toBe(28);
-    expect(res.stops).toEqual([{ nodeId: "8001318", n: 1, p10Sec: -100, byLead: [{ leadMin: 3, n: 1, p10Sec: -100 }] }]);
+    expect(res.windowDays).toBe(29);
+    expect(res.stops).toEqual([{ nodeId: "8001318", n: 2, p10Sec: -500, byLead: [{ leadMin: 3, n: 2, p10Sec: -500 }] }]);
   });
 
-  it("aggregates per bucket and over all buckets, sorted by lead and node", async () => {
+  it("errors not yet folded by the morning cron are not visible", async () => {
+    const db = createTestD1();
+    await seed(db, [{ lead: 5, err: -40 }]);
+    await db
+      .prepare(
+        "INSERT INTO prediction_errors (node_id, route_no, plate_no, lead_bucket_min, predicted_at, error_sec, hour_kst, weekday) VALUES ('8001318', 'x', 'y', 5, ?, -900, 9, 4)",
+      )
+      .bind(kstIso(T0))
+      .run();
+    const { stops } = await stopMargins(db, T0);
+    expect(stops).toEqual([{ nodeId: "8001318", n: 1, p10Sec: -40, byLead: [{ leadMin: 5, n: 1, p10Sec: -40 }] }]);
+  });
+
+  it("aggregates per bucket and over all buckets (10 s bins), sorted by lead and node", async () => {
     const db = createTestD1();
     await seed(db, [
       { lead: 10, err: 30 },
@@ -62,13 +77,13 @@ describe("stopMargins", () => {
     const res = await stopMargins(db, T0);
     expect(res.generatedAt).toBe(new Date(T0).toISOString());
     expect(res.stops).toEqual([
-      { nodeId: "8000001", n: 1, p10Sec: 7, byLead: [{ leadMin: 5, n: 1, p10Sec: 7 }] },
+      { nodeId: "8000001", n: 1, p10Sec: 0, byLead: [{ leadMin: 5, n: 1, p10Sec: 0 }] },
       {
         nodeId: "8001318",
         n: 5,
         p10Sec: -60,
         byLead: [
-          { leadMin: 3, n: 1, p10Sec: 5 },
+          { leadMin: 3, n: 1, p10Sec: 0 },
           { leadMin: 5, n: 2, p10Sec: -20 },
           { leadMin: 10, n: 2, p10Sec: -60 },
         ],
@@ -98,7 +113,7 @@ describe("GET /margins", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("Cache-Control")).toBe("public, max-age=600");
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(ORIGIN);
-    expect(await res.json()).toMatchObject({ windowDays: 28, stops: [] });
+    expect(await res.json()).toMatchObject({ windowDays: 0, stops: [] });
   });
 
   it("no ACAO for a disallowed origin", async () => {

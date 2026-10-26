@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { BusGlyph } from "@/assets/icons";
 import { LeaveBadge } from "@/components/LeaveBadge";
 import { ArrivalText, BusBadge, LIVE_ISSUE_LABEL, MissedBusNotice } from "@/components/StatusChips";
-import { BUS_TYPE_META, formatDistance, isLiveTimed } from "@/utils/format";
+import { formatDistance, isLiveTimed, legBusColor } from "@/utils/format";
 import { buildRibbon, formatShortClock } from "@/utils/ribbon";
 import type { BusLeg, Leg, Ribbon, TransitRoute } from "@/utils/types";
 
@@ -28,7 +28,7 @@ type StepData = {
 
 function segmentOf(leg: Leg | undefined): Segment {
   if (!leg) return null;
-  return leg.kind === "walk" ? { kind: "walk" } : { kind: "bus", color: BUS_TYPE_META[leg.busType].color };
+  return leg.kind === "walk" ? { kind: "walk" } : { kind: "bus", color: legBusColor(leg).color };
 }
 
 function Rail({ segment, className }: { segment: Segment; className: string }) {
@@ -178,7 +178,7 @@ function BoardContent({
       <p className="text-xs text-fg-muted tabular">{leg.boardStop.arsId}</p>
       <div className="mt-2.5 flex items-start gap-2.5">
         <span className="flex h-4.5 items-center">
-          <BusBadge routeNo={leg.routeNo} busType={leg.busType} />
+          <BusBadge leg={leg} />
         </span>
         <ul className="flex min-w-0 flex-col gap-0.5">
           {statusText && (
@@ -274,7 +274,7 @@ function buildSteps(route: TransitRoute, now: string, originName: string, destin
       return;
     }
 
-    const color = BUS_TYPE_META[leg.busType].color;
+    const color = legBusColor(leg).color;
     steps.push({
       key: `board-${i}`,
       time: leg.boardAt,

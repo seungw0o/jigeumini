@@ -7,7 +7,7 @@ import { createArrivalsCache } from "../live/arrivalsCache";
 import { fetchSeoulArrivals, fetchSeoulStations, type SeoulStation } from "./parse";
 
 // 개발 계정은 서비스별 하루 1,000회라 정류장마다 25초 동안 한 번만 묻는다(화면은 25초마다 새로 고친다)
-export const SEOUL_ARRIVALS_TTL_MS = 25_000;
+const SEOUL_ARRIVALS_TTL_MS = 25_000;
 
 const arrivalsCache = createArrivalsCache({
   ttlMs: SEOUL_ARRIVALS_TTL_MS,

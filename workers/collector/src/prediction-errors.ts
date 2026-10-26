@@ -1,13 +1,13 @@
 import type { Prediction } from "./tracker";
 
 /** 도착 몇 분 전의 예측을 볼지와, 그 리드에서 얼마나 벗어난 관측까지 받아줄지(초) */
-export const LEAD_BUCKETS = [
+const LEAD_BUCKETS = [
   { minutes: 10, toleranceSec: 120 },
   { minutes: 5, toleranceSec: 60 },
   { minutes: 3, toleranceSec: 60 },
 ] as const;
 
-export interface PredictionError {
+interface PredictionError {
   leadBucketMin: number;
   predictedAt: number;
   /** 실제 도착 - (관측 시각 + 예측 초). 양수면 예측보다 늦게 왔다 */

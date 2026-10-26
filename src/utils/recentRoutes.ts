@@ -12,7 +12,7 @@ export interface RecentRoute extends RoutePair {
  * 최근 경로 저장소. 지금은 기기별 localStorage지만, 나중에 계정(D1)으로 옮길 때 이 모양만 맞추면 된다.
  * load는 현재 목록, save는 한 쌍을 맨 위에 기록(같은 쌍은 위로 올림), remove/clear는 삭제
  */
-export interface RecentRoutesStore {
+interface RecentRoutesStore {
   load(): RecentRoute[];
   save(pair: RoutePair): void;
   remove(id: string): void;

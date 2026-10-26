@@ -7,7 +7,8 @@ import { useDepartureAlerts } from "@/hooks/useDepartureAlerts";
 import { EmptyState, ErrorState, RouteListSkeleton, StateButton } from "@/components/StateViews";
 import { isLiveTimed } from "@/utils/format";
 import { routeMarkers, routePaths } from "@/utils/mapData";
-import { DEFAULT_ROUTE_PAIR, parseRoutePair, readFailFlag, routePairQuery, type RoutePair } from "@/utils/routeQuery";
+import { parseRoutePair, readFailFlag, routePairQuery, type RoutePair } from "@/utils/routeQuery";
+import { RoutesEmptyScreen } from "../../_components/RoutesEmptyScreen";
 import type { MapMarker, MapPath, Place, TransitRoute } from "@/utils/types";
 import { RouteDetailFrame, RouteDetailSections, RouteFooterBar } from "./RouteDetailParts";
 import { RouteSwitcher } from "./RouteSwitcher";
@@ -59,10 +60,15 @@ export function LiveRouteDetailFallback() {
 }
 
 export function LiveRouteDetailScreen({ routeId }: { routeId: string }) {
-  const router = useRouter();
   const params = useSearchParams();
-  const pair = parseRoutePair(params) ?? DEFAULT_ROUTE_PAIR;
-  const live = useLiveRoutes(pair, { fail: readFailFlag(params) });
+  const pair = parseRoutePair(params);
+  if (!pair) return <RoutesEmptyScreen />;
+  return <PairedRouteDetail routeId={routeId} pair={pair} fail={readFailFlag(params)} />;
+}
+
+function PairedRouteDetail({ routeId, pair, fail }: { routeId: string; pair: RoutePair; fail: ReturnType<typeof readFailFlag> }) {
+  const router = useRouter();
+  const live = useLiveRoutes(pair, { fail });
   const query = routePairQuery(pair);
   const alerts = useDepartureAlerts(query, live.plan);
   const route = live.routes.find((r) => r.id === routeId);

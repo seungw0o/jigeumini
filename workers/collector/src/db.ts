@@ -44,7 +44,7 @@ export async function health(db: D1Database) {
   return { ok: true, watched: watched.results[0]?.n ?? 0, lastArrivalAt: last.results[0]?.arrived_at ?? null };
 }
 
-export interface ErrorStats {
+interface ErrorStats {
   n: number;
   medianSec: number;
   p80Sec: number;
@@ -58,7 +58,7 @@ export function nearestRank(values: number[], p: number): number {
 }
 
 /** nearest-rank 백분위 */
-export function summarize(values: number[]): ErrorStats {
+function summarize(values: number[]): ErrorStats {
   const sorted = [...values].sort((a, b) => a - b);
   const at = (p: number) => sorted[Math.max(0, Math.ceil(p * sorted.length) - 1)];
   return { n: sorted.length, medianSec: at(0.5), p80Sec: at(0.8), p90Sec: at(0.9) };

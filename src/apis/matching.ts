@@ -14,12 +14,12 @@ import type { TagoStop } from "./tago/types";
 /** 이보다 먼 같은 이름 정류장은 다른 정류장으로 본다(m) */
 export const DEFAULT_MAX_MATCH_DISTANCE_M = 150;
 
-export interface StopTarget {
+interface StopTarget {
   name: string;
   position: LatLng;
 }
 
-export interface StopMatch {
+interface StopMatch {
   tagoNodeId: string;
   /** 대전 BUS_NODE_ID, getArrivalsByStopId에 그대로 넣는다 */
   daejeonNodeId: string;

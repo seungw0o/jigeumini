@@ -4,7 +4,7 @@ import { json } from "./json";
 export const FAVORITES_LIMIT = 50;
 export const MAX_BODY_BYTES = 2048;
 
-export type FavoritePlace = {
+type FavoritePlace = {
   id: string;
   name: string;
   address: string;

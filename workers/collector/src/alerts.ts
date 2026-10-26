@@ -5,22 +5,25 @@ import { json } from "./json";
 import { isStopId } from "../../../src/shared/region";
 
 export const ALERTS_PENDING_LIMIT = 5;
-export const SUBSCRIPTION_MAX_BODY_BYTES = 2048;
-export const ALERT_MAX_BODY_BYTES = 16384;
+const SUBSCRIPTION_MAX_BODY_BYTES = 2048;
+const ALERT_MAX_BODY_BYTES = 16384;
 
 /** 알림 하나를 맡는 Durable Object 조작. 테스트에서는 대역을 넣는다 */
 export interface AlertScheduler {
-  schedule(alertId: string): Promise<void>;
+  /** ackBase: 워커 주소(origin). 푸시 본문의 확인(ack) URL을 만드는 데 쓴다 */
+  schedule(alertId: string, ackBase: string): Promise<void>;
   cancel(alertId: string): Promise<void>;
 }
 
-export type AlertStatus = "pending" | "sent" | "cancelled" | "failed";
+type AlertStatus = "pending" | "sent" | "cancelled" | "failed";
 
-export interface Alert {
+interface Alert {
   id: string;
   routeId: string;
   pairQuery: string;
   routeNo: string;
+  /** 탈 버스 번호들(환승 순서). 저장한 plan_json에서 읽는다 */
+  busNos: string[];
   boardNodeId: string;
   status: AlertStatus;
   leaveByAt: string | null;
@@ -36,15 +39,27 @@ type AlertRow = {
   status: AlertStatus;
   leave_by_at: string | null;
   created_at: string;
+  plan_json: string;
 };
 
-const ALERT_COLUMNS = "id, route_id, pair_query, route_no, board_node_id, status, leave_by_at, created_at";
+const ALERT_COLUMNS = "id, route_id, pair_query, route_no, board_node_id, status, leave_by_at, created_at, plan_json";
+
+function busNosOf(row: AlertRow): string[] {
+  try {
+    const plan = JSON.parse(row.plan_json) as PlannedRoute;
+    const nos = plan.legs.flatMap((leg) => (leg.kind === "bus" ? [leg.routeNos[0]] : []));
+    return nos.length > 0 ? nos : [row.route_no];
+  } catch {
+    return [row.route_no];
+  }
+}
 
 const toAlert = (row: AlertRow): Alert => ({
   id: row.id,
   routeId: row.route_id,
   pairQuery: row.pair_query,
   routeNo: row.route_no,
+  busNos: busNosOf(row),
   boardNodeId: row.board_node_id,
   status: row.status,
   leaveByAt: row.leave_by_at,
@@ -202,15 +217,15 @@ function parsePlan(value: unknown): PlannedRoute | null {
   return { id: value.id, fare, transferCount: transferCount as number, totalSeconds, legs: parsed as PlannedLeg[] };
 }
 
-export interface AlertInput {
+interface AlertInput {
   routeId: string;
   pairQuery: string;
   plan: PlannedRoute;
 }
 
-export type AlertInputError = "invalid body" | "no live stop";
+type AlertInputError = "invalid body" | "no live stop";
 
-export function parseAlertInput(body: unknown): AlertInput | AlertInputError {
+function parseAlertInput(body: unknown): AlertInput | AlertInputError {
   if (!isRecord(body)) return "invalid body";
   const { routeId, pairQuery } = body;
   if (typeof routeId !== "string" || !ROUTE_ID_RE.test(routeId)) return "invalid body";
@@ -283,7 +298,7 @@ async function createAlert(request: Request, db: D1Database, scheduler: AlertSch
   if (inserted.meta.changes === 0) return json({ error: "alerts limit reached", limit: ALERTS_PENDING_LIMIT }, 409);
 
   try {
-    await scheduler.schedule(id);
+    await scheduler.schedule(id, new URL(request.url).origin);
   } catch (err) {
     console.error("alert schedule failed:", err instanceof Error ? err.message : "unknown");
     await db

@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
-import { HistoryIcon, PinIcon, StarFilledIcon } from "@/assets/icons";
+import { BellIcon, HistoryIcon, StarFilledIcon } from "@/assets/icons";
 
-export type ChipKey = "favorites" | "recentRoutes" | "frequent";
+export type ChipKey = "favorites" | "recentRoutes" | "alerts";
 
-const CHIPS: { key: ChipKey; label: string; icon: ReactNode }[] = [
+// 모바일은 하단 탭에 알림이 있어, 알림 칩은 데스크톱에서만 보인다
+const CHIPS: { key: ChipKey; label: string; icon: ReactNode; desktopOnly?: boolean }[] = [
   { key: "favorites", label: "즐겨찾기", icon: <StarFilledIcon size={16} className="text-brand" /> },
   { key: "recentRoutes", label: "최근 경로", icon: <HistoryIcon size={16} strokeWidth={2.2} /> },
-  { key: "frequent", label: "자주 가는 곳", icon: <PinIcon size={16} strokeWidth={2.2} /> },
+  { key: "alerts", label: "알림", icon: <BellIcon size={16} />, desktopOnly: true },
 ];
 
 export function CategoryChips({
@@ -30,7 +31,7 @@ export function CategoryChips({
             type="button"
             aria-pressed={pressed}
             onClick={() => onToggle(chip.key)}
-            className={`relative flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold whitespace-nowrap transition-colors before:absolute before:inset-x-0 before:-inset-y-1 ${
+            className={`relative ${chip.desktopOnly ? "hidden lg:flex" : "flex"} h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold whitespace-nowrap transition-colors before:absolute before:inset-x-0 before:-inset-y-1 ${
               pressed
                 ? "bg-surface-inverse text-fg-inverse shadow-float lg:shadow-none"
                 : "bg-surface text-fg-secondary shadow-float hover:bg-surface-muted lg:shadow-none lg:ring-1 lg:ring-border lg:ring-inset"

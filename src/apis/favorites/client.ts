@@ -3,7 +3,7 @@ import type { Place } from "@/utils/types";
 
 type FavoritePlace = Omit<Place, "distanceM"> & { createdAt: string };
 
-export class FavoritesError extends Error {
+class FavoritesError extends Error {
   status: number;
   code: string;
 
