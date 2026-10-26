@@ -2,7 +2,7 @@ import { DurableObject } from "cloudflare:workers";
 import { ackToken } from "./alert-ack";
 import type { PlannedRoute } from "../../../src/apis/live/types";
 import type { MarginsResponse } from "../../../src/apis/margins/types";
-import { decideAlert, notifyAtOf } from "./alert-schedule";
+import { decideAlert, MAX_LIFETIME_MS, notifyAtOf } from "./alert-schedule";
 import { routeDetailUrl, type AlertScheduler } from "./alerts";
 import { fetchBoardArrivals } from "./arrivals";
 import type { Env } from "./env";
@@ -17,6 +17,7 @@ type PendingRow = {
   uid: string;
   route_id: string;
   pair_query: string;
+  route_no: string;
   plan_json: string;
   board_node_id: string;
   status: string;
@@ -38,6 +39,18 @@ export function alertPayload(
     url: routeDetailUrl(routeId, pairQuery),
     ...(ack ? { ack } : {}),
   };
+}
+
+/**
+ * 등록한 뒤 DO가 실패로 끝낸 알림(no_bus, expired)을 알리는 푸시. 보낸 알림이 아니라서 ack를 넣지 않는다:
+ * 누르면 경로 화면만 열고, sw.js는 확인 요청을 보내지 않는다(알림 행과 구독은 그대로 둔다)
+ */
+export function failurePayload(alertId: string, routeId: string, pairQuery: string, routeNo: string, reason: "no_bus" | "expired"): PushPayload {
+  const body =
+    reason === "no_bus"
+      ? `${routeNo}번 버스 도착 정보를 찾지 못했어요. 경로를 다시 확인해 주세요.`
+      : `알림을 켠 지 ${MAX_LIFETIME_MS / 3_600_000}시간이 지나 ${routeNo}번 출발 알림을 끝냈어요. 필요하면 다시 켜 주세요.`;
+  return { title: "출발 알림을 보내지 못했어요", body, tag: `alert-failed-${alertId}`, url: routeDetailUrl(routeId, pairQuery) };
 }
 
 export function alertScheduler(ns: DurableObjectNamespace<AlertMonitor>): AlertScheduler {
@@ -75,14 +88,27 @@ export class AlertMonitor extends DurableObject<Env> {
     }
   }
 
-  private async finish(alertId: string, status: "sent" | "failed", reason: string | null, now: number, leaveByMs?: number): Promise<void> {
+  /** 대기 중이던 알림을 끝낸다. 이번 호출이 끝냈으면 true (이미 끝난 알림이면 false) */
+  private async finish(alertId: string, status: "sent" | "failed", reason: string | null, now: number, leaveByMs?: number): Promise<boolean> {
     const at = new Date(now).toISOString();
-    await this.env.DB.prepare(
+    const result = await this.env.DB.prepare(
       "UPDATE alerts SET status = ?, fail_reason = ?, sent_at = ?, leave_by_at = COALESCE(?, leave_by_at), updated_at = ? WHERE id = ? AND status = 'pending'",
     )
       .bind(status, reason, status === "sent" ? at : null, leaveByMs === undefined ? null : new Date(leaveByMs).toISOString(), at, alertId)
       .run();
     await this.ctx.storage.deleteAll();
+    return result.meta.changes > 0;
+  }
+
+  /** 실패 알림 푸시. 실패해도 기록만 하고 상태는 원래 실패 이유로 둔다 */
+  private async notifyFailure(alertId: string, row: PendingRow, reason: "no_bus" | "expired"): Promise<void> {
+    try {
+      const payload = failurePayload(alertId, row.route_id, row.pair_query, row.route_no, reason);
+      const result = await sendToUser(this.env.DB, row.uid, payload, vapidKeysOf(this.env));
+      console.log("alert fail push", alertId, reason, JSON.stringify(result));
+    } catch (error) {
+      console.error("alert fail push failed", alertId, error instanceof Error ? error.message : String(error));
+    }
   }
 
   async alarm(): Promise<void> {
@@ -90,7 +116,7 @@ export class AlertMonitor extends DurableObject<Env> {
     const alertId = await storage.get<string>("alertId");
     if (!alertId) return;
     const row = await this.env.DB.prepare(
-      "SELECT uid, route_id, pair_query, plan_json, board_node_id, status, created_at FROM alerts WHERE id = ?",
+      "SELECT uid, route_id, pair_query, route_no, plan_json, board_node_id, status, created_at FROM alerts WHERE id = ?",
     )
       .bind(alertId)
       .first<PendingRow>();
@@ -122,7 +148,8 @@ export class AlertMonitor extends DurableObject<Env> {
     );
 
     if (decision.kind === "fail") {
-      await this.finish(alertId, "failed", decision.reason, now);
+      // 상태를 먼저 바꾸고 이번 호출이 끝낸 경우에만 보낸다: 두 번 깨어나도 푸시는 한 번
+      if (await this.finish(alertId, "failed", decision.reason, now)) await this.notifyFailure(alertId, row, decision.reason);
       return;
     }
     if (decision.kind === "wait") {
