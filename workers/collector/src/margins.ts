@@ -3,8 +3,13 @@ import { histCount, histPercentile, mergeHist, parseHist, type Hist } from "./ma
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // src/apis/margins/types.ts 와 같은 모양 (워커는 앱 코드를 import할 수 없다)
+type LeadMin = 3 | 5 | 10 | 15 | 20;
+
+/** 정류장 전체 n·P10(출발 여유의 대체값)에 넣는 구간. 15·20분은 수집 전용이라 byLead에만 싣는다 */
+const SUMMARY_MAX_LEAD_MIN = 10;
+
 interface MarginBucket {
-  leadMin: 3 | 5 | 10;
+  leadMin: LeadMin;
   n: number;
   p10Sec: number;
 }
@@ -43,14 +48,16 @@ export async function stopMargins(db: D1Database, nowMs: number): Promise<Margin
     byStop.set(row.node_id, list);
   }
 
-  const stops = [...byStop.entries()].map(([nodeId, buckets]): StopMargin => {
-    const all = buckets.map((b) => b.hist).reduce(mergeHist);
-    return {
+  const stops = [...byStop.entries()].flatMap(([nodeId, buckets]): StopMargin[] => {
+    const summary = buckets.filter((b) => b.leadMin <= SUMMARY_MAX_LEAD_MIN).map((b) => b.hist);
+    if (summary.length === 0) return [];
+    const all = summary.reduce(mergeHist);
+    return [{
       nodeId,
       n: histCount(all),
       p10Sec: histPercentile(all, 0.1),
-      byLead: buckets.map(({ leadMin, hist }) => ({ leadMin: leadMin as 3 | 5 | 10, n: histCount(hist), p10Sec: histPercentile(hist, 0.1) })),
-    };
+      byLead: buckets.map(({ leadMin, hist }) => ({ leadMin: leadMin as LeadMin, n: histCount(hist), p10Sec: histPercentile(hist, 0.1) })),
+    }];
   });
 
   const firstAt = first.results[0]?.predicted_at;

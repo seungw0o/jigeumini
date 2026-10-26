@@ -2,6 +2,9 @@ import type { Prediction } from "./tracker";
 
 /** 도착 몇 분 전의 예측을 볼지와, 그 리드에서 얼마나 벗어난 관측까지 받아줄지(초) */
 const LEAD_BUCKETS = [
+  // 15·20분은 환승 버스처럼 먼 예측의 오차를 보기 위한 수집 전용 구간 (출발 여유 계산에는 아직 안 쓴다)
+  { minutes: 20, toleranceSec: 180 },
+  { minutes: 15, toleranceSec: 120 },
   { minutes: 10, toleranceSec: 120 },
   { minutes: 5, toleranceSec: 60 },
   { minutes: 3, toleranceSec: 60 },

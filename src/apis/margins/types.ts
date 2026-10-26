@@ -1,7 +1,8 @@
 // 워커 GET /margins 응답. 정류장별 버스 도착 예측 오차(초, 실제 − 예측; 음수 = 일찍 옴)의 P10.
 // workers/collector/src/margins.ts가 같은 모양을 만든다.
 
-export type LeadBucketMin = 3 | 5 | 10;
+/** 15·20분은 수집 전용 구간 (출발 여유는 3·5·10분만 고른다, src/shared/margin.ts) */
+export type LeadBucketMin = 3 | 5 | 10 | 15 | 20;
 
 export interface MarginBucket {
   leadMin: LeadBucketMin;

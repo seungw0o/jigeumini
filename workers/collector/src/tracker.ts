@@ -4,8 +4,8 @@ import type { DaejeonArrival } from "../../../src/apis/daejeon/types";
 const VANISH_ARRIVAL_MAX_ETA_SEC = 120;
 /** 마지막으로 본 뒤 이보다 오래 지났으면(루프가 멈췄던 경우) 사라짐을 도착으로 보지 않는다 */
 const VANISH_MAX_GAP_MS = 3 * 60 * 1000;
-/** 오차 계산에 쓰는 가장 먼 리드(10분 + 허용치)보다 넉넉하게 */
-const PREDICTION_KEEP_MS = 20 * 60 * 1000;
+/** 오차 계산에 쓰는 가장 먼 리드(20분 + 허용치 3분)보다 넉넉하게 */
+const PREDICTION_KEEP_MS = 25 * 60 * 1000;
 
 export interface Prediction {
   observedAt: number;
