@@ -6,6 +6,7 @@ import { useLiveRoutes } from "@/apis/queries/useLiveRoutes.query";
 import type { RouteEnd } from "@/apis/live/types";
 import { MapView } from "@/components/MapView";
 import { NotifyDeniedHint, NotifyUnavailableHint } from "@/components/NotifyButton";
+import { RetryButton } from "@/components/RetryButton";
 import { RouteCard } from "@/components/RouteCard";
 import { RouteSearchBar } from "@/components/RouteSearchBar";
 import { useDepartureAlerts } from "@/hooks/useDepartureAlerts";
@@ -59,12 +60,12 @@ const STATE_CARD = "mx-4 overflow-hidden rounded-lg bg-surface shadow-card";
 const NOTICE = "mx-4 mb-3 rounded-lg bg-surface px-4 py-3 shadow-card";
 /** 목록 맨 위: 예상 안내 + 정보 시각·새로고침 (툴바가 붐벼서 여기로 내림). 한 줄에 들어가도록 짧은 안내를 쓴다 */
 const LIST_NOTE = "교통 상황에 따라 달라질 수 있어요";
-function ListHeader({ secondsAgo, onRefresh, note }: { secondsAgo: number; onRefresh: () => void; note: string | null }) {
+function ListHeader({ fetchedAtMs, onRefresh, note }: { fetchedAtMs: number; onRefresh: () => void; note: string | null }) {
   return (
     <div className="flex items-center justify-between gap-3 px-5 pb-3">
       <p className="min-w-0 truncate text-xs text-fg-muted">{note}</p>
       <span className="shrink-0">
-        <StaleBadge secondsAgo={secondsAgo} onRefresh={onRefresh} />
+        <StaleBadge fetchedAtMs={fetchedAtMs} onRefresh={onRefresh} />
       </span>
     </div>
   );
@@ -214,13 +215,7 @@ function LiveRoutesScreen({
               {realtimeFailed && (
                 <div role="status" className={`${NOTICE} flex items-center gap-3`}>
                   <p className="min-w-0 flex-1 text-sm text-fg-secondary">실시간 정보를 못 받았어요. 이동 시간만 보여 드려요</p>
-                  <button
-                    type="button"
-                    onClick={live.refresh}
-                    className="h-11 shrink-0 rounded-md bg-action-secondary px-4 text-sm font-semibold text-action-secondary-fg hover:bg-action-secondary-pressed"
-                  >
-                    다시 시도
-                  </button>
+                  <RetryButton onRetry={live.refresh} />
                 </div>
               )}
               {(notifyDenied || alerts.denied) && (
@@ -233,7 +228,7 @@ function LiveRoutesScreen({
                   <NotifyUnavailableHint />
                 </div>
               )}
-              <ListHeader secondsAgo={live.secondsAgo} onRefresh={live.refresh} note={realtimeFailed ? null : LIST_NOTE} />
+              <ListHeader fetchedAtMs={live.fetchedAtMs} onRefresh={live.refresh} note={realtimeFailed ? null : LIST_NOTE} />
               <ul className={LIST}>
                 {visible.map((route, i) => (
                   <li key={route.id}>
