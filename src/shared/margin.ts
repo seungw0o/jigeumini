@@ -4,7 +4,7 @@ import { DEPARTURE_MARGIN_MIN } from "./departure";
 const MARGIN_MIN_GATE_N = 100;
 const MARGIN_BUCKET_MIN_N = 30;
 const MARGIN_CLAMP_MIN = 1;
-const MARGIN_CLAMP_MAX = 7;
+const MARGIN_CLAMP_MAX = 5;
 
 const LEAD_BUCKETS: LeadBucketMin[] = [3, 5, 10];
 

@@ -30,6 +30,7 @@ export function RouteSearchBar({
   onBack,
   currentPosition = null,
   recent,
+  onRemoveRecent,
   compact = false,
 }: {
   origin: Place | null;
@@ -40,6 +41,7 @@ export function RouteSearchBar({
   /** "현재 위치" 옵션의 좌표. null이면 옵션을 숨긴다 */
   currentPosition?: LatLng | null;
   recent: Place[];
+  onRemoveRecent?: (place: Place) => void;
   compact?: boolean;
 }) {
   const baseId = useId();
@@ -175,6 +177,20 @@ export function RouteSearchBar({
           <span className="shrink-0 text-xs text-fg-muted tabular">
             {formatDistance(o.place.distanceM)}
           </span>
+        )}
+        {o.kind === "recent" && onRemoveRecent && (
+          <button
+            type="button"
+            aria-label={`${o.place.name} 최근 검색에서 삭제`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveIndex(-1);
+              onRemoveRecent(o.place);
+            }}
+            className="-mr-2 flex size-9 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-surface hover:text-fg"
+          >
+            <CloseIcon size={16} />
+          </button>
         )}
       </div>
     );

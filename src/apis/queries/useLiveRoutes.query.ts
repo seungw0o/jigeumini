@@ -19,7 +19,8 @@ interface LiveRoutesResult {
   baseTime: string;
   /** 도착 정보를 받은 뒤 지난 초 */
   secondsAgo: number;
-  refresh: () => void;
+  /** 도착 정보를 다시 받고, 끝나면 풀리는 Promise */
+  refresh: () => Promise<unknown>;
   isRefreshing: boolean;
 }
 
@@ -81,8 +82,8 @@ export function useLiveRoutes(
     baseTime: kstClock(nowMs),
     secondsAgo: dataUpdatedAt ? Math.max(0, Math.floor((nowMs - dataUpdatedAt) / 1000)) : 0,
     refresh: () => {
-      void refetchArrivals();
       if (planFailed) void refetchPlan();
+      return refetchArrivals();
     },
     isRefreshing: arrivalsQuery.isFetching || planQuery.isFetching,
   };
