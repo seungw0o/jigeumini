@@ -4,7 +4,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
   type ReactNode,
 } from "react";
 import { flushSync } from "react-dom";
@@ -348,7 +347,7 @@ export function HomeScreen() {
   const sheetKey = selectedPlace ? `place-${selectedPlace.id}-${placeOpenCount}` : locationState ? "location" : "idle";
 
   return (
-    <div style={{ "--controls-top": routeMode ? "8.5rem" : "7.25rem" } as CSSProperties}>
+    <div>
       <MapLayout
         map={
           <MapView

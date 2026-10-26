@@ -14,7 +14,7 @@ const UNAVAILABLE_HINT = "지금은 출발 알림을 보낼 수 없어요";
 const DESKTOP_HINT = "알림은 이 컴퓨터로 와요";
 const HINT = "truncate text-xs text-fg-muted";
 
-type Variant = "block" | "primary" | "compact";
+type Variant = "block" | "primary";
 
 const LABEL: Record<NotifyState, string> = {
   idle: "출발 알림 받기",
@@ -38,18 +38,12 @@ const TONE: Record<Variant, Record<NotifyState, string>> = {
     denied: "h-control rounded-md bg-surface-muted px-5 text-fg-muted",
     unavailable: "h-control rounded-md bg-surface-muted px-5 text-fg-muted",
   },
-  compact: {
-    idle: "h-8 rounded-full px-3 text-fg-secondary hover:bg-action-secondary",
-    on: "h-8 rounded-full bg-brand-soft px-3 text-brand-ink",
-    denied: "h-8 rounded-full px-3 text-fg-muted",
-    unavailable: "h-8 rounded-full px-3 text-fg-muted",
-  },
 };
 
 export function NotifyButton({
   state,
   onChange,
-  variant = "compact",
+  variant = "block",
 }: {
   state: NotifyState;
   onChange: (next: NotifyState) => void;
@@ -67,11 +61,9 @@ export function NotifyButton({
         disabled={state === "unavailable"}
         aria-pressed={state === "on"}
         aria-describedby={hint ? hintId : undefined}
-        className={`relative inline-flex shrink-0 items-center justify-center gap-1.5 text-sm font-semibold whitespace-nowrap ${
-          variant === "compact" ? "before:absolute before:-inset-1.5" : ""
-        } ${TONE[variant][state]}`}
+        className={`inline-flex shrink-0 items-center justify-center gap-1.5 text-sm font-semibold whitespace-nowrap ${TONE[variant][state]}`}
       >
-        <Icon size={variant === "compact" ? 15 : 17} className="shrink-0" />
+        <Icon size={17} className="shrink-0" />
         {LABEL[state]}
       </button>
       {hint && (
