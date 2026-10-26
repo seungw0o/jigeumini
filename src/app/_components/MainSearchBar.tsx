@@ -110,7 +110,7 @@ export function MainSearchBar({
             aria-activedescendant={expanded && activeIndex >= 0 ? optionId(activeIndex) : undefined}
             autoComplete="off"
             enterKeyHint="search"
-            placeholder="정류장, 장소 검색"
+            placeholder="장소 검색"
             value={value}
             onFocus={() => {
               setOpen(true);

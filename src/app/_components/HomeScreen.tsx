@@ -19,6 +19,7 @@ import { RouteSearchBar } from "@/components/RouteSearchBar";
 import { LocationDeniedState, OutsideServiceAreaState } from "@/components/StateViews";
 import { useFavorites } from "@/apis/queries/useFavorites.query";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import { useRecentRoutes } from "@/hooks/useRecentRoutes";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
 import { placeToRouteEnd, routePairQuery } from "@/utils/routeQuery";
 import type { LatLng, Place } from "@/utils/types";
@@ -91,6 +92,18 @@ export function HomeScreen() {
   // 즐겨찾기는 서버(D1), 최근 검색은 localStorage에 유지
   const { favorites, isFavorite, toggleFavorite } = useFavorites();
   const { recent, addRecent, removeRecent, clearRecent } = useRecentSearches();
+  const { recentRoutes, removeRecentRoute, clearRecentRoutes } = useRecentRoutes();
+  const recentRouteItems = useMemo<Place[]>(
+    () =>
+      recentRoutes.map((r) => ({
+        id: r.id,
+        name: `${r.origin.name} → ${r.destination.name}`,
+        address: "",
+        category: "",
+        position: r.destination.position,
+      })),
+    [recentRoutes],
+  );
   const [mapKey, setMapKey] = useState(0);
   const headerRef = useRef<HTMLDivElement>(null);
 
@@ -233,10 +246,27 @@ export function HomeScreen() {
     );
   } else if (view === "recentRoutes") {
     sheetContent = (
-      <SheetSection title="최근 경로">
+      <SheetSection
+        title="최근 경로"
+        action={
+          recentRoutes.length > 0 && (
+            <button
+              type="button"
+              onClick={clearRecentRoutes}
+              className="-mr-3 h-11 rounded-md px-3 text-xs font-semibold text-fg-secondary hover:bg-surface-muted hover:text-fg"
+            >
+              전체 삭제
+            </button>
+          )
+        }
+      >
         <PlaceList
-          places={[]}
-          onSelect={setSelected}
+          places={recentRouteItems}
+          onSelect={(item) => {
+            const route = recentRoutes.find((r) => r.id === item.id);
+            if (route) router.push(`/routes?${routePairQuery(route)}`);
+          }}
+          onRemove={(item) => removeRecentRoute(item.id)}
           icon="history"
           emptyText="최근에 찾은 경로가 없어요"
         />
