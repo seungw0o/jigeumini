@@ -13,8 +13,8 @@ export interface Place {
   distanceM?: number;
 }
 
-/** 대전 시내버스 유형: 급행 / 간선 / 지선 / 마을 / 외곽 */
-export type BusType = "express" | "trunk" | "branch" | "village" | "outer";
+/** 버스 유형. 대전: 급행 / 간선 / 지선 / 마을 / 외곽, 서울은 간선 / 지선 / 마을에 광역(wide) / 순환(circular)이 더 있다 */
+export type BusType = "express" | "trunk" | "branch" | "village" | "outer" | "wide" | "circular";
 
 export interface BusStop {
   id: string;
@@ -131,6 +131,8 @@ export interface MapPath {
   color: string;
   kind: "walk" | "bus";
   label?: string;
+  /** label 글자 색. 없으면 흰색 */
+  labelColor?: string;
 }
 
 export type MarkerTone = "origin" | "destination" | "stop" | "transfer" | "current" | "place" | "favorite";

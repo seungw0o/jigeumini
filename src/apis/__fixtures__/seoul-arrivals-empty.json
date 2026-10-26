@@ -1,0 +1,18 @@
+{
+ "comMsgHeader": {
+  "returnCode": null,
+  "responseTime": null,
+  "errMsg": null,
+  "successYN": null,
+  "requestMsgID": null,
+  "responseMsgID": null
+ },
+ "msgHeader": {
+  "headerMsg": "결과가 없습니다.",
+  "headerCd": "4",
+  "itemCount": 0
+ },
+ "msgBody": {
+  "itemList": null
+ }
+}

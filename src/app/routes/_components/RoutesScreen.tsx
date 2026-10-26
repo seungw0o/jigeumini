@@ -216,7 +216,7 @@ function LiveRoutesScreen({
             <div className={STATE_CARD}>
               <EmptyState
                 title="경로가 없습니다"
-                message="출발지나 도착지를 바꿔 보세요. 대전 시내버스 경로만 찾을 수 있어요."
+                message="출발지나 도착지를 바꿔 보세요. 대전·서울 시내버스 경로만 찾을 수 있어요."
               />
             </div>
           )}

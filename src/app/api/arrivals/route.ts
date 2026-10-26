@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   const ids = validStopIds((params.get("stops") ?? "").split(","));
   if (ids.length === 0) {
     return Response.json(
-      { error: { code: "BAD_REQUEST", message: "stops must list 7-digit stop ids" } } satisfies LiveErrorResponse,
+      { error: { code: "BAD_REQUEST", message: "stops must list stop ids (7-digit Daejeon or seoul:<5-digit ARS>)" } } satisfies LiveErrorResponse,
       { status: 400, headers: NO_STORE },
     );
   }

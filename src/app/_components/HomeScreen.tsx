@@ -21,13 +21,13 @@ import { useFavorites } from "@/apis/queries/useFavorites.query";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useRecentRoutes } from "@/hooks/useRecentRoutes";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
+import { REGION_CENTERS, regionOf, type Region } from "@/shared/region";
 import { placeToRouteEnd, routePairQuery } from "@/utils/routeQuery";
 import type { LatLng, Place } from "@/utils/types";
 import { BottomTabBar, type TabKey } from "./BottomTabBar";
 import { CategoryChips, type ChipKey } from "./CategoryChips";
 import { MainSearchBar } from "./MainSearchBar";
 
-const DAEJEON_CENTER: LatLng = { lat: 36.3622, lng: 127.3712 };
 
 function currentPlace(position: LatLng): Place {
   return { id: "current", name: "현재 위치", address: "", category: "현재 위치", position };
@@ -37,10 +37,6 @@ const SHEET_SNAPS = [0.2, 0.45, 0.85];
 const TAB_BAR_PX = 56;
 const TAB_BAR_RATIO = 0.07;
 const HEADER_HEIGHT_PX = 104;
-
-function inDaejeon({ lat, lng }: LatLng): boolean {
-  return lat >= 36.18 && lat <= 36.5 && lng >= 127.24 && lng <= 127.56;
-}
 
 type LocationState = "denied" | "outside" | null;
 type SheetView = ChipKey | "alerts" | null;
@@ -76,8 +72,14 @@ export function HomeScreen() {
   const router = useRouter();
   const geo = useGeolocation(true);
   const livePosition = geo.position;
+  // 서비스 지역(대전, 서울) 밖에서 "대전/서울 지도로 이동"을 누르면 그 도시로 지도를 옮기고 안내를 닫는다
+  const [cityFocus, setCityFocus] = useState<LatLng | null>(null);
   const locationState: LocationState =
-    geo.status === "denied" ? "denied" : livePosition && !inDaejeon(livePosition) ? "outside" : null;
+    geo.status === "denied"
+      ? "denied"
+      : livePosition && regionOf(livePosition) === null && !cityFocus
+        ? "outside"
+        : null;
 
   // undefined = 아직 고르지 않음: 위치를 알면 "현재 위치"가 기본 출발지다
   const [originChoice, setOrigin] = useState<Place | null | undefined>(undefined);
@@ -140,7 +142,7 @@ export function HomeScreen() {
 
   const routeFocusPlace =
     [destination, originChoice].find((p) => p && p.id !== "current" && p.id === routeFocus?.id) ?? null;
-  const focus = routeMode ? routeFocusPlace?.position : selectedPlace?.position;
+  const focus = routeMode ? routeFocusPlace?.position : (selectedPlace?.position ?? cityFocus ?? undefined);
 
   function update(next: { origin: Place | null; destination: Place | null }) {
     const picked = [next.origin, next.destination].filter(
@@ -232,7 +234,7 @@ export function HomeScreen() {
       />
     );
   } else if (locationState === "outside") {
-    sheetContent = <OutsideServiceAreaState />;
+    sheetContent = <OutsideServiceAreaState onMoveTo={(region: Region) => setCityFocus(REGION_CENTERS[region])} />;
   } else if (view === "favorites") {
     sheetContent = (
       <SheetSection title="즐겨찾기" count={favorites.length}>
@@ -326,7 +328,7 @@ export function HomeScreen() {
           <MapView
             key={mapKey}
             label="지도"
-            center={livePosition ?? DAEJEON_CENTER}
+            center={livePosition ?? REGION_CENTERS.daejeon}
             markers={markers}
             obscuredTop={HEADER_HEIGHT_PX}
             obscuredBottom={SHEET_SNAPS[initialSnap] + TAB_BAR_RATIO}
@@ -377,7 +379,7 @@ export function HomeScreen() {
                   onSelect={selectFromSearch}
                   onRoute={() => setRouteMode(true)}
                   quietRoute={Boolean(selectedPlace) || locationState !== null}
-                  near={livePosition}
+                  near={cityFocus ?? livePosition}
                   recent={recent}
                 />
                 <div className="mt-1 lg:mt-3">

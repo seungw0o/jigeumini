@@ -2,6 +2,7 @@ import type { PlannedLeg, PlannedRoute, PlannedStop } from "../../../src/apis/li
 import { NOTIFY_BEFORE_MIN } from "./alert-schedule";
 import { authenticate, type VerifyOptions } from "./auth";
 import { json } from "./json";
+import { isStopId } from "../../../src/shared/region";
 
 export const ALERTS_PENDING_LIMIT = 5;
 export const SUBSCRIPTION_MAX_BODY_BYTES = 2048;
@@ -143,8 +144,7 @@ export async function handlePushSubscription(
 }
 
 const ROUTE_ID_RE = /^[A-Za-z0-9_-]{1,32}$/;
-const NODE_ID_RE = /^\d{7}$/;
-const BUS_TYPES = ["express", "trunk", "branch", "village", "outer"];
+const BUS_TYPES = ["express", "trunk", "branch", "village", "outer", "wide", "circular"];
 const MAX_LEGS = 12;
 
 function parseLatLng(value: unknown): { lat: number; lng: number } | null {
@@ -157,7 +157,7 @@ function parseStop(value: unknown): PlannedStop | null {
   const position = parseLatLng(value.position);
   const { nodeId, arsId } = value;
   if (position === null) return null;
-  if (nodeId !== null && !(typeof nodeId === "string" && NODE_ID_RE.test(nodeId))) return null;
+  if (nodeId !== null && !(typeof nodeId === "string" && isStopId(nodeId))) return null;
   if (arsId !== null && !isText(arsId, 16)) return null;
   return { name: value.name, position, nodeId, arsId };
 }

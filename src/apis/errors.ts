@@ -1,6 +1,6 @@
 // API 클라이언트가 던지는 유일한 에러. UI는 code로 상태를 고른다 (server-only가 아니라 클라이언트에서도 import 가능).
 
-export type ApiSource = "daejeon" | "tago" | "kakao";
+export type ApiSource = "daejeon" | "tago" | "kakao" | "seoul";
 
 export type ApiErrorCode =
   /** .env.local에 키가 없음 */

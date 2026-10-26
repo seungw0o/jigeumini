@@ -1,5 +1,6 @@
 // 카카오 대중교통 경로를 우리 RoutePlan 모양으로 바꾸는 순수 함수. 정류장 ID 매칭은 plan.server.ts에서 한다.
 
+import { regionOf } from "@/shared/region";
 import type { BusType, LatLng } from "@/utils/types";
 import { haversineMeters } from "../geo";
 import type { KakaoTransitResult, KakaoTransitRoute, KakaoTransitStep } from "../kakao/types";
@@ -12,6 +13,16 @@ const BUS_TYPES: Record<string, BusType> = {
   급행: "express",
   광역: "outer",
   외곽: "outer",
+};
+
+// 서울 카카오 vehicle type 원문(2026-10-26 실호출: 간선, 직행). 직행(경기 직행좌석)은 광역과 같은 빨간색으로 본다
+const SEOUL_BUS_TYPES: Record<string, BusType> = {
+  간선: "trunk",
+  지선: "branch",
+  마을: "village",
+  순환: "circular",
+  광역: "wide",
+  직행: "wide",
 };
 
 export function toPlannedRoutes(result: KakaoTransitResult, origin: RouteEnd, destination: RouteEnd): PlannedRoute[] {
@@ -106,7 +117,7 @@ function toBusLeg(step: KakaoTransitStep): PlannedBusLeg {
   return {
     kind: "bus",
     routeNos: routeNosOf(step),
-    busType: BUS_TYPES[step.vehicles[0]?.type ?? ""] ?? "trunk",
+    busType: (regionOf(step.path[0]) === "seoul" ? SEOUL_BUS_TYPES : BUS_TYPES)[step.vehicles[0]?.type ?? ""] ?? "trunk",
     seconds: step.seconds,
     distanceM: step.distanceM,
     stopCount: Math.max(0, step.stopNames.length - 1),

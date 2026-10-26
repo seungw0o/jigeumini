@@ -151,6 +151,17 @@ describe("/alerts", () => {
     expect(await res.json()).toEqual({ error: "invalid body" });
   });
 
+  it("POST accepts a Seoul board stop id (seoul:<ARS>)", async () => {
+    const res = await alerts("/alerts", "POST", A, alertBody("l0", { plan: plan("l0", "seoul:02004") }));
+    expect(res.status).toBe(201);
+    expect(((await res.json()) as { alert: { boardNodeId: string } }).alert.boardNodeId).toBe("seoul:02004");
+  });
+
+  it("POST rejects an unknown board stop id format", async () => {
+    const res = await alerts("/alerts", "POST", A, alertBody("l0", { plan: plan("l0", "busan:12345") }));
+    expect(await res.json()).toEqual({ error: "invalid body" });
+  });
+
   it("POST rejects a route whose first stop has no live id", async () => {
     const res = await alerts("/alerts", "POST", A, alertBody("l0", { plan: plan("l0", null) }));
     expect(await res.json()).toEqual({ error: "no live stop" });
