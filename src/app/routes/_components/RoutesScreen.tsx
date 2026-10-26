@@ -215,7 +215,7 @@ function LiveRoutesScreen({
               {realtimeFailed && (
                 <div role="status" className={`${NOTICE} flex items-center gap-3`}>
                   <p className="min-w-0 flex-1 text-sm text-fg-secondary">실시간 정보를 못 받았어요. 이동 시간만 보여 드려요</p>
-                  <RetryButton onRetry={live.refresh} />
+                  <RetryButton onRetry={live.refresh} failMessage="아직 실시간 정보를 받지 못했어요" />
                 </div>
               )}
               {(notifyDenied || alerts.denied) && (

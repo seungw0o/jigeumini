@@ -81,10 +81,8 @@ export function useLiveRoutes(
     routes,
     baseTime: kstClock(nowMs),
     fetchedAtMs: dataUpdatedAt,
-    refresh: () => {
-      if (planFailed) void refetchPlan();
-      return refetchArrivals();
-    },
+    // 경로 검색이 실패한 상태면 도착 정보는 정류장이 없어 못 받는다: 경로부터 다시 받고 그걸 기다린다
+    refresh: () => (planFailed ? refetchPlan() : refetchArrivals()),
     isRefreshing: arrivalsQuery.isFetching || planQuery.isFetching,
   };
 }

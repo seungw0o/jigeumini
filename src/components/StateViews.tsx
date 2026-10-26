@@ -143,7 +143,7 @@ export function ErrorState({
       }
       title={title}
       message={message}
-      actions={onRetry && <RetryButton variant="state" onRetry={onRetry} />}
+      actions={onRetry && <RetryButton variant="state" onRetry={onRetry} failMessage="다시 시도했지만 아직 불러오지 못했어요" />}
     />
   );
 }
@@ -191,7 +191,7 @@ export function LocationDeniedState({
         onSearchInstead ? (
           <StateButton onClick={onSearchInstead}>출발지 검색</StateButton>
         ) : (
-          onRetry && <RetryButton variant="state" onRetry={onRetry} />
+          onRetry && <RetryButton variant="state" onRetry={onRetry} failMessage={null} />
         )
       }
     />
