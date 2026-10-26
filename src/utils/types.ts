@@ -110,7 +110,7 @@ export interface TransitRoute {
   realtime?: RealtimeState;
 }
 
-export type NotifyState = "idle" | "on" | "denied";
+export type NotifyState = "idle" | "on" | "denied" | "unavailable";
 
 /** 경로 목록 정렬 기준 */
 export type RouteSortKey = "arrival" | "walk" | "transfer";

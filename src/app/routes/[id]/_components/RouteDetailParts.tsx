@@ -3,9 +3,9 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { LeaveBadge } from "@/components/LeaveBadge";
 import { MapLayout } from "@/components/MapLayout";
 import { MapView } from "@/components/MapView";
-import { NotifyButton, NotifyInstallHint } from "@/components/NotifyButton";
+import { NotifyButton, NotifyInstallHint, NotifyUnavailableHint } from "@/components/NotifyButton";
 import { StepTimeline } from "@/components/StepTimeline";
-import { RideInsightPlaceholder, TransferPanel } from "@/components/TransferPanel";
+import { TransferPanel } from "@/components/TransferPanel";
 import { totalLabel } from "@/utils/format";
 import { formatShortClock } from "@/utils/ribbon";
 import type { MapMarker, MapPath, NotifyState, TransitRoute } from "@/utils/types";
@@ -64,6 +64,11 @@ export function RouteFooterBar({
             <NotifyInstallHint />
           </div>
         )}
+        {showNotify && notifyState === "unavailable" && (
+          <div className="mt-1">
+            <NotifyUnavailableHint />
+          </div>
+        )}
       </div>
       {showNotify && <NotifyButton variant="primary" state={notifyState} onChange={onNotifyChange} />}
     </div>
@@ -89,10 +94,11 @@ export function RouteDetailSections({
     <>
       <RouteSummary route={route} now={now} secondsAgo={secondsAgo} onRefresh={onRefresh} />
       <StepTimeline route={route} now={now} originName={originName} destinationName={destinationName} />
-      <div className="flex flex-col gap-3 border-t border-divider px-gutter pt-5 pb-8">
-        {route.transferCount > 0 && <TransferPanel route={route} secondsAgo={secondsAgo} onRefresh={onRefresh} />}
-        <RideInsightPlaceholder />
-      </div>
+      {route.transferCount > 0 && (
+        <div className="flex flex-col gap-3 border-t border-divider px-gutter pt-5 pb-8">
+          <TransferPanel route={route} secondsAgo={secondsAgo} onRefresh={onRefresh} />
+        </div>
+      )}
     </>
   );
 }

@@ -6,6 +6,8 @@ export interface PushPayload {
   body: string;
   tag: string;
   url: string;
+  /** 알림을 누르거나 닫으면 서비스 워커가 이 주소로 uid와 token을 보낸다 (alert-ack.ts) */
+  ack?: { url: string; uid: string; token: string };
 }
 
 interface PushResult {

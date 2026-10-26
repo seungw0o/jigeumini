@@ -124,8 +124,8 @@ describe("/alerts", () => {
   it("POST creates a pending alert, strips map paths, and schedules it", async () => {
     const { res, alert } = await createFor(A);
     expect(res.status).toBe(201);
-    expect(alert).toMatchObject({ routeId: "l0", pairQuery: PAIR, routeNo: "318", boardNodeId: "8001318", status: "pending", leaveByAt: null });
-    expect(scheduler.schedule).toHaveBeenCalledWith(alert.id);
+    expect(alert).toMatchObject({ routeId: "l0", pairQuery: PAIR, routeNo: "318", busNos: ["318"], boardNodeId: "8001318", status: "pending", leaveByAt: null });
+    expect(scheduler.schedule).toHaveBeenCalledWith(alert.id, "https://w.test");
     const row = await db.prepare("SELECT uid, walk_before_sec, notify_before_min, plan_json FROM alerts").first<Record<string, string | number>>();
     expect(row).toMatchObject({ uid: A, walk_before_sec: 300, notify_before_min: 2 });
     expect(JSON.parse(row!.plan_json as string).legs[0].path).toEqual([]);

@@ -1,4 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
+import { ackToken } from "./alert-ack";
 import type { PlannedRoute } from "../../../src/apis/live/types";
 import type { MarginsResponse } from "../../../src/apis/margins/types";
 import { decideAlert, notifyAtOf } from "./alert-schedule";
@@ -22,28 +23,35 @@ type PendingRow = {
   created_at: string;
 };
 
-export function alertPayload(alertId: string, routeId: string, pairQuery: string, departure: Departure): PushPayload {
+export function alertPayload(
+  alertId: string,
+  routeId: string,
+  pairQuery: string,
+  departure: Departure,
+  ack?: PushPayload["ack"],
+): PushPayload {
   const when = departure.busInMinutes === null ? `${departure.boardAt} 도착` : `${departure.busInMinutes}분 뒤`;
   return {
     title: "지금 나가세요",
     body: `지금 나가면 ${departure.routeNo}번 탈 수 있어요 · ${departure.boardStopName} ${when}`,
     tag: `alert-${alertId}`,
     url: routeDetailUrl(routeId, pairQuery),
+    ...(ack ? { ack } : {}),
   };
 }
 
 export function alertScheduler(ns: DurableObjectNamespace<AlertMonitor>): AlertScheduler {
   const stub = (id: string) => ns.get(ns.idFromName(id));
   return {
-    schedule: (id) => stub(id).schedule(id),
+    schedule: (id, ackBase) => stub(id).schedule(id, ackBase),
     cancel: (id) => stub(id).cancel(),
   };
 }
 
 /** 출발 알림 하나를 맡는다. 알람마다 도착 정보로 출발 시각을 다시 계산하고, 출발 2분 전에 푸시를 보낸다 */
 export class AlertMonitor extends DurableObject<Env> {
-  async schedule(alertId: string): Promise<void> {
-    await this.ctx.storage.put({ alertId, misses: 0 });
+  async schedule(alertId: string, ackBase: string): Promise<void> {
+    await this.ctx.storage.put({ alertId, misses: 0, ackBase });
     await this.ctx.storage.setAlarm(Date.now());
   }
 
@@ -129,7 +137,14 @@ export class AlertMonitor extends DurableObject<Env> {
     }
 
     if (departure === null) throw new Error("send decision without a departure");
-    const payload = alertPayload(alertId, row.route_id, row.pair_query, departure);
+    // 이 변경 전에 예약된 알림은 ackBase가 없어 확인 없이 보낸다
+    const ackBase = await storage.get<string>("ackBase");
+    const secret = this.env.VAPID_PRIVATE_KEY;
+    const ack =
+      ackBase && secret
+        ? { url: `${ackBase}/alerts/${alertId}/ack`, uid: row.uid, token: await ackToken(secret, alertId, row.uid) }
+        : undefined;
+    const payload = alertPayload(alertId, row.route_id, row.pair_query, departure, ack);
     const result = await sendToUser(this.env.DB, row.uid, payload, vapidKeysOf(this.env));
     console.log("alert push", alertId, JSON.stringify(result));
     await this.finish(alertId, result.sent > 0 ? "sent" : "failed", result.sent > 0 ? null : "push", now, departure.leaveByMs);

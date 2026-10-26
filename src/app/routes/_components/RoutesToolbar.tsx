@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronDownIcon } from "@/assets/icons";
-import { formatShortClock } from "@/utils/ribbon";
 import type { RouteSortKey } from "@/utils/types";
 
 const SORT_OPTIONS: { key: RouteSortKey; label: string }[] = [
@@ -15,20 +14,14 @@ function isSortKey(value: string): value is RouteSortKey {
 }
 
 export function RoutesToolbar({
-  baseTime,
   sort,
   onSortChange,
 }: {
-  baseTime?: string;
   sort: RouteSortKey;
   onSortChange?: (next: RouteSortKey) => void;
 }) {
   return (
-    <div className="flex h-14 items-center gap-1.5 border-b border-divider px-4">
-      <p className="inline-flex h-11 shrink-0 items-center gap-1 px-2.5 text-sm whitespace-nowrap text-fg-secondary">
-        <span className="font-bold text-fg">지금</span>
-        <span className="font-medium tabular">{baseTime ? `${formatShortClock(baseTime)} 기준` : "기준"}</span>
-      </p>
+    <div className="flex h-14 items-center border-b border-divider px-4">
       <label className="relative inline-flex h-11 shrink-0 items-center">
         <span className="sr-only">정렬</span>
         <select

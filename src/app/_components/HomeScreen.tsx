@@ -24,6 +24,7 @@ import { useRecentSearches } from "@/hooks/useRecentSearches";
 import { REGION_CENTERS, regionOf, type Region } from "@/shared/region";
 import { placeToRouteEnd, routePairQuery } from "@/utils/routeQuery";
 import type { LatLng, Place } from "@/utils/types";
+import { AlertsList } from "./AlertsList";
 import { BottomTabBar, type TabKey } from "./BottomTabBar";
 import { CategoryChips, type ChipKey } from "./CategoryChips";
 import { MainSearchBar } from "./MainSearchBar";
@@ -39,7 +40,7 @@ const TAB_BAR_RATIO = 0.07;
 const HEADER_HEIGHT_PX = 104;
 
 type LocationState = "denied" | "outside" | null;
-type SheetView = ChipKey | "alerts" | null;
+type SheetView = ChipKey | null;
 
 function SheetSection({
   title,
@@ -89,6 +90,11 @@ export function HomeScreen() {
   // 길찾기에서 마지막으로 고른 출발지/목적지. 하나만 골랐을 때 지도를 그 장소로 옮긴다
   const [routeFocus, setRouteFocus] = useState<Place | null>(null);
   const [selectedPlace, setSelected] = useState<Place | null>(null);
+  // 카드를 닫아도 마지막 장소 핀은 남겨, 핀을 누르면 카드를 다시 연다
+  const [lastPlace, setLastPlace] = useState<Place | null>(null);
+  // 같은 장소를 다시 열 때도 시트를 펼친 높이로 되돌리려고 열 때마다 올린다
+  const [placeOpenCount, setPlaceOpenCount] = useState(0);
+  const pinnedPlace = selectedPlace ?? lastPlace;
   const [routeMode, setRouteMode] = useState(false);
   const [view, setView] = useState<SheetView>(null);
   // 즐겨찾기는 서버(D1), 최근 검색은 localStorage에 유지
@@ -113,29 +119,34 @@ export function HomeScreen() {
     const list: MapMarker[] = [];
     if (livePosition) list.push({ id: "current", position: livePosition, tone: "current" });
     for (const fav of favorites) {
-      if (fav.id === selectedPlace?.id) continue;
+      if (fav.id === pinnedPlace?.id) continue;
       list.push({ id: `fav-${fav.id}`, position: fav.position, label: fav.name, tone: "favorite" });
     }
-    if (selectedPlace) {
+    if (pinnedPlace) {
       list.push({
-        id: selectedPlace.id,
-        position: selectedPlace.position,
-        label: selectedPlace.name,
+        id: pinnedPlace.id,
+        position: pinnedPlace.position,
+        label: pinnedPlace.name,
         tone: "place",
       });
     }
     return list;
-  }, [livePosition, selectedPlace, favorites]);
+  }, [livePosition, pinnedPlace, favorites]);
 
   // 길찾기 중 고른 출발지(현재 위치 제외)·목적지 핀. originChoice는 state라 렌더마다 새 객체가 아니다
   const markers = useMemo<MapMarker[]>(() => {
     if (!routeMode) return baseMarkers;
     const pins: MapMarker[] = [];
     if (originChoice && originChoice.id !== "current") {
-      pins.push({ id: `origin-${originChoice.id}`, position: originChoice.position, tone: "origin" });
+      pins.push({ id: `origin-${originChoice.id}`, position: originChoice.position, label: originChoice.name, tone: "origin" });
     }
     if (destination) {
-      pins.push({ id: `destination-${destination.id}`, position: destination.position, tone: "destination" });
+      pins.push({
+        id: `destination-${destination.id}`,
+        position: destination.position,
+        label: destination.name,
+        tone: "destination",
+      });
     }
     return [...baseMarkers, ...pins];
   }, [baseMarkers, routeMode, originChoice, destination]);
@@ -168,9 +179,26 @@ export function HomeScreen() {
     }
   }
 
-  function selectFromSearch(place: Place) {
+  function openPlace(place: Place) {
     setSelected(place);
+    setLastPlace(place);
+    setPlaceOpenCount((n) => n + 1);
+  }
+
+  function selectFromSearch(place: Place) {
+    openPlace(place);
     addRecent(place);
+  }
+
+  function openMarker(id: string) {
+    const fav = favorites.find((p) => `fav-${p.id}` === id);
+    const pinned = [
+      fav,
+      pinnedPlace?.id === id ? pinnedPlace : undefined,
+      originChoice && `origin-${originChoice.id}` === id ? originChoice : undefined,
+      destination && `destination-${destination.id}` === id ? destination : undefined,
+    ].find((p) => p !== undefined);
+    if (pinned) openPlace(pinned);
   }
 
   function toggleView(key: Exclude<SheetView, null>) {
@@ -199,7 +227,7 @@ export function HomeScreen() {
     }
   }
 
-  const activeChip: ChipKey | null = view === "alerts" ? null : view;
+  const activeChip: ChipKey | null = view;
   const activeTab: TabKey = routeMode
     ? "route"
     : view === "favorites"
@@ -217,10 +245,12 @@ export function HomeScreen() {
         onToggleFavorite={toggleFavorite}
         onSetOrigin={(p) => {
           setSelected(null);
+          setLastPlace(null);
           update({ origin: p, destination: destination?.id === p.id ? null : destination });
         }}
         onSetDestination={(p) => {
           setSelected(null);
+          setLastPlace(null);
           update({ origin: origin?.id === p.id ? null : origin, destination: p });
         }}
         onClose={() => setSelected(null)}
@@ -240,7 +270,7 @@ export function HomeScreen() {
       <SheetSection title="즐겨찾기" count={favorites.length}>
         <PlaceList
           places={favorites}
-          onSelect={setSelected}
+          onSelect={openPlace}
           icon="star"
           emptyText="장소 카드의 별을 눌러 즐겨찾기에 추가해 보세요"
         />
@@ -274,20 +304,10 @@ export function HomeScreen() {
         />
       </SheetSection>
     );
-  } else if (view === "frequent") {
-    sheetContent = (
-      <SheetSection title="자주 가는 곳">
-        <PlaceList places={[]} onSelect={setSelected} emptyText="자주 가는 곳 기능은 준비 중이에요" />
-      </SheetSection>
-    );
   } else if (view === "alerts") {
     sheetContent = (
-      <SheetSection title="알림">
-        <PlaceList
-          places={[]}
-          onSelect={setSelected}
-          emptyText="켜 둔 출발 알림은 경로 화면에서 확인하고 끌 수 있어요."
-        />
+      <SheetSection title="출발 알림">
+        <AlertsList onOpen={(href) => router.push(href)} />
       </SheetSection>
     );
   } else {
@@ -308,7 +328,7 @@ export function HomeScreen() {
       >
         <PlaceList
           places={recent}
-          onSelect={setSelected}
+          onSelect={openPlace}
           onRemove={(p) => removeRecent(p.id)}
           icon="history"
           emptyText="최근 검색한 장소가 없어요"
@@ -319,7 +339,7 @@ export function HomeScreen() {
 
   const expandedSheet = Boolean(selectedPlace) || locationState !== null;
   const initialSnap = expandedSheet ? 1 : 0;
-  const sheetKey = selectedPlace ? `place-${selectedPlace.id}` : locationState ? "location" : "idle";
+  const sheetKey = selectedPlace ? `place-${selectedPlace.id}-${placeOpenCount}` : locationState ? "location" : "idle";
 
   return (
     <div style={{ "--controls-top": routeMode ? "8.5rem" : "7.25rem" } as CSSProperties}>
@@ -334,10 +354,7 @@ export function HomeScreen() {
             obscuredBottom={SHEET_SNAPS[initialSnap] + TAB_BAR_RATIO}
             selectedId={selectedPlace?.id}
             focus={focus}
-            onMarkerClick={(id) => {
-              const fav = favorites.find((p) => `fav-${p.id}` === id);
-              if (fav) setSelected(fav);
-            }}
+            onMarkerClick={openMarker}
           />
         }
         controls={
@@ -357,6 +374,7 @@ export function HomeScreen() {
                 aria-label="지도 홈으로"
                 onClick={() => {
                   setSelected(null);
+                  setLastPlace(null);
                   selectTab("map");
                 }}
                 className="cursor-pointer rounded-md"

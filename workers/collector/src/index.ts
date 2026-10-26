@@ -1,3 +1,4 @@
+import { ACK_PATH_RE, handleAlertAck } from "./alert-ack";
 import { alertScheduler } from "./alert-monitor";
 import { handleAlerts, handlePushSubscription } from "./alerts";
 import { parseAllowedOrigins, preflightResponse, withCors } from "./cors";
@@ -59,6 +60,10 @@ export default {
 
       if (url.pathname === "/push/subscription") {
         return handlePushSubscription(request, env.DB, parseProjectIds(env.FIREBASE_PROJECT_IDS));
+      }
+
+      if (ACK_PATH_RE.test(url.pathname)) {
+        return handleAlertAck(request, env.DB, alertScheduler(env.ALERT_MONITOR), env.VAPID_PRIVATE_KEY);
       }
 
       if (url.pathname === "/alerts" || url.pathname.startsWith("/alerts/")) {

@@ -110,7 +110,9 @@ function pathMidpoint(points: LatLng[]): LatLng {
   return points[points.length - 1];
 }
 
-const isTappable = (m: MapMarker) => m.tone === "place" || m.tone === "favorite";
+// 현재 위치 점과 정류장 점은 누를 것이 없어 버튼으로 만들지 않는다
+const isTappable = (m: MapMarker) =>
+  m.tone === "place" || m.tone === "favorite" || m.tone === "origin" || m.tone === "destination";
 // 즐겨찾기는 항상 깔려 있어서, 화면 맞춤에 넣으면 열 때마다 지도가 저장한 곳 전부로 축소된다
 const fitPoints = (paths: MapPath[], markers: MapMarker[]) => [
   ...paths.flatMap((p) => p.points),
@@ -255,16 +257,17 @@ function PlaceholderMap({
             const pin = m.tone === "origin" || m.tone === "destination";
             const selected = m.tone === "place" && m.id === selectedId;
             const style = { left: q.x, top: q.y, zIndex: MARKER_Z[m.tone] + (selected ? 10 : 0) };
-            if (isTappable(m)) {
+            if (onMarkerClick && isTappable(m)) {
               return (
                 <button
                   key={m.id}
                   type="button"
-                  disabled={!onMarkerClick}
-                  onClick={() => onMarkerClick?.(m.id)}
+                  onClick={() => onMarkerClick(m.id)}
                   aria-label={placeLabel(m)}
-                  aria-pressed={onMarkerClick ? selected : undefined}
-                  className="pointer-events-auto absolute flex size-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full"
+                  aria-pressed={selected}
+                  className={`pointer-events-auto absolute -translate-x-1/2 ${
+                    pin ? "-translate-y-full" : "flex size-10 -translate-y-1/2 items-center justify-center rounded-full"
+                  }`}
                   style={style}
                 >
                   <span
@@ -409,24 +412,23 @@ function KakaoMap({
     for (const m of markers) {
       const selected = m.tone === "place" && m.id === selectedId;
       const zIndex = MARKER_Z[m.tone] + (selected ? 10 : 0);
-      if (isTappable(m)) {
-        const el = document.createElement(onMarkerClick ? "button" : "span");
-        el.style.cssText =
-          "position:relative;display:flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;border:0;border-radius:9999px;background:none";
+      const pin = m.tone === "origin" || m.tone === "destination";
+      if (onMarkerClick && isTappable(m)) {
+        const el = document.createElement("button");
+        el.style.cssText = pin
+          ? "position:relative;display:block;padding:0;border:0;background:none"
+          : "position:relative;display:flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;border:0;border-radius:9999px;background:none";
         el.innerHTML = markerHtml(m.tone) + (selected && m.label ? pillHtml(m.label) : "");
-        if (onMarkerClick) {
-          el.setAttribute("type", "button");
-          el.setAttribute("aria-label", placeLabel(m));
-          el.setAttribute("aria-pressed", String(selected));
-          el.style.cursor = "pointer";
-          el.addEventListener("click", () => onMarkerClick(m.id));
-        }
-        overlay(m.position, el, { xAnchor: 0.5, yAnchor: 0.5, zIndex, clickable: Boolean(onMarkerClick) });
+        el.setAttribute("type", "button");
+        el.setAttribute("aria-label", placeLabel(m));
+        el.setAttribute("aria-pressed", String(selected));
+        el.style.cursor = "pointer";
+        el.addEventListener("click", () => onMarkerClick(m.id));
+        overlay(m.position, el, { xAnchor: 0.5, yAnchor: pin ? 1 : 0.5, zIndex, clickable: true });
         continue;
       }
       const el = document.createElement("div");
       el.innerHTML = markerHtml(m.tone);
-      const pin = m.tone === "origin" || m.tone === "destination";
       overlay(m.position, el, { xAnchor: 0.5, yAnchor: pin ? 1 : 0.5, zIndex });
     }
 
