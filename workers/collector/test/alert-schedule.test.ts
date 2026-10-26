@@ -96,6 +96,12 @@ describe("decideAlert", () => {
     expect(decideAlert({ ...base, leaveByMs: null, misses: MAX_MISSES })).toEqual({ kind: "fail", reason: "no_bus" });
   });
 
+  it("gives up as api_error only when every miss was an arrivals API failure", () => {
+    expect(decideAlert({ ...base, leaveByMs: null, misses: MAX_MISSES, apiMisses: MAX_MISSES })).toEqual({ kind: "fail", reason: "api_error" });
+    expect(decideAlert({ ...base, leaveByMs: null, misses: MAX_MISSES, apiMisses: MAX_MISSES - 1 })).toEqual({ kind: "fail", reason: "no_bus" });
+    expect(decideAlert({ ...base, leaveByMs: null, misses: MAX_MISSES - 1, apiMisses: MAX_MISSES - 1 })).toEqual({ kind: "wait", atMs: T0 + NEAR_POLL_MS });
+  });
+
   it("fails after the lifetime cap even if a bus is listed", () => {
     expect(decideAlert({ ...base, createdAtMs: T0 - MAX_LIFETIME_MS - 1, leaveByMs: T0 + 30 * MIN })).toEqual({
       kind: "fail",
