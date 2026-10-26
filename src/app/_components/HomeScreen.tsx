@@ -396,6 +396,7 @@ export function HomeScreen() {
                 onBack={() => setRouteMode(false)}
                 currentPosition={livePosition}
                 recent={recent}
+                onRemoveRecent={(p) => removeRecent(p.id)}
               />
             ) : (
               <>
@@ -405,6 +406,7 @@ export function HomeScreen() {
                   quietRoute={Boolean(selectedPlace) || locationState !== null}
                   near={cityFocus ?? livePosition}
                   recent={recent}
+                  onRemoveRecent={(p) => removeRecent(p.id)}
                 />
                 <div className="mt-1 lg:mt-3">
                   <CategoryChips active={activeChip} onToggle={toggleView} />

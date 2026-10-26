@@ -16,7 +16,7 @@ type Ends = { origin: Place | null; destination: Place | null };
 export function RoutesEmptyScreen() {
   const router = useRouter();
   const geo = useGeolocation(true);
-  const { recent, addRecent } = useRecentSearches();
+  const { recent, addRecent, removeRecent } = useRecentSearches();
   const [places, setPlaces] = useState<Ends>({ origin: null, destination: null });
   // RouteSearchBar는 onChange 직후 같은 이벤트에서 onSubmit을 부르므로 최신 값을 따로 들고 있는다
   const latest = useRef(places);
@@ -51,6 +51,7 @@ export function RoutesEmptyScreen() {
               onBack={() => router.push("/")}
               currentPosition={geo.position}
               recent={recent}
+              onRemoveRecent={(p) => removeRecent(p.id)}
             />
           </div>
         }

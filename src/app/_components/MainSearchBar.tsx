@@ -15,6 +15,7 @@ export function MainSearchBar({
   onRoute,
   near = null,
   recent,
+  onRemoveRecent,
   quietRoute = false,
 }: {
   onSelect: (place: Place) => void;
@@ -23,6 +24,7 @@ export function MainSearchBar({
   quietRoute?: boolean;
   near?: LatLng | null;
   recent: Place[];
+  onRemoveRecent?: (place: Place) => void;
 }) {
   const baseId = useId();
   const listboxId = `${baseId}-listbox`;
@@ -185,6 +187,20 @@ export function MainSearchBar({
                   <span className="shrink-0 text-xs text-fg-muted tabular">
                     {formatDistance(place.distanceM)}
                   </span>
+                )}
+                {!query && onRemoveRecent && (
+                  <button
+                    type="button"
+                    aria-label={`${place.name} 최근 검색에서 삭제`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveIndex(-1);
+                      onRemoveRecent(place);
+                    }}
+                    className="-mr-2 flex size-9 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-surface hover:text-fg"
+                  >
+                    <CloseIcon size={16} />
+                  </button>
                 )}
               </div>
             );
