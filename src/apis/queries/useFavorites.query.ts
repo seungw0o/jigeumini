@@ -1,6 +1,7 @@
 import { deleteFavorite, favoritesEnabled, listFavorites, putFavorite } from "@/apis/favorites/client";
 import { useAuth } from "@/components/AuthProvider";
 import { showToast } from "@/components/Toast";
+import { FAVORITES_FULL_MESSAGE, favoriteToggle } from "@/utils/favorites";
 import type { Place } from "@/utils/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -46,7 +47,9 @@ export function useFavorites(): {
       // 목록을 한 번도 못 받았으면 snapshot이 undefined다. setQueryData(undefined)는 무시되므로 빈 목록으로 되돌린다
       queryClient.setQueryData<Place[]>(queryKey, context?.snapshot ?? []);
       console.error("favorite update failed:", error instanceof Error ? error.message : error);
-      showToast(add ? "즐겨찾기를 저장하지 못했어요" : "즐겨찾기에서 지우지 못했어요");
+      // 다른 기기에서 채운 목록이라 서버가 409로 막은 경우
+      const full = add && (error as { status?: number }).status === 409;
+      showToast(full ? FAVORITES_FULL_MESSAGE : add ? "즐겨찾기를 저장하지 못했어요" : "즐겨찾기에서 지우지 못했어요");
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey }),
   });
@@ -64,7 +67,12 @@ export function useFavorites(): {
     isFavorite: (placeId) => favorites.some((p) => p.id === placeId),
     toggleFavorite: (place) => {
       if (!enabled || place.id === "current") return;
-      mutation.mutate({ place, add: !favorites.some((p) => p.id === place.id) });
+      const action = favoriteToggle(favorites, place.id);
+      if (action === "full") {
+        showToast(FAVORITES_FULL_MESSAGE);
+        return;
+      }
+      mutation.mutate({ place, add: action === "add" });
     },
     status,
   };

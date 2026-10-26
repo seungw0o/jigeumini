@@ -18,6 +18,7 @@ import { PlaceSummary } from "@/components/PlaceSummary";
 import { RouteSearchBar } from "@/components/RouteSearchBar";
 import { LocationDeniedState, OutsideServiceAreaState } from "@/components/StateViews";
 import { useFavorites } from "@/apis/queries/useFavorites.query";
+import { FAVORITES_LIMIT } from "@/utils/favorites";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useRecentRoutes } from "@/hooks/useRecentRoutes";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
@@ -45,11 +46,13 @@ type SheetView = ChipKey | null;
 function SheetSection({
   title,
   count,
+  limit,
   action,
   children,
 }: {
   title: string;
   count?: number;
+  limit?: number;
   action?: ReactNode;
   children: ReactNode;
 }) {
@@ -59,7 +62,10 @@ function SheetSection({
         <h2 className="text-md font-bold text-fg">
           {title}
           {count !== undefined && (
-            <span className="ml-1.5 font-semibold text-fg-muted tabular">{count}</span>
+            <span className="ml-1.5 font-semibold text-fg-muted tabular">
+              {count}
+              {limit !== undefined && `/${limit}`}
+            </span>
           )}
         </h2>
         {action}
@@ -267,7 +273,7 @@ export function HomeScreen() {
     sheetContent = <OutsideServiceAreaState onMoveTo={(region: Region) => setCityFocus(REGION_CENTERS[region])} />;
   } else if (view === "favorites") {
     sheetContent = (
-      <SheetSection title="즐겨찾기" count={favorites.length}>
+      <SheetSection title="즐겨찾기" count={favorites.length} limit={FAVORITES_LIMIT}>
         <PlaceList
           places={favorites}
           onSelect={openPlace}
