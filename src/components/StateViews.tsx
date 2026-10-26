@@ -197,7 +197,7 @@ export function LocationDeniedState({
   );
 }
 
-export function OutsideServiceAreaState({ onMoveToDaejeon }: { onMoveToDaejeon?: () => void }) {
+export function OutsideServiceAreaState({ onMoveTo }: { onMoveTo?: (region: "daejeon" | "seoul") => void }) {
   return (
     <MessageState
       icon={
@@ -205,9 +205,18 @@ export function OutsideServiceAreaState({ onMoveToDaejeon }: { onMoveToDaejeon?:
           <MapOffIcon size={26} />
         </IconWell>
       }
-      title="대전에서만 쓸 수 있어요"
-      message="지금 위치는 서비스 지역 밖이에요. 대전 안의 출발지와 도착지를 검색해 주세요."
-      actions={onMoveToDaejeon && <StateButton onClick={onMoveToDaejeon}>대전 지도로 이동</StateButton>}
+      title="대전·서울에서 쓸 수 있어요"
+      message="지금 위치는 서비스 지역 밖이에요. 대전이나 서울 안의 출발지와 도착지를 검색해 주세요."
+      actions={
+        onMoveTo && (
+          <div className="flex flex-wrap justify-center gap-2">
+            <StateButton onClick={() => onMoveTo("daejeon")}>대전 지도로 이동</StateButton>
+            <StateButton variant="secondary" onClick={() => onMoveTo("seoul")}>
+              서울 지도로 이동
+            </StateButton>
+          </div>
+        )
+      }
     />
   );
 }

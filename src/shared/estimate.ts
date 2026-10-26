@@ -15,6 +15,7 @@ import type { MarginsResponse } from "../apis/margins/types";
 import { DEPARTURE_MARGIN_MIN } from "./departure";
 import { pickMarginMinutes } from "./margin";
 import { toClock, toMinutes } from "./clock";
+import { routeNoKey, stopRegionOf } from "./region";
 import type { BusArrival, BusType, Leg, LegLiveIssue, RealtimeState, TransitRoute } from "../utils/types";
 
 export interface LiveClock {
@@ -26,7 +27,7 @@ export interface LiveClock {
 const MIN_MS = 60_000;
 const DAY_MS = 24 * 60 * MIN_MS;
 const KST_OFFSET_MS = 9 * 60 * MIN_MS;
-const BUS_TYPES: readonly string[] = ["express", "trunk", "branch", "village", "outer"];
+const BUS_TYPES: readonly string[] = ["express", "trunk", "branch", "village", "outer", "wide", "circular"];
 
 interface Candidate {
   arrival: DaejeonArrival;
@@ -40,8 +41,6 @@ type Candidates = Candidate[] | null;
 export function kstClock(ms: number): string {
   return toClock(Math.floor((ms + KST_OFFSET_MS) / MIN_MS));
 }
-
-const stripSpaces = (s: string) => s.replace(/\s/g, "");
 
 // 차고지 출발 예정 "HH:MM"을 fetchedAt에 가장 가까운 날의 시각으로
 function depotMs(hhmm: string, fetchedAtMs: number): number {
@@ -60,11 +59,15 @@ function arrivalMs(arrival: DaejeonArrival, fetchedAtMs: number): number | null 
 }
 
 function candidatesOf(leg: PlannedBusLeg, arrivals: Record<string, StopArrivals>, fetchedAtMs: number): Candidates {
-  const entry = leg.board.nodeId === null ? undefined : arrivals[leg.board.nodeId];
+  const stopId = leg.board.nodeId;
+  const entry = stopId === null ? undefined : arrivals[stopId];
   if (!entry?.ok) return null;
-  const routeNos = new Set(leg.routeNos.map(stripSpaces));
-  return entry.arrivals
-    .filter((a) => routeNos.has(stripSpaces(a.routeNo)))
+  const routeNos = new Set(leg.routeNos.map((no) => routeNoKey(no, stopId)));
+  const served = entry.arrivals.filter((a) => routeNos.has(routeNoKey(a.routeNo, stopId)));
+  // 서울 도착 정보는 정류장에 서는 노선마다 한 줄씩(운행종료 포함) 온다. 노선이 아예 없으면 서울 API가 모르는 버스(경기 등)라
+  // "다음 차 없음"이 아니라 실시간 정보 없음으로 본다
+  if (served.length === 0 && stopId !== null && stopRegionOf(stopId) === "seoul") return null;
+  return served
     .flatMap((arrival) => {
       const atMs = arrivalMs(arrival, fetchedAtMs);
       return atMs === null ? [] : [{ arrival, atMs }];

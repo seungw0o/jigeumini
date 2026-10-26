@@ -47,8 +47,8 @@ function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 }
 
-function bubbleHtml(label: string, color: string): string {
-  return `<div style="padding-bottom:6px;filter:var(--elevation-marker)"><div style="display:flex;align-items:center;height:22px;padding:0 6px;border:2px solid var(--color-surface);border-radius:var(--radius-sm);background:${color};color:var(--color-fg-inverse);font:700 var(--text-xs)/1 ${FONT};white-space:nowrap">${escapeHtml(
+function bubbleHtml(label: string, color: string, fg = "var(--color-fg-inverse)"): string {
+  return `<div style="padding-bottom:6px;filter:var(--elevation-marker)"><div style="display:flex;align-items:center;height:22px;padding:0 6px;border:2px solid var(--color-surface);border-radius:var(--radius-sm);background:${color};color:${fg};font:700 var(--text-xs)/1 ${FONT};white-space:nowrap">${escapeHtml(
     label,
   )}</div></div>`;
 }
@@ -245,7 +245,7 @@ function PlaceholderMap({
                 key={`l${i}`}
                 className="absolute -translate-y-full"
                 style={{ left: q.x, top: q.y, zIndex: 2 }}
-                dangerouslySetInnerHTML={{ __html: bubbleHtml(p.label, p.color) }}
+                dangerouslySetInnerHTML={{ __html: bubbleHtml(p.label, p.color, p.labelColor) }}
               />
             );
           })}
@@ -401,7 +401,7 @@ function KakaoMap({
     for (const p of buses) {
       if (!p.label) continue;
       const el = document.createElement("div");
-      el.innerHTML = bubbleHtml(p.label, cssVar(p.color));
+      el.innerHTML = bubbleHtml(p.label, cssVar(p.color), p.labelColor && cssVar(p.labelColor));
       overlay(pathMidpoint(p.points), el, { xAnchor: 0, yAnchor: 1, zIndex: 2 });
     }
 

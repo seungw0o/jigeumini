@@ -4,6 +4,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { PushSubscriptionSync } from "@/components/PushSubscriptionSync";
 import { QueryProvider } from "@/components/QueryProvider";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { Toaster } from "@/components/Toast";
 import "./globals.css";
 
 const pretendard = localFont({
@@ -14,10 +15,27 @@ const pretendard = localFont({
   preload: false,
 });
 
+const TITLE = "지금이니? 버스 길찾기";
+const DESCRIPTION = "기다림까지 더한 도착 예상 시간과, 언제까지 나서면 되는지 알려주는 버스 길찾기";
+
 export const metadata: Metadata = {
-  title: "지금이니? 대전 버스",
-  description: "기다림까지 더한 도착 예상 시간과, 언제까지 나서면 되는지 알려주는 대전 버스 길찾기",
+  metadataBase: new URL("https://jigeumini.vercel.app"),
+  title: TITLE,
+  description: DESCRIPTION,
   applicationName: "지금이니?",
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    siteName: "지금이니?",
+    url: "/",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
   appleWebApp: {
     capable: true,
     title: "지금이니?",
@@ -61,6 +79,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <PushSubscriptionSync />
         </AuthProvider>
         <ServiceWorkerRegister />
+        <Toaster />
       </body>
     </html>
   );

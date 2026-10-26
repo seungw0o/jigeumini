@@ -1,7 +1,7 @@
 import type { LatLng } from "../../utils/types";
 
-/** 대전 ROUTE_TP 1 급행 2 간선 3 지선 4 외곽 5 마을 6 첨단. UI의 BusType에는 첨단이 없어서 따로 둔다 */
-export type BusRouteType = "express" | "trunk" | "branch" | "outer" | "village" | "advanced" | "unknown";
+/** 대전 ROUTE_TP 1 급행 2 간선 3 지선 4 외곽 5 마을 6 첨단, 서울은 광역(wide)과 순환(circular)이 더 있다. UI의 BusType에는 첨단이 없어서 따로 둔다 */
+export type BusRouteType = "express" | "trunk" | "branch" | "outer" | "village" | "wide" | "circular" | "advanced" | "unknown";
 
 /** MSG_TP 01 도착, 02 출발, 03 N분 후 도착, 04 교차로 통과, 06 진입 중 */
 export type ApproachPhase = "arrived" | "departed" | "minutesAway" | "passingIntersection" | "entering";

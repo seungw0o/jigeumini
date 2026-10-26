@@ -16,6 +16,8 @@ import {
   type Alert,
 } from "@/apis/push/client";
 import { useAuth } from "@/components/AuthProvider";
+import { showToast } from "@/components/Toast";
+import { alertErrorMessage } from "@/utils/alertError";
 import type { NotifyState } from "@/utils/types";
 
 /**
@@ -114,6 +116,8 @@ export function useDepartureAlerts(pairQuery: string, plan: RoutePlan | undefine
     (next === "on" ? turnOn(routeId) : turnOff(routeId))
       .catch((error: unknown) => {
         console.error("departure alert failed:", error instanceof Error ? error.message : error);
+        // 권한 거부는 던지지 않고 "차단됨" 상태로 보여 주므로, 여기는 켜기 실패만 알린다
+        if (next === "on") showToast(alertErrorMessage(error));
       })
       .finally(() => {
         busy.current.delete(routeId);

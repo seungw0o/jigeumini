@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLiveRoutes } from "@/apis/queries/useLiveRoutes.query";
 import type { RouteEnd } from "@/apis/live/types";
@@ -9,6 +9,7 @@ import { NotifyDeniedHint } from "@/components/NotifyButton";
 import { RouteCard } from "@/components/RouteCard";
 import { RouteSearchBar } from "@/components/RouteSearchBar";
 import { useDepartureAlerts } from "@/hooks/useDepartureAlerts";
+import { useRecentRoutes } from "@/hooks/useRecentRoutes";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
 import { EmptyState, ErrorState, RouteListSkeleton } from "@/components/StateViews";
 import { isLiveTimed } from "@/utils/format";
@@ -70,9 +71,18 @@ const LIST = "flex flex-col gap-3 px-4";
 
 export function RoutesScreen() {
   const params = useSearchParams();
-  const pair = parseRoutePair(params) ?? DEFAULT_ROUTE_PAIR;
+  const parsed = parseRoutePair(params);
+  const pair = parsed ?? DEFAULT_ROUTE_PAIR;
   const pairQuery = routePairQuery(pair);
-  return <LiveRoutesScreen key={pairQuery} pair={pair} pairQuery={pairQuery} fail={readFailFlag(params)} />;
+  return (
+    <LiveRoutesScreen
+      key={pairQuery}
+      pair={pair}
+      pairQuery={pairQuery}
+      fail={readFailFlag(params)}
+      recordRecent={parsed !== null}
+    />
+  );
 }
 
 type Ends = { origin: Place; destination: Place };
@@ -98,7 +108,17 @@ function mapKeyOf(route: TransitRoute): string {
   return `${route.id}|${route.legs.map((l) => (l.kind === "bus" ? `${l.busType}:${l.routeNo}` : "w")).join(",")}`;
 }
 
-function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuery: string; fail: FailFlag | null }) {
+function LiveRoutesScreen({
+  pair,
+  pairQuery,
+  fail,
+  recordRecent,
+}: {
+  pair: RoutePair;
+  pairQuery: string;
+  fail: FailFlag | null;
+  recordRecent: boolean;
+}) {
   const router = useRouter();
   const params = useSearchParams();
   const notifyDenied = params.get("notify") === "denied";
@@ -106,6 +126,14 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
   const live = useLiveRoutes(pair, { fail });
   const { recent, addRecent } = useRecentSearches();
   const alerts = useDepartureAlerts(pairQuery, live.plan);
+  const { saveRecentRoute } = useRecentRoutes();
+  // pair는 부모 렌더마다 새 객체라, 이 화면(key=pairQuery)이 처음 받은 값으로 한 번만 기록한다
+  const [openedPair] = useState(pair);
+
+  // 출발/도착을 골라 연 경로만 최근 경로에 남긴다 (쿼리 없이 연 기본 구간은 제외)
+  useEffect(() => {
+    if (recordRecent) saveRecentRoute(openedPair);
+  }, [recordRecent, openedPair, saveRecentRoute]);
 
   const [ends] = useState<Ends>(() => ({
     origin: endPlace(pair.origin, "live-origin"),
@@ -188,7 +216,7 @@ function LiveRoutesScreen({ pair, pairQuery, fail }: { pair: RoutePair; pairQuer
             <div className={STATE_CARD}>
               <EmptyState
                 title="경로가 없습니다"
-                message="출발지나 도착지를 바꿔 보세요. 대전 시내버스 경로만 찾을 수 있어요."
+                message="출발지나 도착지를 바꿔 보세요. 대전·서울 시내버스 경로만 찾을 수 있어요."
               />
             </div>
           )}

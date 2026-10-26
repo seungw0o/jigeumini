@@ -1,22 +1,29 @@
 import "server-only";
 
+import { isStopId, seoulArsIdOf } from "@/shared/region";
 import { getArrivalsByStopId } from "../daejeon/daejeon.server";
+import type { DaejeonArrival } from "../daejeon/types";
 import { isApiError } from "../errors";
+import { getSeoulArrivals } from "../seoul/seoul.server";
 import type { ArrivalsResponse, StopArrivals } from "./types";
 
-const NODE_ID = /^\d{7}$/;
 const MAX_STOPS = 20;
 
-/** 대전 BUS_NODE_ID(7자리)만 남기고 중복 제거, 최대 20개 */
-export function validStopIds(nodeIds: string[]): string[] {
-  return [...new Set(nodeIds.map((id) => id.trim()).filter((id) => NODE_ID.test(id)))].slice(0, MAX_STOPS);
+/** 정류장 ID(대전 BUS_NODE_ID 7자리, 서울 "seoul:" + ARS 5자리)만 남기고 중복 제거, 최대 20개 */
+export function validStopIds(stopIds: string[]): string[] {
+  return [...new Set(stopIds.map((id) => id.trim()).filter(isStopId))].slice(0, MAX_STOPS);
+}
+
+function arrivalsOf(stopId: string): Promise<DaejeonArrival[]> {
+  const arsId = seoulArsIdOf(stopId);
+  return arsId === null ? getArrivalsByStopId(stopId, { timeoutMs: 4000 }) : getSeoulArrivals(arsId);
 }
 
 export async function getArrivalsForStops(
-  nodeIds: string[],
+  stopIds: string[],
   options: { forceFail?: boolean } = {},
 ): Promise<ArrivalsResponse> {
-  const ids = validStopIds(nodeIds);
+  const ids = validStopIds(stopIds);
   const fetchedAt = new Date().toISOString();
 
   if (options.forceFail) {
@@ -24,17 +31,18 @@ export async function getArrivalsForStops(
     return { fetchedAt, stops: Object.fromEntries(ids.map((id) => [id, failed])) };
   }
 
-  const settled = await Promise.allSettled(ids.map((id) => getArrivalsByStopId(id, { timeoutMs: 4000 })));
+  const settled = await Promise.allSettled(ids.map(arrivalsOf));
   const stops: Record<string, StopArrivals> = {};
   settled.forEach((outcome, i) => {
+    const source = seoulArsIdOf(ids[i]) === null ? "daejeon" : "seoul";
     stops[ids[i]] =
       outcome.status === "fulfilled"
         ? { ok: true, arrivals: outcome.value }
         : {
             ok: false,
             error: isApiError(outcome.reason)
-              ? { code: outcome.reason.code, message: `daejeon arrivals failed (${outcome.reason.code})` }
-              : { code: "NETWORK", message: "daejeon arrivals failed" },
+              ? { code: outcome.reason.code, message: `${source} arrivals failed (${outcome.reason.code})` }
+              : { code: "NETWORK", message: `${source} arrivals failed` },
           };
   });
   return { fetchedAt, stops };

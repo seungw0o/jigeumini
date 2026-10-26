@@ -25,10 +25,10 @@ export function BusNumber({
   const meta = BUS_TYPE_META[busType];
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-sm font-bold text-fg-inverse tabular ${
+      className={`inline-flex shrink-0 items-center justify-center rounded-sm font-bold tabular ${
         size === "sm" ? "h-5 min-w-5 px-1.5 text-xs" : "h-5.5 min-w-8 px-1.5 text-xs"
       }`}
-      style={{ backgroundColor: meta.color }}
+      style={{ backgroundColor: meta.color, color: meta.fg ?? "var(--color-fg-inverse)" }}
     >
       <span className="sr-only">{meta.label} </span>
       {routeNo}

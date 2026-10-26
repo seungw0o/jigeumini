@@ -17,6 +17,12 @@ body {
 }
 
 @layer base {
+  /* Tailwind v4는 버튼 커서를 기본 화살표로 되돌린다. 눌리는 요소는 손가락 커서로 */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-focus-ring);
     outline-offset: 2px;
