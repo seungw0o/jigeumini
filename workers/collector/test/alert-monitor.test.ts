@@ -38,6 +38,7 @@ let db: D1Database;
 let pushCalls: number;
 let pushStatus: number;
 let arrivalsXml: string;
+let arrivalsStatus: number;
 
 async function p256() {
   const pair = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
@@ -55,6 +56,7 @@ beforeEach(async () => {
   pushCalls = 0;
   pushStatus = 201;
   arrivalsXml = serviceResult();
+  arrivalsStatus = 200;
   vi.spyOn(console, "log").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
   vi.stubGlobal(
@@ -65,7 +67,7 @@ beforeEach(async () => {
         pushCalls += 1;
         return new Response(null, { status: pushStatus });
       }
-      return new Response(arrivalsXml, { status: 200 });
+      return new Response(arrivalsXml, { status: arrivalsStatus });
     }),
   );
   await db
@@ -152,6 +154,32 @@ describe("AlertMonitor failure push", () => {
     expect(pushCalls).toBe(1);
   });
 
+  it("fails as api_error when every miss was an arrivals API failure", async () => {
+    arrivalsStatus = 500;
+    await insertAlert(Date.now());
+    await monitor(fakeStorage({ alertId: ALERT_ID, misses: MAX_MISSES - 1, apiMisses: MAX_MISSES - 1 })).alarm();
+    expect(await alertRow()).toEqual({ status: "failed", fail_reason: "api_error" });
+    expect(pushCalls).toBe(1);
+  });
+
+  it("stays no_bus when at least one miss had working arrivals", async () => {
+    arrivalsStatus = 500;
+    await insertAlert(Date.now());
+    await monitor(fakeStorage({ alertId: ALERT_ID, misses: MAX_MISSES - 1, apiMisses: MAX_MISSES - 2 })).alarm();
+    expect(await alertRow()).toEqual({ status: "failed", fail_reason: "no_bus" });
+    expect(pushCalls).toBe(1);
+  });
+
+  it("counts arrivals API failures across wakes", async () => {
+    arrivalsStatus = 500;
+    await insertAlert(Date.now());
+    const storage = fakeStorage({ alertId: ALERT_ID, misses: 0 });
+    for (let i = 0; i < MAX_MISSES - 1; i++) await monitor(storage).alarm();
+    expect(await storage.get("apiMisses")).toBe(MAX_MISSES - 1);
+    await monitor(storage).alarm();
+    expect(await alertRow()).toEqual({ status: "failed", fail_reason: "api_error" });
+  });
+
   it("keeps the original reason when the failure push fails", async () => {
     pushStatus = 500;
     await insertAlert(Date.now());
@@ -171,6 +199,9 @@ describe("failurePayload", () => {
     });
     expect(failurePayload("a1", "l0", PAIR, "318", "expired").body).toBe(
       "알림을 켠 지 3시간이 지나 318번 출발 알림을 끝냈어요. 필요하면 다시 켜 주세요.",
+    );
+    expect(failurePayload("a1", "l0", PAIR, "318", "api_error").body).toBe(
+      "실시간 도착 정보를 받지 못해 318번 출발 알림을 끝냈어요. 잠시 후 다시 켜 주세요.",
     );
   });
 });

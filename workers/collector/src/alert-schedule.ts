@@ -17,7 +17,7 @@ export const MAX_MISSES = 5;
 type AlertDecision =
   | { kind: "send" }
   | { kind: "wait"; atMs: number }
-  | { kind: "fail"; reason: "expired" | "no_bus" };
+  | { kind: "fail"; reason: "expired" | "no_bus" | "api_error" };
 
 interface DecisionInput {
   nowMs: number;
@@ -26,14 +26,17 @@ interface DecisionInput {
   leaveByMs: number | null;
   /** 이번 계산까지 포함한 연속 실패 수 */
   misses: number;
+  /** 그중 도착 정보를 받지 못해서(API 실패) 생긴 수. 전부 API 실패면 no_bus 대신 api_error */
+  apiMisses?: number;
 }
 
 export const notifyAtOf = (leaveByMs: number) => leaveByMs - NOTIFY_BEFORE_MIN * MIN_MS;
 
-export function decideAlert({ nowMs, createdAtMs, leaveByMs, misses }: DecisionInput): AlertDecision {
+export function decideAlert({ nowMs, createdAtMs, leaveByMs, misses, apiMisses = 0 }: DecisionInput): AlertDecision {
   if (nowMs - createdAtMs > MAX_LIFETIME_MS) return { kind: "fail", reason: "expired" };
   if (leaveByMs === null) {
-    return misses >= MAX_MISSES ? { kind: "fail", reason: "no_bus" } : { kind: "wait", atMs: nowMs + NEAR_POLL_MS };
+    if (misses < MAX_MISSES) return { kind: "wait", atMs: nowMs + NEAR_POLL_MS };
+    return { kind: "fail", reason: apiMisses >= misses ? "api_error" : "no_bus" };
   }
   const notifyAt = notifyAtOf(leaveByMs);
   if (nowMs >= notifyAt) return { kind: "send" };
