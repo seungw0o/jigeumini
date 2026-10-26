@@ -180,10 +180,11 @@ describe("estimateRoutes", () => {
 
 describe("data-based margin", () => {
   // 도보 420초(7분) -> 리드 5분 버킷, P10 -250초 -> 여유 5분
+  const zeros = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   const marginsOf = (n: number): MarginsResponse => ({
     windowDays: 14,
     generatedAt: "2026-10-22T00:00:00+09:00",
-    stops: [{ nodeId: "S1", n, p10Sec: -250, byLead: [{ leadMin: 5, n, p10Sec: -250 }] }],
+    stops: [{ nodeId: "S1", n, p10Sec: -250, earlyRate: zeros, byLead: [{ leadMin: 5, n, p10Sec: -250, earlyRate: zeros }] }],
   });
   const stops = { S1: ok(eta("318", 1140)) };
 
@@ -217,6 +218,71 @@ describe("data-based margin", () => {
   test("d) estimateRoutes passes margins through", () => {
     const routes = estimateRoutes([direct318], stops, CLOCK, marginsOf(200));
     expect(routes[0]).toMatchObject({ leaveAt: "09:55", marginMinutes: 5 });
+  });
+});
+
+describe("transfer catch chance", () => {
+  // 슬랙 0·30·60·90·120·150·180초에서 탈 확률 0.5·0.6·0.7·0.8·0.9·0.95·0.96
+  const earlyRate = [0.5, 0.4, 0.3, 0.2, 0.1, 0.05, 0.04, 0.03, 0.02, 0.01, 0];
+  const marginsFor = (...nodeIds: string[]): MarginsResponse => ({
+    windowDays: 14,
+    generatedAt: "2026-10-22T00:00:00+09:00",
+    stops: nodeIds.map((nodeId) => ({ nodeId, n: 200, p10Sec: 0, earlyRate, byLead: [] })),
+  });
+  // 318이 10:07 출발, 20분 타고 10:27:00에 S2 도착 (= 지금 + 2340초)
+  const transfer = plan([walk(420), bus(["318"], 1200, "S1"), bus(["604"], 600, "S2"), walk(180)]);
+  const s1 = ok(eta("318", 1140));
+
+  test("a) skips a transfer bus below 80% and takes the next one", () => {
+    const stops = { S1: s1, S2: ok(eta("604", 2370), eta("604", 2520)) };
+    const route = estimateRoute(transfer, stops, CLOCK, marginsFor("S2"));
+    const [first, second] = busLegs(route);
+    expect(first.transferChance).toBeUndefined();
+    expect(second).toMatchObject({ boardAt: "10:30", catchIndex: 1, waitMinutes: 3, transferChance: 96 });
+    expect(route.quickTransferChance).toBe(96);
+  });
+
+  test("b) without data skips a bus within 60 seconds and shows no chance", () => {
+    const stops = { S1: s1, S2: ok(eta("604", 2370), eta("604", 2400), eta("604", 2520)) };
+    const route = estimateRoute(transfer, stops, CLOCK, marginsFor("S1"));
+    const [, second] = busLegs(route);
+    expect(second).toMatchObject({ boardAt: "10:28", catchIndex: 1, waitMinutes: 1 });
+    expect(second.transferChance).toBeUndefined();
+    expect(route.quickTransferChance).toBeUndefined();
+    expect(estimateRoute(transfer, stops, CLOCK)).toEqual(estimateRoute(transfer, stops, CLOCK, undefined));
+  });
+
+  test("b) without data and no bus 60 seconds out, takes the latest one", () => {
+    const stops = { S1: s1, S2: ok(eta("604", 2340), eta("604", 2385), eta("604", 2300)) };
+    const [, second] = busLegs(estimateRoute(transfer, stops, CLOCK));
+    expect(second).toMatchObject({ catchIndex: 2, boardAt: "10:27", waitMinutes: 1 });
+    expect(second.arrivals[2].status).toEqual({ kind: "live", minutes: 39, stopsAway: 3 });
+    expect(second.transferChance).toBeUndefined();
+  });
+
+  test("c) multiplies the chances of two transfers", () => {
+    const twice = plan([walk(420), bus(["318"], 1200, "S1"), bus(["604"], 600, "S2"), bus(["1"], 300, "S3")]);
+    // S2 슬랙 100초(0.833), 10:28:40 승차 + 10분 -> S3 10:38:40, 슬랙 120초(0.9)
+    const stops = { S1: s1, S2: ok(eta("604", 2440)), S3: ok(eta("1", 3160)) };
+    const route = estimateRoute(twice, stops, CLOCK, marginsFor("S2", "S3"));
+    expect(busLegs(route).map((l) => l.transferChance)).toEqual([undefined, 83, 90]);
+    expect(route.quickTransferChance).toBe(75);
+
+    const oneMissing = estimateRoute(twice, stops, CLOCK, marginsFor("S2"));
+    expect(busLegs(oneMissing)[1].transferChance).toBe(83);
+    expect(oneMissing.quickTransferChance).toBeUndefined();
+  });
+
+  test("d) when every candidate is below 80% takes the most likely one", () => {
+    const stops = { S1: s1, S2: ok(eta("604", 2340), eta("604", 2400), eta("604", 2370)) };
+    const route = estimateRoute(transfer, stops, CLOCK, marginsFor("S2"));
+    const [, second] = busLegs(route);
+    expect(second).toMatchObject({ boardAt: "10:28", catchIndex: 2, transferChance: 70 });
+    expect(route.quickTransferChance).toBe(70);
+  });
+
+  test("a direct route has no quick transfer chance", () => {
+    expect(estimateRoute(direct318, { S1: s1 }, CLOCK, marginsFor("S1")).quickTransferChance).toBeUndefined();
   });
 });
 

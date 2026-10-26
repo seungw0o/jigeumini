@@ -3,7 +3,7 @@ import { nearestRank } from "../src/db";
 import type { Env } from "../src/env";
 import worker from "../src/index";
 import { kstIso } from "../src/kst";
-import { foldNewErrors } from "../src/margin-hist";
+import { addToHist, emptyHist, foldNewErrors, histEarlyRate } from "../src/margin-hist";
 import { stopMargins } from "../src/margins";
 import { createTestD1 } from "./d1-sqlite";
 import { T0 } from "./helpers";
@@ -48,7 +48,10 @@ describe("stopMargins", () => {
     ]);
     const res = await stopMargins(db, T0);
     expect(res.windowDays).toBe(29);
-    expect(res.stops).toEqual([{ nodeId: "8001318", n: 2, p10Sec: -500, byLead: [{ leadMin: 3, n: 2, p10Sec: -500 }] }]);
+    const cumulative = [1, 1, 1, 1, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5];
+    expect(res.stops).toEqual([
+      { nodeId: "8001318", n: 2, p10Sec: -500, earlyRate: cumulative, byLead: [{ leadMin: 3, n: 2, p10Sec: -500, earlyRate: cumulative }] },
+    ]);
   });
 
   it("errors not yet folded by the morning cron are not visible", async () => {
@@ -61,7 +64,8 @@ describe("stopMargins", () => {
       .bind(kstIso(T0))
       .run();
     const { stops } = await stopMargins(db, T0);
-    expect(stops).toEqual([{ nodeId: "8001318", n: 1, p10Sec: -40, byLead: [{ leadMin: 5, n: 1, p10Sec: -40 }] }]);
+    const early = [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    expect(stops).toEqual([{ nodeId: "8001318", n: 1, p10Sec: -40, earlyRate: early, byLead: [{ leadMin: 5, n: 1, p10Sec: -40, earlyRate: early }] }]);
   });
 
   it("aggregates per bucket and over all buckets (10 s bins), sorted by lead and node", async () => {
@@ -76,16 +80,18 @@ describe("stopMargins", () => {
     ]);
     const res = await stopMargins(db, T0);
     expect(res.generatedAt).toBe(new Date(T0).toISOString());
+    const none = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     expect(res.stops).toEqual([
-      { nodeId: "8000001", n: 1, p10Sec: 0, byLead: [{ leadMin: 5, n: 1, p10Sec: 0 }] },
+      { nodeId: "8000001", n: 1, p10Sec: 0, earlyRate: none, byLead: [{ leadMin: 5, n: 1, p10Sec: 0, earlyRate: none }] },
       {
         nodeId: "8001318",
         n: 5,
         p10Sec: -60,
+        earlyRate: [0.4, 0.2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         byLead: [
-          { leadMin: 3, n: 1, p10Sec: 0 },
-          { leadMin: 5, n: 2, p10Sec: -20 },
-          { leadMin: 10, n: 2, p10Sec: -60 },
+          { leadMin: 3, n: 1, p10Sec: 0, earlyRate: none },
+          { leadMin: 5, n: 2, p10Sec: -20, earlyRate: [0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+          { leadMin: 10, n: 2, p10Sec: -60, earlyRate: [0.5, 0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
         ],
       },
     ]);
@@ -105,10 +111,11 @@ describe("stopMargins", () => {
         nodeId: "8001318",
         n: 1,
         p10Sec: -20,
+        earlyRate: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         byLead: [
-          { leadMin: 5, n: 1, p10Sec: -20 },
-          { leadMin: 15, n: 1, p10Sec: -300 },
-          { leadMin: 20, n: 1, p10Sec: -400 },
+          { leadMin: 5, n: 1, p10Sec: -20, earlyRate: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+          { leadMin: 15, n: 1, p10Sec: -300, earlyRate: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0] },
+          { leadMin: 20, n: 1, p10Sec: -400, earlyRate: Array(11).fill(1) },
         ],
       },
     ]);
@@ -121,6 +128,58 @@ describe("stopMargins", () => {
     expect(body).not.toContain(PLATE);
     expect(body).not.toContain(ROUTE);
     expect(body).not.toMatch(/plate|route/i);
+  });
+});
+
+describe("earlyRate", () => {
+  it("boundary: -30 is not more than 30 s early, -31 is; error 0 is not early", async () => {
+    const db = createTestD1();
+    await seed(db, [-30, -31, -29, 0, -1, 300].map((err) => ({ lead: 5, err })));
+    const { stops } = await stopMargins(db, T0);
+    expect(stops[0].earlyRate).toEqual([0.667, 0.167, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  });
+
+  it("underflow (< -1200 s) counts toward every threshold", async () => {
+    const db = createTestD1();
+    await seed(db, [
+      { lead: 5, err: -5000 },
+      { lead: 5, err: 100 },
+    ]);
+    const { stops } = await stopMargins(db, T0);
+    expect(stops[0].earlyRate).toEqual(Array(11).fill(0.5));
+  });
+
+  it("summary merges 3/5/10 min buckets and leaves 15/20 min out", async () => {
+    const db = createTestD1();
+    await seed(db, [
+      { lead: 3, err: -10 },
+      { lead: 5, err: 50 },
+      { lead: 10, err: -100 },
+      { lead: 15, err: -500 },
+      { lead: 20, err: -500 },
+    ]);
+    const { stops } = await stopMargins(db, T0);
+    expect(stops[0].n).toBe(3);
+    expect(stops[0].earlyRate).toEqual([0.667, 0.333, 0.333, 0.333, 0, 0, 0, 0, 0, 0, 0]);
+    expect(stops[0].byLead.find((b) => b.leadMin === 15)?.earlyRate).toEqual(Array(11).fill(1));
+  });
+
+  it("rounds to 3 decimals (1 early of 3 -> 0.333)", async () => {
+    const db = createTestD1();
+    await seed(db, [
+      { lead: 5, err: -5 },
+      { lead: 5, err: 10 },
+      { lead: 5, err: 20 },
+    ]);
+    const { stops } = await stopMargins(db, T0);
+    expect(stops[0].earlyRate).toEqual([0.333, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  });
+
+  it("histEarlyRate counts exactly from 10 s bins", () => {
+    const hist = emptyHist();
+    addToHist(hist, -30);
+    addToHist(hist, -31);
+    expect(histEarlyRate(hist).slice(0, 3)).toEqual([1, 0.5, 0]);
   });
 });
 

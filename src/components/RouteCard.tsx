@@ -160,7 +160,7 @@ export function RouteCard({
               leg={leg}
               live={live}
               pending={pending}
-              quickTransferChance={i > 0 ? route.quickTransferChance : undefined}
+              quickTransferChance={i === 1 ? route.quickTransferChance : undefined}
             />
           ))}
           <li className="grid h-5.5 grid-cols-[48px_minmax(0,1fr)] items-center text-xs">

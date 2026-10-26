@@ -63,11 +63,13 @@ export function TransferPanel({
             <p className="text-xs text-fg-muted tabular">
               {arrivalText(next, "환승 버스 ", route)}
               {waitKnown(next) && ` · 환승 대기 ${next.waitMinutes}분`}
+              {next.transferChance !== undefined && ` · 바로 환승 ${next.transferChance}%`}
             </p>
           </li>
         ))}
       </ul>
-      {route.quickTransferChance !== undefined && busLegs.slice(1).every(waitKnown) && (
+      {/* 환승이 한 번이면 위 줄과 같은 값이라 곱은 환승 2번 이상일 때만 */}
+      {route.quickTransferChance !== undefined && transfers.length > 1 && (
         <p className="mt-3 inline-flex h-6 items-center rounded-full bg-status-ok-soft px-2.5 text-xs font-semibold text-status-ok tabular">
           바로 환승 {route.quickTransferChance}%
         </p>
