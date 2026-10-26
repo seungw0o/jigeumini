@@ -45,11 +45,19 @@ export function alertPayload(
  * 등록한 뒤 DO가 실패로 끝낸 알림(no_bus, expired)을 알리는 푸시. 보낸 알림이 아니라서 ack를 넣지 않는다:
  * 누르면 경로 화면만 열고, sw.js는 확인 요청을 보내지 않는다(알림 행과 구독은 그대로 둔다)
  */
-export function failurePayload(alertId: string, routeId: string, pairQuery: string, routeNo: string, reason: "no_bus" | "expired"): PushPayload {
-  const body =
-    reason === "no_bus"
-      ? `${routeNo}번 버스 도착 정보를 찾지 못했어요. 경로를 다시 확인해 주세요.`
-      : `알림을 켠 지 ${MAX_LIFETIME_MS / 3_600_000}시간이 지나 ${routeNo}번 출발 알림을 끝냈어요. 필요하면 다시 켜 주세요.`;
+export function failurePayload(
+  alertId: string,
+  routeId: string,
+  pairQuery: string,
+  routeNo: string,
+  reason: "no_bus" | "expired" | "api_error",
+): PushPayload {
+  const BODY = {
+    no_bus: `${routeNo}번 버스 도착 정보를 찾지 못했어요. 경로를 다시 확인해 주세요.`,
+    api_error: `실시간 도착 정보를 받지 못해 ${routeNo}번 출발 알림을 끝냈어요. 잠시 후 다시 켜 주세요.`,
+    expired: `알림을 켠 지 ${MAX_LIFETIME_MS / 3_600_000}시간이 지나 ${routeNo}번 출발 알림을 끝냈어요. 필요하면 다시 켜 주세요.`,
+  };
+  const body = BODY[reason];
   return { title: "출발 알림을 보내지 못했어요", body, tag: `alert-failed-${alertId}`, url: routeDetailUrl(routeId, pairQuery) };
 }
 
@@ -101,7 +109,7 @@ export class AlertMonitor extends DurableObject<Env> {
   }
 
   /** 실패 알림 푸시. 실패해도 기록만 하고 상태는 원래 실패 이유로 둔다 */
-  private async notifyFailure(alertId: string, row: PendingRow, reason: "no_bus" | "expired"): Promise<void> {
+  private async notifyFailure(alertId: string, row: PendingRow, reason: "no_bus" | "expired" | "api_error"): Promise<void> {
     try {
       const payload = failurePayload(alertId, row.route_id, row.pair_query, row.route_no, reason);
       const result = await sendToUser(this.env.DB, row.uid, payload, vapidKeysOf(this.env));
@@ -127,10 +135,14 @@ export class AlertMonitor extends DurableObject<Env> {
 
     const now = Date.now();
     let departure: Departure | null = null;
+    let apiFailed = false;
     try {
       const serviceKey = this.env.DATA_GO_KR_KEY?.trim();
       if (!serviceKey) throw new Error("DATA_GO_KR_KEY secret is not set");
-      const arrivals = await fetchBoardArrivals(serviceKey, row.board_node_id);
+      const arrivals = await fetchBoardArrivals(serviceKey, row.board_node_id).catch((error: unknown) => {
+        apiFailed = true;
+        throw error;
+      });
       const plan = JSON.parse(row.plan_json) as PlannedRoute;
       departure = departureOf(plan, arrivals, { fetchedAtMs: now, nowMs: now }, await this.margins(now));
     } catch (error) {
@@ -138,7 +150,14 @@ export class AlertMonitor extends DurableObject<Env> {
     }
 
     const misses = departure ? 0 : ((await storage.get<number>("misses")) ?? 0) + 1;
-    const decision = decideAlert({ nowMs: now, createdAtMs: Date.parse(row.created_at), leaveByMs: departure?.leaveByMs ?? null, misses });
+    const apiMisses = departure ? 0 : ((await storage.get<number>("apiMisses")) ?? 0) + (apiFailed ? 1 : 0);
+    const decision = decideAlert({
+      nowMs: now,
+      createdAtMs: Date.parse(row.created_at),
+      leaveByMs: departure?.leaveByMs ?? null,
+      misses,
+      apiMisses,
+    });
     console.log(
       "alert",
       alertId,
@@ -158,7 +177,7 @@ export class AlertMonitor extends DurableObject<Env> {
           .bind(new Date(departure.leaveByMs).toISOString(), new Date(now).toISOString(), alertId)
           .run();
       }
-      await storage.put("misses", misses);
+      await storage.put({ misses, apiMisses });
       await storage.setAlarm(decision.atMs);
       return;
     }
