@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { LeaveBadge } from "@/components/LeaveBadge";
-import { NotifyButton, NotifyInstallHint } from "@/components/NotifyButton";
+import { NotifyButton, NotifyDesktopHint, NotifyInstallHint } from "@/components/NotifyButton";
 import {
   ArrivalText,
   BusNumber,
@@ -174,6 +174,9 @@ export function RouteCard({
         // 확인 중에는 자리만 잡아 두어 실시간이 들어와도 카드 높이가 그대로다
         <div className={`relative z-10 mt-4 ${live ? "" : "invisible"}`} aria-hidden={live ? undefined : true}>
           <NotifyButton variant="block" state={notifyState} onChange={onNotifyChange} />
+          <div className="mt-1.5 text-center empty:hidden">
+            <NotifyDesktopHint state={notifyState} />
+          </div>
           {showInstallHint && (
             <div className="mt-2">
               <NotifyInstallHint />

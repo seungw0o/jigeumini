@@ -18,6 +18,8 @@ interface PushResult {
 
 /** 출발 시각이 지나면 쓸모없는 알림이라 오래 들고 있지 않게 한다 */
 const PUSH_TTL_SEC = 300;
+/** 실패 안내는 늦게 받아도 의미가 있어 더 오래 둔다 (오너 결정: 30분) */
+export const FAILURE_PUSH_TTL_SEC = 30 * 60;
 
 type SubscriptionRow = { endpoint: string; p256dh: string; auth: string };
 
@@ -32,6 +34,7 @@ export async function sendToUser(
   payload: PushPayload,
   vapid: VapidKeys,
   fetchImpl: typeof fetch = fetch,
+  { ttlSec = PUSH_TTL_SEC }: { ttlSec?: number } = {},
 ): Promise<PushResult> {
   const { results } = await db
     .prepare("SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE uid = ?")
@@ -46,7 +49,7 @@ export async function sendToUser(
     };
     let status: number;
     try {
-      const request = await buildPushPayload({ data: { ...payload }, options: { ttl: PUSH_TTL_SEC, urgency: "high" } }, subscription, vapid);
+      const request = await buildPushPayload({ data: { ...payload }, options: { ttl: ttlSec, urgency: "high" } }, subscription, vapid);
       status = (await fetchImpl(row.endpoint, request)).status;
     } catch (error) {
       // 구독 주소와 키는 기록하지 않는다

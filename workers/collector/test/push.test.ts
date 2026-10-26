@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { sendToUser, type PushPayload } from "../src/push";
+import { FAILURE_PUSH_TTL_SEC, sendToUser, type PushPayload } from "../src/push";
 import { createTestD1 } from "./d1-sqlite";
 
 const b64url = (bytes: ArrayBuffer | Uint8Array) => Buffer.from(bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes)).toString("base64url");
@@ -48,6 +48,16 @@ describe("sendToUser", () => {
     expect(init.method).toBe("post");
     expect(init.headers["content-encoding"]).toBe("aes128gcm");
     expect(init.headers.authorization).toMatch(/^vapid t=.+, k=/);
+  });
+
+  it("uses a 5 minute TTL by default and the longer failure TTL when asked", async () => {
+    await addSubscription("a", "https://push.test/a1");
+    const fetchMock = vi.fn(async () => new Response(null, { status: 201 }));
+    await sendToUser(db, "a", payload, vapid, fetchMock as unknown as typeof fetch);
+    await sendToUser(db, "a", payload, vapid, fetchMock as unknown as typeof fetch, { ttlSec: FAILURE_PUSH_TTL_SEC });
+    const ttl = (i: number) => String((fetchMock.mock.calls[i] as unknown as [string, { headers: Record<string, string> }])[1].headers.ttl);
+    expect(ttl(0)).toBe("300");
+    expect(ttl(1)).toBe("1800");
   });
 
   it.each([404, 410])("deletes only the gone subscription on %i", async (status) => {

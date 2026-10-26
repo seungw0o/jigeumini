@@ -33,7 +33,7 @@ export function AlertsList({ onOpen }: { onOpen: (href: string) => void }) {
     return (
       <div className="flex items-center justify-between gap-3 px-gutter py-4">
         <p className="text-sm text-fg-muted">알림을 불러오지 못했어요</p>
-        <RetryButton onRetry={() => query.refetch()} />
+        <RetryButton onRetry={() => query.refetch()} failMessage="아직 알림을 불러오지 못했어요" />
       </div>
     );
   }

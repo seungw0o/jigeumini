@@ -8,7 +8,7 @@ import { fetchBoardArrivals } from "./arrivals";
 import type { Env } from "./env";
 import { departureOf, type Departure } from "./leave-by";
 import { stopMargins } from "./margins";
-import { sendToUser, vapidKeysOf, type PushPayload } from "./push";
+import { FAILURE_PUSH_TTL_SEC, sendToUser, vapidKeysOf, type PushPayload } from "./push";
 
 /** /margins 응답 캐시(10분)와 같은 주기로만 여유 통계를 다시 읽는다 */
 const MARGINS_TTL_MS = 10 * 60_000;
@@ -112,7 +112,7 @@ export class AlertMonitor extends DurableObject<Env> {
   private async notifyFailure(alertId: string, row: PendingRow, reason: "no_bus" | "expired" | "api_error"): Promise<void> {
     try {
       const payload = failurePayload(alertId, row.route_id, row.pair_query, row.route_no, reason);
-      const result = await sendToUser(this.env.DB, row.uid, payload, vapidKeysOf(this.env));
+      const result = await sendToUser(this.env.DB, row.uid, payload, vapidKeysOf(this.env), fetch, { ttlSec: FAILURE_PUSH_TTL_SEC });
       console.log("alert fail push", alertId, reason, JSON.stringify(result));
     } catch (error) {
       console.error("alert fail push failed", alertId, error instanceof Error ? error.message : String(error));

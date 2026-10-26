@@ -3,7 +3,7 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { LeaveBadge } from "@/components/LeaveBadge";
 import { MapLayout } from "@/components/MapLayout";
 import { MapView } from "@/components/MapView";
-import { NotifyButton, NotifyInstallHint, NotifyUnavailableHint } from "@/components/NotifyButton";
+import { NotifyButton, NotifyDesktopHint, NotifyInstallHint, NotifyUnavailableHint } from "@/components/NotifyButton";
 import { StepTimeline } from "@/components/StepTimeline";
 import { TransferPanel } from "@/components/TransferPanel";
 import { totalLabel } from "@/utils/format";
@@ -62,6 +62,11 @@ export function RouteFooterBar({
         {showInstallHint && (
           <div className="mt-1">
             <NotifyInstallHint />
+          </div>
+        )}
+        {showNotify && (
+          <div className="mt-1 empty:hidden">
+            <NotifyDesktopHint state={notifyState} />
           </div>
         )}
         {showNotify && notifyState === "unavailable" && (
