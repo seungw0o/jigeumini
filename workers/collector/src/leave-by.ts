@@ -20,7 +20,7 @@ export interface Departure {
   boardAt: string;
 }
 
-export function firstBoardNodeId(plan: PlannedRoute): string | null {
+function firstBoardNodeId(plan: PlannedRoute): string | null {
   const leg = plan.legs.find((l) => l.kind === "bus");
   return leg?.kind === "bus" ? leg.board.nodeId : null;
 }

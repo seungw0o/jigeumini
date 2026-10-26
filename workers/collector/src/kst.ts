@@ -2,10 +2,10 @@ const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** 수집 시간대 05:30 이상 23:30 미만 (KST, 하루 중 분) */
-export const COLLECTION_START_MIN = 5 * 60 + 30;
-export const COLLECTION_END_MIN = 23 * 60 + 30;
+const COLLECTION_START_MIN = 5 * 60 + 30;
+const COLLECTION_END_MIN = 23 * 60 + 30;
 
-export interface KstParts {
+interface KstParts {
   year: number;
   month: number;
   day: number;
@@ -35,6 +35,12 @@ const pad = (value: number) => String(value).padStart(2, "0");
 export function kstIso(epochMs: number): string {
   const p = kstParts(epochMs);
   return `${p.year}-${pad(p.month)}-${pad(p.day)}T${pad(p.hour)}:${pad(p.minute)}:${pad(p.second)}+09:00`;
+}
+
+/** "2026-10-23" (KST 날짜) */
+export function kstDate(epochMs: number): string {
+  const p = kstParts(epochMs);
+  return `${p.year}-${pad(p.month)}-${pad(p.day)}`;
 }
 
 export function isCollecting(epochMs: number): boolean {

@@ -68,6 +68,8 @@ describe("departureOf", () => {
       tag: "alert-a1",
       url: "/routes/l0?from=1,2&to=3,4",
     });
+    const ack = { url: "https://w.test/alerts/a1/ack", uid: "u1", token: "t" };
+    expect(alertPayload("a1", "l0", "from=1,2&to=3,4", departure!, ack).ack).toEqual(ack);
   });
 });
 

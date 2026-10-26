@@ -5,25 +5,27 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useLiveRoutes } from "@/apis/queries/useLiveRoutes.query";
 import type { RouteEnd } from "@/apis/live/types";
 import { MapView } from "@/components/MapView";
-import { NotifyDeniedHint } from "@/components/NotifyButton";
+import { NotifyDeniedHint, NotifyUnavailableHint } from "@/components/NotifyButton";
 import { RouteCard } from "@/components/RouteCard";
 import { RouteSearchBar } from "@/components/RouteSearchBar";
 import { useDepartureAlerts } from "@/hooks/useDepartureAlerts";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import { useRecentRoutes } from "@/hooks/useRecentRoutes";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
 import { EmptyState, ErrorState, RouteListSkeleton } from "@/components/StateViews";
 import { isLiveTimed } from "@/utils/format";
 import { routeMarkers, routePaths } from "@/utils/mapData";
 import {
-  DEFAULT_ROUTE_PAIR,
   parseRoutePair,
   placeToRouteEnd,
   readFailFlag,
+  readNotifyDeniedFlag,
   routePairQuery,
   type FailFlag,
   type RoutePair,
 } from "@/utils/routeQuery";
 import type { MapMarker, MapPath, Place, RouteSortKey, TransitRoute } from "@/utils/types";
+import { RoutesEmptyScreen } from "./RoutesEmptyScreen";
 import { RoutesLayout } from "./RoutesLayout";
 import { StaleBadge } from "@/components/StatusChips";
 import { RoutesToolbar } from "./RoutesToolbar";
@@ -71,18 +73,10 @@ const LIST = "flex flex-col gap-3 px-4";
 
 export function RoutesScreen() {
   const params = useSearchParams();
-  const parsed = parseRoutePair(params);
-  const pair = parsed ?? DEFAULT_ROUTE_PAIR;
+  const pair = parseRoutePair(params);
+  if (!pair) return <RoutesEmptyScreen />;
   const pairQuery = routePairQuery(pair);
-  return (
-    <LiveRoutesScreen
-      key={pairQuery}
-      pair={pair}
-      pairQuery={pairQuery}
-      fail={readFailFlag(params)}
-      recordRecent={parsed !== null}
-    />
-  );
+  return <LiveRoutesScreen key={pairQuery} pair={pair} pairQuery={pairQuery} fail={readFailFlag(params)} />;
 }
 
 type Ends = { origin: Place; destination: Place };
@@ -112,16 +106,15 @@ function LiveRoutesScreen({
   pair,
   pairQuery,
   fail,
-  recordRecent,
 }: {
   pair: RoutePair;
   pairQuery: string;
   fail: FailFlag | null;
-  recordRecent: boolean;
 }) {
   const router = useRouter();
   const params = useSearchParams();
-  const notifyDenied = params.get("notify") === "denied";
+  const notifyDenied = readNotifyDeniedFlag(params);
+  const geo = useGeolocation(true);
   const failQuery = fail ? `&fail=${fail}` : "";
   const live = useLiveRoutes(pair, { fail });
   const { recent, addRecent } = useRecentSearches();
@@ -130,10 +123,9 @@ function LiveRoutesScreen({
   // pair는 부모 렌더마다 새 객체라, 이 화면(key=pairQuery)이 처음 받은 값으로 한 번만 기록한다
   const [openedPair] = useState(pair);
 
-  // 출발/도착을 골라 연 경로만 최근 경로에 남긴다 (쿼리 없이 연 기본 구간은 제외)
   useEffect(() => {
-    if (recordRecent) saveRecentRoute(openedPair);
-  }, [recordRecent, openedPair, saveRecentRoute]);
+    saveRecentRoute(openedPair);
+  }, [openedPair, saveRecentRoute]);
 
   const [ends] = useState<Ends>(() => ({
     origin: endPlace(pair.origin, "live-origin"),
@@ -193,14 +185,11 @@ function LiveRoutesScreen({
                 onChange={changePlaces}
                 onSubmit={submit}
                 onBack={() => router.push("/")}
+                currentPosition={geo.position}
                 recent={recent}
               />
             </div>
-            <RoutesToolbar
-              baseTime={live.baseTime}
-              sort={sort}
-              onSortChange={setSort}
-            />
+            <RoutesToolbar sort={sort} onSortChange={setSort} />
           </>
         }
         map={<MapView label="경로 지도" paths={map.paths} markers={map.markers} obscuredTop={0} obscuredBottom={0} />}
@@ -237,6 +226,11 @@ function LiveRoutesScreen({
               {(notifyDenied || alerts.denied) && (
                 <div className={NOTICE}>
                   <NotifyDeniedHint />
+                </div>
+              )}
+              {alerts.unavailable && (
+                <div className={NOTICE}>
+                  <NotifyUnavailableHint />
                 </div>
               )}
               <ListHeader secondsAgo={live.secondsAgo} onRefresh={live.refresh} note={realtimeFailed ? null : LIST_NOTE} />

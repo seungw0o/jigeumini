@@ -1,4 +1,4 @@
-import { BUS_TYPE_META } from "./format";
+import { legBusColor } from "./format";
 import type { MapMarker, MapPath, Place, TransitRoute } from "./types";
 
 export function routePaths(route: TransitRoute): MapPath[] {
@@ -6,10 +6,10 @@ export function routePaths(route: TransitRoute): MapPath[] {
     leg.kind === "bus"
       ? {
           points: route.path[i],
-          color: BUS_TYPE_META[leg.busType].color,
+          color: legBusColor(leg).color,
           kind: "bus",
           label: leg.routeNo,
-          ...(BUS_TYPE_META[leg.busType].fg && { labelColor: BUS_TYPE_META[leg.busType].fg }),
+          labelColor: legBusColor(leg).fg,
         }
       : { points: route.path[i], color: "var(--color-walk-fg)", kind: "walk" },
   );

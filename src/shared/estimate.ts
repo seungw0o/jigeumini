@@ -18,7 +18,7 @@ import { toClock, toMinutes } from "./clock";
 import { routeNoKey, stopRegionOf } from "./region";
 import type { BusArrival, BusType, Leg, LegLiveIssue, RealtimeState, TransitRoute } from "../utils/types";
 
-export interface LiveClock {
+interface LiveClock {
   /** 도착 정보를 받은 시각(epoch ms). ETA는 이 시각부터 센다 */
   fetchedAtMs: number;
   nowMs: number;

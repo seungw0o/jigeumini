@@ -18,7 +18,7 @@ const STEP_MODES: Record<string, TransitStepMode> = { BUS: "bus", SUBWAY: "subwa
 
 type Json = Record<string, unknown>;
 
-export interface TransitQuery {
+interface TransitQuery {
   origin: LatLng;
   destination: LatLng;
   originName?: string;
@@ -60,7 +60,7 @@ export async function getWalkRoute(origin: LatLng, destination: LatLng, options?
   };
 }
 
-export interface PlaceSearchOptions extends RequestOptions {
+interface PlaceSearchOptions extends RequestOptions {
   /** 이 좌표 기준 거리순 정렬과 distanceM을 받는다 */
   near?: LatLng;
   /** near 기준 반경(m), 최대 20000 */

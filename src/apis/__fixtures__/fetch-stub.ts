@@ -4,13 +4,13 @@ export function fixture(name: string): string {
   return readFileSync(new URL(`./${name}`, import.meta.url), "utf8");
 }
 
-export interface StubResponse {
+interface StubResponse {
   body: string;
   status?: number;
   contentType?: string;
 }
 
-export interface RecordedCall {
+interface RecordedCall {
   url: URL;
   headers: Headers;
 }

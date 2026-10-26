@@ -6,12 +6,6 @@ export interface RoutePair {
   destination: RouteEnd;
 }
 
-/** /routes를 출발/도착 없이 열면 이 구간을 실시간으로 보여 준다 */
-export const DEFAULT_ROUTE_PAIR: RoutePair = {
-  origin: { name: "대덕대학교", position: { lat: 36.39007, lng: 127.362274 } },
-  destination: { name: "갤러리아타임월드", position: { lat: 36.35272, lng: 127.37907 } },
-};
-
 export type FailFlag = "routes" | "arrivals";
 
 type ParamReader = { get(name: string): string | null };
@@ -54,8 +48,19 @@ export function parseRoutePair(params: ParamReader): RoutePair | null {
   };
 }
 
+/** QA용 쿼리 플래그는 개발 서버에서만 동작한다. 배포(next build, Vercel production/preview)는 NODE_ENV=production이다 */
+export function qaFlagsEnabled(): boolean {
+  return process.env.NODE_ENV !== "production";
+}
+
 /** QA용 강제 실패: ?fail=routes(카카오 경로 실패) / ?fail=arrivals(실시간 도착 실패) */
 export function readFailFlag(params: ParamReader): FailFlag | null {
+  if (!qaFlagsEnabled()) return null;
   const value = params.get("fail");
   return value === "routes" || value === "arrivals" ? value : null;
+}
+
+/** QA용: ?notify=denied로 알림 차단 화면을 본다 */
+export function readNotifyDeniedFlag(params: ParamReader): boolean {
+  return qaFlagsEnabled() && params.get("notify") === "denied";
 }

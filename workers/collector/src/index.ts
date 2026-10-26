@@ -1,3 +1,4 @@
+import { ACK_PATH_RE, handleAlertAck } from "./alert-ack";
 import { alertScheduler } from "./alert-monitor";
 import { handleAlerts, handlePushSubscription } from "./alerts";
 import { parseAllowedOrigins, preflightResponse, withCors } from "./cors";
@@ -6,8 +7,10 @@ import type { Env } from "./env";
 import { parseProjectIds } from "./auth";
 import { handleFavorites } from "./favorites";
 import { json } from "./json";
+import { foldNewErrors } from "./margin-hist";
 import { stopMargins } from "./margins";
 import { handleMe } from "./me";
+import { chooseDailyStops } from "./rotation";
 
 export { StopMonitor } from "./monitor";
 export { AlertMonitor } from "./alert-monitor";
@@ -26,6 +29,27 @@ async function isAdmin(request: Request, env: Env): Promise<boolean> {
   return a.byteLength === b.byteLength && crypto.subtle.timingSafeEqual(a, b);
 }
 
+/**
+ * 05:20 KST Cron (수집 창 23:30 마감 뒤): 어제 쌓인 오차를 히스토그램에 접고, 오늘 잴 정류소 60곳을 고른 뒤 모니터를 켠다.
+ * 접기가 실패해도 오늘 수집은 해야 하므로 순환과 시작은 이어간다. 순환이 실패하면 어제 켜 둔 정류소로 시작한다.
+ */
+export async function runMorningCron(env: Env, nowMs: number): Promise<void> {
+  try {
+    const fold = await foldNewErrors(env.DB, nowMs);
+    console.log("cron: folded", fold.rows, "errors into", fold.keys, "histograms");
+  } catch (error) {
+    console.error("cron: fold failed", error instanceof Error ? error.message : String(error));
+  }
+  try {
+    const day = await chooseDailyStops(env.DB, nowMs);
+    console.log("cron: rotation", day.day, day.district, day.stopCount, "stops", day.reused ? "(reused)" : "");
+  } catch (error) {
+    console.error("cron: rotation failed", error instanceof Error ? error.message : String(error));
+  }
+  const started = await kickAll(env);
+  console.log("cron: started", started.length, "stops");
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -35,6 +59,8 @@ export default {
       if (request.method === "GET" && url.pathname === "/health") return json(await health(env.DB));
 
       if (request.method === "GET" && url.pathname === "/stats") {
+        // 정류장별 수집 통계는 운영자용이다
+        if (!(await isAdmin(request, env))) return json({ error: "forbidden" }, 403);
         const stop = url.searchParams.get("stop") ?? "";
         if (!/^\d{7}$/.test(stop)) return json({ error: "stop must be a 7-digit BUS_NODE_ID" }, 400);
         return json(await stopStats(env.DB, stop));
@@ -57,6 +83,10 @@ export default {
 
       if (url.pathname === "/push/subscription") {
         return handlePushSubscription(request, env.DB, parseProjectIds(env.FIREBASE_PROJECT_IDS));
+      }
+
+      if (ACK_PATH_RE.test(url.pathname)) {
+        return handleAlertAck(request, env.DB, alertScheduler(env.ALERT_MONITOR), env.VAPID_PRIVATE_KEY);
       }
 
       if (url.pathname === "/alerts" || url.pathname.startsWith("/alerts/")) {
@@ -82,12 +112,7 @@ export default {
     return withCors(await route(), request, allowed);
   },
 
-  async scheduled(_controller, env, ctx) {
-    ctx.waitUntil(
-      (async () => {
-        const started = await kickAll(env);
-        console.log("cron: started", started.length, "stops");
-      })(),
-    );
+  async scheduled(controller, env, ctx) {
+    ctx.waitUntil(runMorningCron(env, controller.scheduledTime));
   },
 } satisfies ExportedHandler<Env>;

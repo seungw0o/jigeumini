@@ -12,14 +12,9 @@
 :root {
   --palette-gold-50: #fffaeb;
   --palette-gold-100: #fff3d6;
-  --palette-gold-200: #ffe3a6;
-  --palette-gold-300: #ffd06b;
-  --palette-gold-400: #fbbb3f;
   --palette-gold-500: #f5a524;
   --palette-gold-600: #e4900f;
-  --palette-gold-700: #b56f05;
   --palette-gold-800: #8a5300;
-  --palette-gold-900: #5a3600;
 
   --palette-neutral-0: #ffffff;
   --palette-neutral-50: #f8f6f2;
@@ -64,7 +59,6 @@
 @theme static {
   --color-bg: var(--palette-neutral-100);
   --color-surface: var(--palette-neutral-0);
-  --color-surface-raised: var(--palette-neutral-0);
   --color-surface-muted: var(--palette-neutral-50);
   --color-surface-inverse: var(--palette-neutral-900);
   --color-skeleton: var(--palette-neutral-200);
@@ -82,7 +76,6 @@
 
   /* 브랜드: 골드는 면/하이라이트 전용, 위 글자는 항상 fg. 흰 바탕 위 브랜드 글자·외곽선은 brand-ink */
   --color-brand: var(--palette-gold-500);
-  --color-brand-strong: var(--palette-gold-600);
   --color-brand-soft: var(--palette-gold-100);
   --color-brand-ink: var(--palette-gold-800);
 
@@ -100,8 +93,6 @@
   --color-status-ok-soft: var(--palette-green-50);
   --color-status-tight: var(--palette-orange-700);
   --color-status-tight-soft: var(--palette-orange-50);
-  --color-status-missed: var(--palette-red-600);
-  --color-status-missed-soft: var(--palette-red-50);
   --color-danger: var(--palette-red-600);
   --color-danger-soft: var(--palette-red-50);
 
@@ -148,14 +139,11 @@
   --text-md--line-height: 24px;
   --text-lg: 22px;
   --text-lg--line-height: 28px;
-  --text-xl: 30px;
-  --text-xl--line-height: 36px;
 
   /* spacing: 화면 좌우 여백, 목록 행 높이, 버튼·입력 높이 */
   --spacing-gutter: 20px;
   --spacing-row: 56px;
   --spacing-control: 48px;
-  --spacing-control-sm: 40px;
 
   /* elevation: card < float(지도 위 컨트롤) < sheet */
   --shadow-*: initial;

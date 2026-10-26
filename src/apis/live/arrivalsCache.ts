@@ -4,7 +4,7 @@
 
 import type { DaejeonArrival } from "../daejeon/types";
 
-export interface ArrivalsCacheOptions {
+interface ArrivalsCacheOptions {
   ttlMs: number;
   load: (stopId: string) => Promise<DaejeonArrival[]>;
   now?: () => number;
@@ -16,7 +16,7 @@ interface Entry {
   result: Promise<{ fetchedAt: number; arrivals: DaejeonArrival[] }>;
 }
 
-export function ageArrivals(arrivals: DaejeonArrival[], ageMs: number): DaejeonArrival[] {
+function ageArrivals(arrivals: DaejeonArrival[], ageMs: number): DaejeonArrival[] {
   const ageS = Math.floor(ageMs / 1000);
   if (ageS <= 0) return arrivals;
   return arrivals.map((arrival) =>

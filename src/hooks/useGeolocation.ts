@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { LatLng } from "@/utils/types";
 
-export type GeolocationStatus = "idle" | "pending" | "granted" | "denied" | "unavailable";
+type GeolocationStatus = "idle" | "pending" | "granted" | "denied" | "unavailable";
 
 type Result = { attempt: number; status: "granted" | "denied" | "unavailable" };
 

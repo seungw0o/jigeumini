@@ -44,7 +44,7 @@ export function TransferPanel({
           <li key={`${prev.routeNo}-${next.routeNo}-${next.boardAt}`} className="py-3 first:pt-2 last:pb-0">
             <p className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-fg tabular">
               <span className="inline-flex items-center gap-1">
-                <BusNumber routeNo={prev.routeNo} busType={prev.busType} size="sm" />
+                <BusNumber leg={prev} size="sm" />
                 <time dateTime={prev.alightAt} className="font-semibold">
                   {formatShortClock(prev.alightAt)}
                 </time>
@@ -52,7 +52,7 @@ export function TransferPanel({
               </span>
               <ChevronRightIcon size={14} className="shrink-0 text-fg-subtle" />
               <span className="inline-flex items-center gap-1">
-                <BusNumber routeNo={next.routeNo} busType={next.busType} size="sm" />
+                <BusNumber leg={next} size="sm" />
                 <time dateTime={next.boardAt} className="font-semibold">
                   {formatShortClock(next.boardAt)}
                 </time>
@@ -72,40 +72,6 @@ export function TransferPanel({
           바로 환승 {route.quickTransferChance}%
         </p>
       )}
-    </section>
-  );
-}
-
-export function RideInsightPlaceholder() {
-  return (
-    <section aria-labelledby="ride-insight-title">
-      <div className="rounded-lg border border-dashed border-border-strong bg-surface-muted px-4 py-3.5">
-        <div className="flex items-center gap-1.5">
-          <h2 id="ride-insight-title" className="truncate text-xs font-semibold text-fg-secondary">
-            탑승 중 예측
-          </h2>
-          <span className="inline-flex h-5 shrink-0 items-center rounded-sm bg-surface px-1.5 text-xs text-fg-muted ring-1 ring-border ring-inset">
-            준비 중
-          </span>
-        </div>
-        <p className="mt-1 text-xs text-fg-muted">버스 평균 속도로 환승 가능성을 계산할 예정이에요.</p>
-        <dl className="mt-2 flex flex-wrap gap-x-4 text-xs text-fg-muted tabular">
-          <div className="flex gap-1">
-            <dt>평균 속도</dt>
-            <dd className="text-fg-subtle">
-              <span aria-hidden="true">—</span>
-              <span className="sr-only">준비 중</span>
-            </dd>
-          </div>
-          <div className="flex gap-1">
-            <dt>환승 가능성</dt>
-            <dd className="text-fg-subtle">
-              <span aria-hidden="true">—</span>
-              <span className="sr-only">준비 중</span>
-            </dd>
-          </div>
-        </dl>
-      </div>
     </section>
   );
 }

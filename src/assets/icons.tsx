@@ -61,29 +61,6 @@ export const LocateIcon = (p: IconProps) => (
   </Svg>
 );
 
-export const LayersIcon = (p: IconProps) => (
-  <Svg {...p}>
-    <path d="M12 4 3 8.5l9 4.5 9-4.5L12 4Z" />
-    <path d="m3 12.5 9 4.5 9-4.5M3 16.5 12 21l9-4.5" />
-  </Svg>
-);
-
-export const BusIcon = (p: IconProps) => (
-  <Svg {...p}>
-    <rect x="5" y="3.5" width="14" height="15" rx="2.5" />
-    <path d="M5 11h14M8 18.5V21M16 18.5V21" />
-    <circle cx="8.5" cy="14.8" r="0.9" fill="currentColor" stroke="none" />
-    <circle cx="15.5" cy="14.8" r="0.9" fill="currentColor" stroke="none" />
-  </Svg>
-);
-
-export const WalkIcon = (p: IconProps) => (
-  <Svg {...p}>
-    <circle cx="13" cy="4.5" r="1.8" />
-    <path d="m9.5 21 2.2-6.5L14 17v4M11.7 14.5l.8-5.5-3 1.8L8 14M12.5 9l2.3 2.6 2.7.9" />
-  </Svg>
-);
-
 export const BellIcon = (p: IconProps) => (
   <Svg {...p}>
     <path d="M6 16.5V11a6 6 0 1 1 12 0v5.5l1.5 1.5h-15L6 16.5ZM10 20.5a2.2 2.2 0 0 0 4 0" />
@@ -171,22 +148,6 @@ export const DirectionsIcon = (p: IconProps) => (
   </Svg>
 );
 
-export const BusStopIcon = (p: IconProps) => (
-  <Svg {...p}>
-    <rect x="6" y="3" width="12" height="9" rx="2" />
-    <path d="M12 12v9M9 21h6M9 7.5h6" />
-  </Svg>
-);
-
-export const SubwayIcon = (p: IconProps) => (
-  <Svg {...p}>
-    <rect x="6" y="3.5" width="12" height="13" rx="3" />
-    <path d="M6 10h12M9 20l1.5-3.5M15 20l-1.5-3.5" />
-    <circle cx="9.5" cy="13.3" r="0.8" fill="currentColor" stroke="none" />
-    <circle cx="14.5" cy="13.3" r="0.8" fill="currentColor" stroke="none" />
-  </Svg>
-);
-
 export const MapIcon = (p: IconProps) => (
   <Svg {...p}>
     <path d="M12 21s-6-5.2-6-10.2a6 6 0 0 1 12 0C18 15.8 12 21 12 21Z" />
@@ -217,24 +178,4 @@ export const BusGlyph = ({ size = 16, ...rest }: IconProps) => (
       d="M4.5 1.5h7A2.5 2.5 0 0 1 14 4v7.5a1 1 0 0 1-1 1v1.25a.75.75 0 0 1-1.5 0V12.5h-7v1.25a.75.75 0 0 1-1.5 0V12.5a1 1 0 0 1-1-1V4a2.5 2.5 0 0 1 2.5-2.5Zm-.5 3V8h8V4.5H4Zm1 6.25a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8Zm6 0a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8Z"
     />
   </svg>
-);
-
-export const WalkGlyph = ({ size = 16, ...rest }: IconProps) => (
-  <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true" focusable="false" {...rest}>
-    <circle cx="8.6" cy="2.6" r="1.4" fill="currentColor" />
-    <path
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="m6 14.5 1.6-4.3 1.6 1.6v2.7M7.6 10.2l.6-4-2 1.2-.7 2.2M8.2 6.2l1.6 1.9 1.9.6"
-    />
-  </svg>
-);
-
-export const TransferIcon = (p: IconProps) => (
-  <Svg {...p}>
-    <path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5" />
-  </Svg>
 );

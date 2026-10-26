@@ -3,7 +3,7 @@
 import { ApiError, type ApiSource } from "./errors";
 import { readXmlTag } from "./xml";
 
-export const DEFAULT_TIMEOUT_MS = 5000;
+const DEFAULT_TIMEOUT_MS = 5000;
 
 export interface RequestOptions {
   headers?: Record<string, string>;
@@ -49,7 +49,7 @@ export async function requestJson(source: ApiSource, url: URL, options?: Request
 
 // data.go.kr 게이트웨이 공통 에러. XML(대전)이나 JSON(TAGO, _type=json)으로 오고, 실제로는 HTTP 403과 함께 왔다.
 // 에러 토큰이 errMsg에 오기도(2026-10-22 관측) returnAuthMsg에 오기도 해서 둘 다 본다.
-export function dataGoKrServiceError(source: ApiSource, body: string, status: number): ApiError {
+function dataGoKrServiceError(source: ApiSource, body: string, status: number): ApiError {
   let fields: { errMsg?: string; returnAuthMsg?: string; returnReasonCode?: string };
   if (body.trimStart().startsWith("{")) {
     try {
@@ -77,7 +77,7 @@ export function dataGoKrServiceError(source: ApiSource, body: string, status: nu
   return new ApiError("SERVICE_ERROR", source, message, status);
 }
 
-export function kakaoError(body: string, status: number): ApiError {
+function kakaoError(body: string, status: number): ApiError {
   let errorType = "";
   let message = `kakao responded ${status}`;
   try {

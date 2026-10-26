@@ -11,9 +11,9 @@ import type {
   RunType,
 } from "./types";
 
-export const DAEJEON_BASE_URL = "https://apis.data.go.kr/6300000";
+const DAEJEON_BASE_URL = "https://apis.data.go.kr/6300000";
 
-export const ROUTE_TYPES: Record<string, BusRouteType> = {
+const ROUTE_TYPES: Record<string, BusRouteType> = {
   "1": "express",
   "2": "trunk",
   "3": "branch",
@@ -22,7 +22,7 @@ export const ROUTE_TYPES: Record<string, BusRouteType> = {
   "6": "advanced",
 };
 
-export const APPROACH_PHASES: Record<string, ApproachPhase> = {
+const APPROACH_PHASES: Record<string, ApproachPhase> = {
   "01": "arrived",
   "02": "departed",
   "03": "minutesAway",
@@ -30,7 +30,7 @@ export const APPROACH_PHASES: Record<string, ApproachPhase> = {
   "06": "entering",
 };
 
-export const RUN_TYPES: Record<string, RunType> = { "1": "first", "2": "last", "3": "normal" };
+const RUN_TYPES: Record<string, RunType> = { "1": "first", "2": "last", "3": "normal" };
 
 const EVENTS: Record<string, DaejeonBusPosition["event"]> = { "1": "periodic", "2": "stop" };
 
@@ -69,7 +69,7 @@ export function parseBusPositions(serviceResultXml: string, routeCd: string): Da
   }));
 }
 
-export function toArrival(item: Record<string, string>): DaejeonArrival {
+function toArrival(item: Record<string, string>): DaejeonArrival {
   return {
     routeCd: item.ROUTE_CD ?? "",
     routeNo: item.ROUTE_NO ?? "",
@@ -86,7 +86,7 @@ export function toArrival(item: Record<string, string>): DaejeonArrival {
   };
 }
 
-export function toArrivalState(item: Record<string, string>): ArrivalState {
+function toArrivalState(item: Record<string, string>): ArrivalState {
   const msgType = item.MSG_TP ?? "";
   // 관측(문서에 없음, 2026-10-22): MSG_TP 07일 때 EXTIME_SEC는 초가 아니라 차고지 출발 예정 시각 HHMM이다.
   // 예) 905 = 09:05, 1457 = 14:57. 같은 응답의 INFO_OFFER_TM이 그 시각보다 앞선다. 이때 EXTIME_MIN은 1, STATUS_POS는 0으로 왔다.

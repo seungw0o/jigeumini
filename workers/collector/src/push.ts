@@ -6,16 +6,18 @@ export interface PushPayload {
   body: string;
   tag: string;
   url: string;
+  /** 알림을 누르거나 닫으면 서비스 워커가 이 주소로 uid와 token을 보낸다 (alert-ack.ts) */
+  ack?: { url: string; uid: string; token: string };
 }
 
-export interface PushResult {
+interface PushResult {
   sent: number;
   removed: number;
   failed: number;
 }
 
 /** 출발 시각이 지나면 쓸모없는 알림이라 오래 들고 있지 않게 한다 */
-export const PUSH_TTL_SEC = 300;
+const PUSH_TTL_SEC = 300;
 
 type SubscriptionRow = { endpoint: string; p256dh: string; auth: string };
 

@@ -1,7 +1,9 @@
 import { BusGlyph, ClockIcon, RefreshIcon } from "@/assets/icons";
-import { BUS_TYPE_META } from "@/utils/format";
+import { BUS_TYPE_LABEL, legBusColor } from "@/utils/format";
 import { formatShortClock } from "@/utils/ribbon";
-import type { BusArrival, BusType, LegLiveIssue } from "@/utils/types";
+import type { BusArrival, BusLeg, LegLiveIssue } from "@/utils/types";
+
+type ChipLeg = Pick<BusLeg, "routeNo" | "busType" | "boardStop">;
 
 export const LIVE_ISSUE_LABEL: Record<LegLiveIssue, string> = {
   unavailable: "실시간 정보 없음",
@@ -13,46 +15,27 @@ export function garageDepartLabel(departAt: string): string {
   return departAt ? `차고지 출발 예정 ${formatShortClock(departAt)}` : "차고지 출발 대기";
 }
 
-export function BusNumber({
-  routeNo,
-  busType,
-  size = "md",
-}: {
-  routeNo: string;
-  busType: BusType;
-  size?: "sm" | "md";
-}) {
-  const meta = BUS_TYPE_META[busType];
+export function BusNumber({ leg, size = "md" }: { leg: ChipLeg; size?: "sm" | "md" }) {
+  const { color, fg } = legBusColor(leg);
   return (
     <span
       className={`inline-flex shrink-0 items-center justify-center rounded-sm font-bold tabular ${
         size === "sm" ? "h-5 min-w-5 px-1.5 text-xs" : "h-5.5 min-w-8 px-1.5 text-xs"
       }`}
-      style={{ backgroundColor: meta.color, color: meta.fg ?? "var(--color-fg-inverse)" }}
+      style={{ backgroundColor: color, color: fg }}
     >
-      <span className="sr-only">{meta.label} </span>
-      {routeNo}
+      <span className="sr-only">{BUS_TYPE_LABEL[leg.busType]} </span>
+      {leg.routeNo}
     </span>
   );
 }
 
-export function BusBadge({ routeNo, busType }: { routeNo: string; busType: BusType }) {
-  const meta = BUS_TYPE_META[busType];
+export function BusBadge({ leg }: { leg: ChipLeg }) {
   return (
     <span className="inline-flex shrink-0 items-center gap-1 text-sm font-bold text-fg tabular">
-      <BusGlyph size={16} style={{ color: meta.color }} />
-      <span className="sr-only">{meta.label} </span>
-      {routeNo}
-    </span>
-  );
-}
-
-export function BusTypeLabel({ busType }: { busType: BusType }) {
-  const meta = BUS_TYPE_META[busType];
-  return (
-    <span className="inline-flex shrink-0 items-center gap-1 text-sm font-bold" style={{ color: meta.color }}>
-      <BusGlyph size={16} />
-      {meta.label}
+      <BusGlyph size={16} style={{ color: legBusColor(leg).color }} />
+      <span className="sr-only">{BUS_TYPE_LABEL[leg.busType]} </span>
+      {leg.routeNo}
     </span>
   );
 }
@@ -90,14 +73,6 @@ export function ArrivalText({ arrival, missed = false }: { arrival: BusArrival; 
       )}
       {status.kind === "ended" && <span className="text-fg-muted">운행 종료</span>}
       {arrival.runLabel && <RunLabelBadge runLabel={arrival.runLabel} />}
-    </span>
-  );
-}
-
-export function ArrivalChip({ arrival, missed = false }: { arrival: BusArrival; missed?: boolean }) {
-  return (
-    <span className="inline-flex h-7 max-w-full items-center rounded-full bg-surface-muted px-2.5">
-      <ArrivalText arrival={arrival} missed={missed} />
     </span>
   );
 }
