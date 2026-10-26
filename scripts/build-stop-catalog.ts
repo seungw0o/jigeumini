@@ -11,6 +11,8 @@ const KAKAO_URL = "https://dapi.kakao.com/v2/local/geo/coord2regioncode.json";
 const DAEJEON_CITY_CODE = "25";
 const PAGE_ROWS = 100;
 const KAKAO_CONCURRENCY = 8;
+// TAGO cityCode 25에는 계룡·세종·금산 등 대전 밖 정류소도 섞여 있어 대전 5개 구만 남긴다
+const DAEJEON_DISTRICTS = new Set(["동구", "중구", "서구", "유성구", "대덕구"]);
 const OUT = new URL("../workers/collector/seeds/stop_catalog.sql", import.meta.url);
 
 interface CatalogStop {
@@ -104,7 +106,7 @@ async function main() {
   console.log(`TAGO items=${raw.length} unique=${byNode.size} skipped=${skipped}`);
 
   const pending = [...byNode.values()].sort((a, b) => (a.nodeId < b.nodeId ? -1 : 1));
-  const stops: CatalogStop[] = new Array(pending.length);
+  let stops: CatalogStop[] = new Array(pending.length);
   let next = 0;
   async function worker() {
     while (next < pending.length) {
@@ -115,6 +117,9 @@ async function main() {
     }
   }
   await Promise.all(Array.from({ length: KAKAO_CONCURRENCY }, worker));
+  const outside = stops.filter((stop) => !DAEJEON_DISTRICTS.has(stop.district));
+  stops = stops.filter((stop) => DAEJEON_DISTRICTS.has(stop.district));
+  console.log(`대전 밖 ${outside.length}곳 제외, ${stops.length}곳 남음`);
 
   const counts = new Map<string, number>();
   for (const stop of stops) counts.set(stop.district, (counts.get(stop.district) ?? 0) + 1);
