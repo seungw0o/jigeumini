@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type CSSProperties, type ReactNode, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type PointerEvent } from "react";
 
 interface BottomSheetProps {
   children: ReactNode;
@@ -34,6 +34,26 @@ export function BottomSheet({
   const sheetRef = useRef<HTMLElement>(null);
 
   const height = dragHeight !== null ? `${dragHeight}px` : `${snaps[snap] * 100}dvh`;
+  const dragging = dragHeight !== null;
+
+  // 지도 컨트롤(현재 위치 버튼)이 시트 바로 위에 뜨도록 높이를 문서 루트 변수로 알린다 (MapLayout이 읽음).
+  // 끌는 동안에는 버튼이 뒤처지지 않게 애니메이션을 끈다.
+  useEffect(() => {
+    const root = document.documentElement.style;
+    root.setProperty("--map-sheet-h", height);
+    root.setProperty("--map-sheet-offset", `${bottomOffset}px`);
+    root.setProperty("--map-sheet-motion", dragging ? "0ms" : "var(--motion-sheet)");
+  }, [height, bottomOffset, dragging]);
+
+  useEffect(
+    () => () => {
+      const root = document.documentElement.style;
+      root.removeProperty("--map-sheet-h");
+      root.removeProperty("--map-sheet-offset");
+      root.removeProperty("--map-sheet-motion");
+    },
+    [],
+  );
 
   function onPointerDown(e: PointerEvent<HTMLButtonElement>) {
     const el = sheetRef.current;

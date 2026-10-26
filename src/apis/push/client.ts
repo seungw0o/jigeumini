@@ -109,12 +109,6 @@ export async function putSubscription(user: User, subscription: PushSubscription
   if (!res.ok) throw await failure(res);
 }
 
-// 404는 이미 지워진 것이므로 성공으로 본다
-export async function deleteSubscription(user: User, endpoint: string): Promise<void> {
-  const res = await request(user, "/push/subscription", jsonInit("DELETE", { endpoint }));
-  if (!res.ok && res.status !== 404) throw await failure(res);
-}
-
 export async function listAlerts(user: User): Promise<Alert[]> {
   const res = await request(user, "/alerts");
   if (!res.ok) throw await failure(res);
