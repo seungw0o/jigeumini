@@ -2,16 +2,20 @@ import { describe, expect, test } from "vitest";
 import type { MarginBucket, MarginsResponse, StopMargin } from "@/apis/margins/types";
 import { pickMarginMinutes } from "./margin";
 
+const ZERO_EARLY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
 const bucket = (leadMin: MarginBucket["leadMin"], n: number, p10Sec: number): MarginBucket => ({
   leadMin,
   n,
   p10Sec,
+  earlyRate: ZERO_EARLY,
 });
 
 const stop = (overrides: Partial<StopMargin> = {}): StopMargin => ({
   nodeId: "S1",
   n: 200,
   p10Sec: -30,
+  earlyRate: ZERO_EARLY,
   byLead: [bucket(3, 50, -30), bucket(5, 50, -90), bucket(10, 50, -200)],
   ...overrides,
 });

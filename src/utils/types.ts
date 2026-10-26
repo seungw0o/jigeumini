@@ -69,6 +69,8 @@ export interface BusLeg {
   alightAt: string;
   /** 실시간 기준이 아닌 구간이면 그 이유. 없으면 실시간(목 데이터 포함). boardAt은 정류장 도착 시각(대기 0)으로 둠다 */
   liveIssue?: LegLiveIssue;
+  /** 환승 버스를 바로 탈 확률(0~100). 환승 구간에만, 데이터가 없으면 없음 */
+  transferChance?: number;
 }
 
 /** unavailable: 도착 정보를 못 받음(실패, 정류장 매칭 실패) / noBus: 받았지만 탈 수 있는 이 노선 버스가 목록에 없음 */
@@ -102,7 +104,7 @@ export interface TransitRoute {
   fare: number;
   transferCount: number;
   legs: Leg[];
-  /** 환승 경로에서 "바로 환승" 확률 (0~100). 보조 정보, 없으면 숨김 */
+  /** 환승 경로에서 "바로 환승" 확률 (0~100) = 환승 구간 transferChance의 곱. 하나라도 없으면 없음(숨김) */
   quickTransferChance?: number;
   /** 지도에 그릴 좌표열. legs와 같은 순서, leg마다 하나 */
   path: LatLng[][];

@@ -52,6 +52,23 @@ export function histPercentile(hist: Hist, p: number): number {
   return binValue(hist.length - 1);
 }
 
+/**
+ * 조기 도착 비율 (s = 0, 30, …, 300초; index = s/30). 칸 경계가 10초 배수라 count(오차 < -s)를 칸에서 정확히 센다.
+ * 칸 k는 [v, v+10)이므로 끝 v+10이 -s 이하인 칸은 전부 -s보다 이르고, 그렇지 않은 칸은 하나도 해당하지 않는다.
+ * 아래 넘침 칸은 항상 포함하고(s <= 300 < 1200), 위 넘침 칸은 세지 않는다.
+ */
+export function histEarlyRate(hist: Hist): number[] {
+  const n = histCount(hist);
+  return Array.from({ length: 11 }, (_, i) => {
+    const threshold = 30 * i;
+    let early = hist[0];
+    for (let k = 1; k < HIST_LENGTH - 1; k++) {
+      if (binValue(k) + BIN_SEC <= -threshold) early += hist[k];
+    }
+    return Math.round((early / n) * 1000) / 1000;
+  });
+}
+
 export function parseHist(json: string): Hist {
   const parsed: unknown = JSON.parse(json);
   if (!Array.isArray(parsed) || parsed.length !== HIST_LENGTH || !parsed.every((v) => Number.isInteger(v) && v >= 0)) {

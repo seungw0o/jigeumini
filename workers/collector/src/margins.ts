@@ -1,4 +1,4 @@
-import { histCount, histPercentile, mergeHist, parseHist, type Hist } from "./margin-hist";
+import { histCount, histEarlyRate, histPercentile, mergeHist, parseHist, type Hist } from "./margin-hist";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -12,12 +12,16 @@ interface MarginBucket {
   leadMin: LeadMin;
   n: number;
   p10Sec: number;
+  // 오차 < -s초인 비율, s = 0,30,…,300 (index = s/30)
+  earlyRate: number[];
 }
 
 interface StopMargin {
   nodeId: string;
   n: number;
   p10Sec: number;
+  // 오차 < -s초인 비율, s = 0,30,…,300 (index = s/30); 3/5/10분 합산
+  earlyRate: number[];
   byLead: MarginBucket[];
 }
 
@@ -56,7 +60,8 @@ export async function stopMargins(db: D1Database, nowMs: number): Promise<Margin
       nodeId,
       n: histCount(all),
       p10Sec: histPercentile(all, 0.1),
-      byLead: buckets.map(({ leadMin, hist }) => ({ leadMin: leadMin as LeadMin, n: histCount(hist), p10Sec: histPercentile(hist, 0.1) })),
+      earlyRate: histEarlyRate(all),
+      byLead: buckets.map(({ leadMin, hist }) => ({ leadMin: leadMin as LeadMin, n: histCount(hist), p10Sec: histPercentile(hist, 0.1), earlyRate: histEarlyRate(hist) })),
     }];
   });
 

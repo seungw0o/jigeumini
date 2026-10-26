@@ -6,7 +6,9 @@
 // 3. arrivals가 없으면 loading. 첫 버스 정류장 정보를 못 받았으면 unavailable,
 //    지금 + W + MARGIN 이후에 오는 후보가 없으면 noBus.
 // 4. 탈 수 있으면: 출발 = 탑승 − W − MARGIN. 이후 도보는 시간만큼 진행하고,
-//    환승 버스는 정류장에 닿은 시각 이후 첫 후보를 탄다(여유 없음). 못 찾으면 대기 0으로 두고 partial.
+//    환승 버스는 정류장에 닿은 시각 이후 후보 중 탈 확률(catchChance)이 TRANSFER_CATCH_MIN 이상인 첫 차를 탄다.
+//    모두 미만이면 확률이 가장 높은 차(같으면 빠른 쪽). 확률 데이터가 없으면 60초 이상 여유가 있는 첫 차
+//    (없으면 가장 늦게 오는 차). 못 찾으면 대기 0으로 두고 partial.
 // 5. live/partial이 아니면 지금부터 대기 없이 이어 붙인다(leaveAt = 지금, 여유 0).
 
 import type { DaejeonArrival } from "../apis/daejeon/types";
@@ -14,6 +16,7 @@ import type { PlannedBusLeg, PlannedRoute, StopArrivals } from "../apis/live/typ
 import type { MarginsResponse } from "../apis/margins/types";
 import { DEPARTURE_MARGIN_MIN } from "./departure";
 import { pickMarginMinutes } from "./margin";
+import { catchChance } from "./transfer";
 import { toClock, toMinutes } from "./clock";
 import { routeNoKey, stopRegionOf } from "./region";
 import type { BusArrival, BusType, Leg, LegLiveIssue, RealtimeState, TransitRoute } from "../utils/types";
@@ -75,6 +78,44 @@ function candidatesOf(leg: PlannedBusLeg, arrivals: Record<string, StopArrivals>
     .sort((a, b) => a.atMs - b.atMs);
 }
 
+/** 이 확률(0~1) 미만인 환승 버스는 놓친다고 보고 다음 후보로 넘어간다 */
+export const TRANSFER_CATCH_MIN = 0.8;
+
+/** 확률 데이터가 없을 때 환승 버스에 두는 고정 여유(초). 이보다 빠르게 오는 후보는 놓친다고 본다 */
+export const TRANSFER_FALLBACK_SLACK_SEC = 60;
+
+// 정류장에 닿은 뒤 오는 후보(빠른 순) 중 탈 버스와 그 확률.
+// 첫 후보의 확률을 모르면 데이터 없음으로 보고 고정 여유 규칙(확률 없음)을 쓴다
+function pickTransfer(
+  list: Candidate[],
+  nodeId: string | null,
+  atStopMs: number,
+  fetchedAtMs: number,
+  margins: MarginsResponse | undefined,
+): { chosen: Candidate | undefined; chance?: number } {
+  const after = list.filter((c) => c.atMs >= atStopMs);
+  if (after.length === 0) return { chosen: undefined };
+  const slackSec = (c: Candidate) => (c.atMs - atStopMs) / 1000;
+  const chanceOf = (c: Candidate) =>
+    nodeId === null
+      ? undefined
+      : catchChance({ nodeId, slackSec: slackSec(c), leadSec: (c.atMs - fetchedAtMs) / 1000, margins });
+  const first = chanceOf(after[0]);
+  if (first === undefined) {
+    // 60초 이상 여유가 있는 첫 후보, 없으면 가장 늦게 오는(여유가 가장 큰) 후보
+    return { chosen: after.find((c) => slackSec(c) >= TRANSFER_FALLBACK_SLACK_SEC) ?? after[after.length - 1] };
+  }
+  let best = { chosen: after[0], chance: first };
+  for (const [i, c] of after.entries()) {
+    const chance = i === 0 ? first : chanceOf(c);
+    // 뒤 후보의 확률을 모르면(리드 구간 표본 부족 등) 그 후보는 고르지 않는다
+    if (chance === undefined) continue;
+    if (chance >= TRANSFER_CATCH_MIN) return { chosen: c, chance };
+    if (chance > best.chance) best = { chosen: c, chance };
+  }
+  return best;
+}
+
 function busTypeOf(arrival: DaejeonArrival | undefined, fallback: BusType): BusType {
   return arrival && BUS_TYPES.includes(arrival.routeType) ? (arrival.routeType as BusType) : fallback;
 }
@@ -127,6 +168,7 @@ export function estimateRoute(
 
   let t = leaveByMs;
   let partial = false;
+  const chances: number[] = [];
   const legs = plan.legs.map((leg, i): Leg => {
     if (leg.kind === "walk") {
       t += leg.seconds * 1000;
@@ -136,12 +178,14 @@ export function estimateRoute(
     const atStopMs = t;
     const list = candidates[i] ?? [];
     let chosen: Candidate | undefined;
+    let chance: number | undefined;
     let liveIssue: LegLiveIssue | undefined;
     if (i === firstBus) {
       chosen = firstChoice;
       if (realtime === "unavailable" || realtime === "noBus") liveIssue = realtime;
     } else if (live) {
-      chosen = list.find((c) => c.atMs >= atStopMs);
+      ({ chosen, chance } = pickTransfer(list, leg.board.nodeId, atStopMs, fetchedAtMs, margins));
+      if (chance !== undefined) chances.push(chance);
       if (!chosen) liveIssue = candidates[i] ? "noBus" : "unavailable";
       if (liveIssue) partial = true;
     }
@@ -173,8 +217,10 @@ export function estimateRoute(
       boardAt: kstClock(boardMs),
       alightAt: kstClock(t),
       ...(liveIssue && { liveIssue }),
+      ...(chance !== undefined && { transferChance: Math.round(chance * 100) }),
     };
   });
+  const transferLegs = legs.filter((l) => l.kind === "bus").length - 1;
 
   return {
     id: plan.id,
@@ -191,6 +237,11 @@ export function estimateRoute(
     legs,
     path: plan.legs.map((l) => l.path),
     realtime: live && partial ? "partial" : realtime,
+    // 환승 구간마다 확률이 있을 때만 곱한다 (하나라도 없으면 표시 안 함)
+    ...(transferLegs > 0 &&
+      chances.length === transferLegs && {
+        quickTransferChance: Math.round(chances.reduce((p, c) => p * c, 1) * 100),
+      }),
   };
 }
 

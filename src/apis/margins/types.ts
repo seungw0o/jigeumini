@@ -9,6 +9,8 @@ export interface MarginBucket {
   n: number;
   /** nearest-rank 10번째 백분위(초) */
   p10Sec: number;
+  /** 오차 < -s인 기록 비율, s = 0·30·…·300초 (11개, 인덱스 i ↔ s = 30i), 소수 3자리 */
+  earlyRate: number[];
 }
 
 export interface StopMargin {
@@ -17,6 +19,8 @@ export interface StopMargin {
   n: number;
   /** 모든 버킷을 합친 P10(초) */
   p10Sec: number;
+  /** 모든 버킷을 합친 earlyRate (11개, 인덱스 i ↔ s = 30i) */
+  earlyRate: number[];
   /** 값이 있는 버킷만, leadMin 오름차순 */
   byLead: MarginBucket[];
 }
