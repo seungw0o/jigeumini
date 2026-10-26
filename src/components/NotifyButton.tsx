@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import { BellIcon, BellOffIcon, CheckIcon } from "@/assets/icons";
+import { useDesktopDevice } from "@/hooks/useDesktopDevice";
 import type { NotifyState } from "@/utils/types";
 
 const DENIED_HINT = "브라우저 설정에서 알림을 허용해 주세요";
@@ -9,6 +10,8 @@ const DENIED_HINT = "브라우저 설정에서 알림을 허용해 주세요";
 const INSTALL_HINT = "홈 화면에 추가하면 출발 알림을 받을 수 있어요";
 // 푸시 설정(VAPID 키, 워커 주소)이 없는 배포에서는 알림을 보낼 수 없다
 const UNAVAILABLE_HINT = "지금은 출발 알림을 보낼 수 없어요";
+// 푸시 구독은 기기마다 따로라, 컴퓨터에서 켜면 휴대폰이 아니라 그 컴퓨터로 온다
+const DESKTOP_HINT = "알림은 이 컴퓨터로 와요";
 const HINT = "truncate text-xs text-fg-muted";
 
 type Variant = "block" | "primary" | "compact";
@@ -82,6 +85,12 @@ export function NotifyButton({
 
 export function NotifyDeniedHint() {
   return <p className={HINT}>{DENIED_HINT}</p>;
+}
+
+export function NotifyDesktopHint({ state }: { state: NotifyState }) {
+  const desktop = useDesktopDevice();
+  if (!desktop || (state !== "idle" && state !== "on")) return null;
+  return <p className={HINT}>{DESKTOP_HINT}</p>;
 }
 
 export function NotifyUnavailableHint() {
