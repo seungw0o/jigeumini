@@ -22,7 +22,7 @@ export function MapLayout({
       <div className="absolute inset-0 lg:relative lg:col-start-2 lg:row-start-1 lg:h-dvh">
         {map}
         {controls && (
-          <div className="absolute right-3 top-(--controls-top,9rem) z-10 flex flex-col gap-2 lg:right-5 lg:top-5">
+          <div className="absolute right-3 bottom-[calc(var(--map-sheet-offset,0px)+var(--map-sheet-h,0px)+0.75rem)] z-10 flex flex-col gap-2 transition-[bottom] duration-(--map-sheet-motion,0ms) ease-sheet lg:right-5 lg:bottom-5 lg:transition-none">
             {controls}
           </div>
         )}
@@ -41,12 +41,10 @@ export function MapLayout({
 
 function MapControlButton({
   label,
-  pressed,
   onClick,
   children,
 }: {
   label: string;
-  pressed?: boolean;
   onClick?: () => void;
   children: ReactNode;
 }) {
@@ -54,13 +52,8 @@ function MapControlButton({
     <button
       type="button"
       aria-label={label}
-      aria-pressed={pressed}
       onClick={onClick}
-      className={`flex size-11 items-center justify-center rounded-md shadow-float transition-colors ${
-        pressed
-          ? "bg-brand-soft text-brand-ink"
-          : "bg-surface text-fg-secondary hover:bg-surface-muted active:bg-skeleton"
-      }`}
+      className="flex size-11 items-center justify-center rounded-md bg-surface text-fg-secondary shadow-float transition-colors hover:bg-surface-muted active:bg-skeleton"
     >
       {children}
     </button>

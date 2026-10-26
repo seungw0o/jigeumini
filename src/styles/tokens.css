@@ -39,12 +39,6 @@
 
   /* 대전 시내버스 노선 색 */
   --palette-route-express: #e2382f;
-  --palette-route-trunk: #2f66dc;
-  --palette-route-branch: #1f9a45;
-  --palette-route-village: #5f8f0e;
-  --palette-route-outer: #c77300;
-  /* 서울 순환 노란색. 흰 글자는 대비가 낮아 글자는 진한 색을 쓴다 */
-  --palette-route-circular: #f2b70a;
 
   --palette-map-ground: #eef0ec;
   --palette-map-water: #cddff0;
@@ -99,13 +93,6 @@
   /* 이동 수단 (데이터 코딩 전용) */
   --color-walk: var(--palette-neutral-200);
   --color-walk-fg: var(--palette-neutral-600);
-  --color-bus-express: var(--palette-route-express);
-  --color-bus-trunk: var(--palette-route-trunk);
-  --color-bus-branch: var(--palette-route-branch);
-  --color-bus-village: var(--palette-route-village);
-  --color-bus-outer: var(--palette-route-outer);
-  --color-bus-wide: var(--palette-route-express);
-  --color-bus-circular: var(--palette-route-circular);
 
   --color-map-origin: var(--palette-green-600);
   --color-map-destination: var(--palette-route-express);
@@ -122,7 +109,6 @@
 
   /* radius: 카드·시트 lg, 버튼·입력 md, 작은 배지 sm, 칩·점 rounded-full */
   --radius-*: initial;
-  --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
