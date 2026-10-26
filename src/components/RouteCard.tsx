@@ -101,8 +101,6 @@ export function RouteCard({
   notifyState,
   onNotifyChange,
   showInstallHint = false,
-  selected,
-  onSelect,
 }: {
   route: TransitRoute;
   href: string;
@@ -111,8 +109,6 @@ export function RouteCard({
   notifyState: NotifyState;
   onNotifyChange: (next: NotifyState) => void;
   showInstallHint?: boolean;
-  selected: boolean;
-  onSelect: () => void;
 }) {
   const busLegs = route.legs.filter((leg): leg is BusLeg => leg.kind === "bus");
   const lastBus = busLegs[busLegs.length - 1];
@@ -124,22 +120,16 @@ export function RouteCard({
   const arriveSpoken = live ? `도착 예상 ${arrive}${arriveSuffix}` : (note ?? "도착 예상 확인 중");
 
   return (
-    <article
-      className={`relative rounded-lg bg-surface p-4 shadow-card transition-shadow ${
-        selected ? "ring-2 ring-brand-ink" : "hover:ring-1 hover:ring-border-strong"
-      }`}
-    >
+    <article className="relative rounded-lg bg-surface p-4 shadow-card transition-shadow hover:ring-1 hover:ring-border-strong">
       {badge && <p className="mb-2 text-xs font-semibold text-brand-ink">{badge}</p>}
-      <button
-        type="button"
-        onClick={onSelect}
-        aria-pressed={selected}
-        aria-label={`${totalLabel(route)}, ${arriveSpoken}, ${realtimeBadgeLabel(route) ?? leaveLabel(route)}, 지도에 경로 보기`}
-        className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-md text-left after:absolute after:inset-0 after:rounded-lg"
+      <Link
+        href={href}
+        aria-label={`${totalLabel(route)}, ${arriveSpoken}, ${realtimeBadgeLabel(route) ?? leaveLabel(route)}, 상세 보기`}
+        className="flex w-full items-center justify-between gap-3 rounded-md text-left after:absolute after:inset-0 after:rounded-lg"
       >
         <span className="min-w-0 truncate text-lg font-bold text-fg tabular">{totalLabel(route)}</span>
         <LeaveBadge route={route} />
-      </button>
+      </Link>
       {/* 시간 범위·요금·환승을 한 줄 요약으로 (오너 요청: 큰 글자 대신 깔끔한 요약 줄) */}
       <p className="mt-2.5 flex min-w-0 text-xs whitespace-nowrap text-fg-secondary tabular">
         {(live || pending) && (
@@ -192,12 +182,6 @@ export function RouteCard({
         </div>
       )}
 
-      <Link
-        href={href}
-        className="relative z-10 mt-3 inline-flex h-8 items-center gap-0.5 rounded-md text-sm font-semibold text-fg-secondary hover:text-fg"
-      >
-        상세보기 <span aria-hidden>›</span>
-      </Link>
     </article>
   );
 }

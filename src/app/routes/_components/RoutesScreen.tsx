@@ -117,7 +117,7 @@ function LiveRoutesScreen({
   const geo = useGeolocation(true);
   const failQuery = fail ? `&fail=${fail}` : "";
   const live = useLiveRoutes(pair, { fail });
-  const { recent, addRecent } = useRecentSearches();
+  const { recent, addRecent, removeRecent } = useRecentSearches();
   const alerts = useDepartureAlerts(pairQuery, live.plan);
   const { saveRecentRoute } = useRecentRoutes();
   // pair는 부모 렌더마다 새 객체라, 이 화면(key=pairQuery)이 처음 받은 값으로 한 번만 기록한다
@@ -134,12 +134,11 @@ function LiveRoutesScreen({
   const [places, setPlaces] = useState<{ origin: Place | null; destination: Place | null }>(ends);
   // RouteSearchBar는 onChange 직후 같은 이벤트에서 onSubmit을 부르므로 최신 값을 따로 들고 있는다
   const latest = useRef(places);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sort, setSort] = useState<RouteSortKey>("arrival");
   const [mapData, setMapData] = useState<MapData>(() => baseMapData(ends));
 
   const visible = live.status === "ready" ? [...live.routes].sort(LIVE_COMPARE[sort]) : [];
-  const selected = visible.find((r) => r.id === selectedId) ?? visible[0];
+  const selected = visible[0];
   const mapKey = selected ? mapKeyOf(selected) : "";
   let map = mapData;
   if (mapData.key !== mapKey) {
@@ -187,6 +186,7 @@ function LiveRoutesScreen({
                 onBack={() => router.push("/")}
                 currentPosition={geo.position}
                 recent={recent}
+                onRemoveRecent={(p) => removeRecent(p.id)}
               />
             </div>
             <RoutesToolbar sort={sort} onSortChange={setSort} />
@@ -245,8 +245,6 @@ function LiveRoutesScreen({
                       notifyState={notifyDenied ? "denied" : alerts.stateOf(route.id)}
                       onNotifyChange={(next) => alerts.toggle(route.id, next)}
                       showInstallHint={alerts.installHintFor === route.id}
-                      selected={route.id === selected?.id}
-                      onSelect={() => setSelectedId(route.id)}
                     />
                   </li>
                 ))}
