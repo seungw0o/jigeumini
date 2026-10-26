@@ -4,7 +4,7 @@ import { onAuthStateChanged, signInAnonymously, type User } from "firebase/auth"
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getFirebaseAuth } from "@/apis/firebase/client";
 
-export type AuthState =
+type AuthState =
   | { status: "loading"; user: null }
   | { status: "signedIn"; user: User }
   | { status: "error"; user: null; error: Error };

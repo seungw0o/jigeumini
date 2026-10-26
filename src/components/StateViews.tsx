@@ -92,7 +92,7 @@ export function StateButton({
   );
 }
 
-export function MessageState({
+function MessageState({
   icon,
   title,
   message,

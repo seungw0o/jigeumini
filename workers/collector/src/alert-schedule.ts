@@ -5,7 +5,7 @@ const MIN_MS = 60_000;
 /** 출발 시각 몇 분 전에 울릴지 (오너 결정: 2분 고정) */
 export const NOTIFY_BEFORE_MIN = 2;
 /** 울릴 시각까지 이만큼 남으면 1분마다 다시 계산한다 */
-export const NEAR_WINDOW_MS = 15 * MIN_MS;
+const NEAR_WINDOW_MS = 15 * MIN_MS;
 export const NEAR_POLL_MS = MIN_MS;
 /** 멀리 있을 때는 이 간격보다 드물게 보지 않는다 */
 export const FAR_POLL_MAX_MS = 5 * MIN_MS;
@@ -14,12 +14,12 @@ export const MAX_LIFETIME_MS = 3 * 60 * MIN_MS;
 /** 탈 버스를 연속 이만큼 못 찾으면(노선이 사라짐, 도착 정보 실패) 실패로 끝낸다 */
 export const MAX_MISSES = 5;
 
-export type AlertDecision =
+type AlertDecision =
   | { kind: "send" }
   | { kind: "wait"; atMs: number }
   | { kind: "fail"; reason: "expired" | "no_bus" };
 
-export interface DecisionInput {
+interface DecisionInput {
   nowMs: number;
   createdAtMs: number;
   /** 이번에 다시 계산한 출발 시각. 탈 버스가 없으면 null */

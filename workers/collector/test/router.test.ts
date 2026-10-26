@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { timingSafeEqual } from "node:crypto";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Env } from "../src/env";
 import worker from "../src/index";
 
@@ -14,7 +15,30 @@ const ctx = { waitUntil() {}, passThroughOnException() {} } as never;
 const call = (path: string, init?: RequestInit) =>
   worker.fetch!(new Request(`https://w.test${path}`, init) as never, env, ctx);
 
+// /health, /stats용: D1 batch만 빈 결과로 흉내 낸다
+const ADMIN_TOKEN = "test-admin-token";
+const emptyStatement = { bind: () => emptyStatement };
+const adminEnv = {
+  ...env,
+  ADMIN_TOKEN,
+  DB: {
+    prepare: () => emptyStatement,
+    batch: async () => [{ results: [] }, { results: [] }],
+  },
+} as unknown as Env;
+const callAdmin = (path: string, init?: RequestInit) =>
+  worker.fetch!(new Request(`https://w.test${path}`, init) as never, adminEnv, ctx);
+
 describe("router CORS + /me", () => {
+  // crypto.subtle.timingSafeEqual은 Workers 전용 확장이라 Node에서는 node:crypto 구현을 붙인다
+  const subtle = crypto.subtle as SubtleCrypto & { timingSafeEqual?: (a: Uint8Array, b: Uint8Array) => boolean };
+  beforeAll(() => {
+    subtle.timingSafeEqual = (a, b) => timingSafeEqual(a, b);
+  });
+  afterAll(() => {
+    delete subtle.timingSafeEqual;
+  });
+
   it("preflight from allowed origin -> 204 with CORS headers", async () => {
     const res = await call("/me", {
       method: "OPTIONS",
@@ -56,11 +80,33 @@ describe("router CORS + /me", () => {
     expect(res.status).toBe(405);
   });
 
-  it("GET /stats with bad stop -> 400 + ACAO", async () => {
-    const res = await call("/stats?stop=abc", { headers: { Origin: ORIGIN } });
+  it("GET /stats without admin token -> 403 + ACAO", async () => {
+    const res = await call("/stats?stop=8001234", { headers: { Origin: ORIGIN } });
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: "forbidden" });
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(ORIGIN);
+  });
+
+  it("GET /stats with a wrong admin token -> 403", async () => {
+    const res = await callAdmin("/stats?stop=8001234", { headers: { "x-admin-token": "wrong" } });
+    expect(res.status).toBe(403);
+  });
+
+  it("GET /stats with admin token and bad stop -> 400", async () => {
+    const res = await callAdmin("/stats?stop=abc", { headers: { "x-admin-token": ADMIN_TOKEN } });
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: "stop must be a 7-digit BUS_NODE_ID" });
-    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(ORIGIN);
+  });
+
+  it("GET /stats with admin token -> 200", async () => {
+    const res = await callAdmin("/stats?stop=8001234", { headers: { "x-admin-token": ADMIN_TOKEN } });
+    expect(res.status).toBe(200);
+  });
+
+  it("GET /health stays public -> 200 without a token", async () => {
+    const res = await callAdmin("/health");
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ ok: true });
   });
 
   it("GET /nope -> 404", async () => {

@@ -47,16 +47,6 @@ export function BusBadge({ routeNo, busType }: { routeNo: string; busType: BusTy
   );
 }
 
-export function BusTypeLabel({ busType }: { busType: BusType }) {
-  const meta = BUS_TYPE_META[busType];
-  return (
-    <span className="inline-flex shrink-0 items-center gap-1 text-sm font-bold" style={{ color: meta.color }}>
-      <BusGlyph size={16} />
-      {meta.label}
-    </span>
-  );
-}
-
 export function RunLabelBadge({ runLabel }: { runLabel: "first" | "last" }) {
   return (
     <span
@@ -90,14 +80,6 @@ export function ArrivalText({ arrival, missed = false }: { arrival: BusArrival; 
       )}
       {status.kind === "ended" && <span className="text-fg-muted">운행 종료</span>}
       {arrival.runLabel && <RunLabelBadge runLabel={arrival.runLabel} />}
-    </span>
-  );
-}
-
-export function ArrivalChip({ arrival, missed = false }: { arrival: BusArrival; missed?: boolean }) {
-  return (
-    <span className="inline-flex h-7 max-w-full items-center rounded-full bg-surface-muted px-2.5">
-      <ArrivalText arrival={arrival} missed={missed} />
     </span>
   );
 }

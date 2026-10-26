@@ -14,7 +14,7 @@ export interface Alert {
   createdAt: string;
 }
 
-export interface AlertRequestBody {
+interface AlertRequestBody {
   routeId: string;
   pairQuery: string;
   plan: PlannedRoute;

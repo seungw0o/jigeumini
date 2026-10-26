@@ -65,14 +65,14 @@ export function parseRecentSearches(raw: string | null): Place[] {
 }
 
 // picked[0]이 가장 최근 검색
-export function addRecentSearches(list: Place[], picked: Place[]): Place[] {
+function addRecentSearches(list: Place[], picked: Place[]): Place[] {
   const fresh = picked.filter((p) => p.id !== CURRENT_ID).map(strip);
   const ids = new Set(fresh.map((p) => p.id));
   const rest = list.filter((p) => !ids.has(p.id));
   return dedupeAndCap([...fresh, ...rest]);
 }
 
-export function removeRecentSearch(list: Place[], placeId: string): Place[] {
+function removeRecentSearch(list: Place[], placeId: string): Place[] {
   return list.filter((p) => p.id !== placeId);
 }
 

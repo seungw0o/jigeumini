@@ -88,7 +88,7 @@ export function RideInsightPlaceholder() {
             준비 중
           </span>
         </div>
-        <p className="mt-1 text-xs text-fg-muted">버스 평균 속도로 환승 가능성을 계산할 예정이에요.</p>
+        <p className="mt-1 text-xs text-fg-muted">탑승 중 예측 정보는 아직 제공하지 않아요.</p>
         <dl className="mt-2 flex flex-wrap gap-x-4 text-xs text-fg-muted tabular">
           <div className="flex gap-1">
             <dt>평균 속도</dt>

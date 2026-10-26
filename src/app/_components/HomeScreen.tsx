@@ -277,7 +277,7 @@ export function HomeScreen() {
   } else if (view === "frequent") {
     sheetContent = (
       <SheetSection title="자주 가는 곳">
-        <PlaceList places={[]} onSelect={setSelected} emptyText="자주 가는 곳을 등록해 보세요" />
+        <PlaceList places={[]} onSelect={setSelected} emptyText="자주 가는 곳 기능은 준비 중이에요" />
       </SheetSection>
     );
   } else if (view === "alerts") {
@@ -286,7 +286,7 @@ export function HomeScreen() {
         <PlaceList
           places={[]}
           onSelect={setSelected}
-          emptyText="켜 둔 출발 알림이 없어요. 경로 상세에서 출발 알림을 받을 수 있어요."
+          emptyText="켜 둔 출발 알림은 경로 화면에서 확인하고 끌 수 있어요."
         />
       </SheetSection>
     );

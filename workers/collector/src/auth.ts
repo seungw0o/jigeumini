@@ -1,10 +1,10 @@
 import { createRemoteJWKSet, jwtVerify, errors, type JWTVerifyGetKey } from "jose";
 
-export const GOOGLE_JWKS_URL =
+const GOOGLE_JWKS_URL =
   "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
 
 export type KeySet = JWTVerifyGetKey;
-export type AuthFailure = "missing" | "invalid" | "expired";
+type AuthFailure = "missing" | "invalid" | "expired";
 
 export class AuthError extends Error {
   readonly reason: "invalid" | "expired";
@@ -21,7 +21,7 @@ export interface VerifyOptions {
   now?: Date;
 }
 
-export const CLOCK_TOLERANCE_SECONDS = 5;
+const CLOCK_TOLERANCE_SECONDS = 5;
 
 // isolate 단위로 캐시되는 원격 키 세트
 const remoteKeys: KeySet = createRemoteJWKSet(new URL(GOOGLE_JWKS_URL));
@@ -95,7 +95,7 @@ export async function verifyIdToken(
   return { uid: sub };
 }
 
-export type AuthResult = { ok: true; uid: string } | { ok: false; reason: AuthFailure };
+type AuthResult = { ok: true; uid: string } | { ok: false; reason: AuthFailure };
 
 export async function authenticate(
   request: Request,

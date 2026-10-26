@@ -35,6 +35,8 @@ export default {
       if (request.method === "GET" && url.pathname === "/health") return json(await health(env.DB));
 
       if (request.method === "GET" && url.pathname === "/stats") {
+        // 정류장별 수집 통계는 운영자용이다
+        if (!(await isAdmin(request, env))) return json({ error: "forbidden" }, 403);
         const stop = url.searchParams.get("stop") ?? "";
         if (!/^\d{7}$/.test(stop)) return json({ error: "stop must be a 7-digit BUS_NODE_ID" }, 400);
         return json(await stopStats(env.DB, stop));

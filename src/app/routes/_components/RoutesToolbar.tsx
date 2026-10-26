@@ -4,7 +4,7 @@ import { ChevronDownIcon } from "@/assets/icons";
 import { formatShortClock } from "@/utils/ribbon";
 import type { RouteSortKey } from "@/utils/types";
 
-export const SORT_OPTIONS: { key: RouteSortKey; label: string }[] = [
+const SORT_OPTIONS: { key: RouteSortKey; label: string }[] = [
   { key: "arrival", label: "도착 빠른 순" },
   { key: "walk", label: "도보 짧은 순" },
   { key: "transfer", label: "환승 적은 순" },
@@ -25,15 +25,10 @@ export function RoutesToolbar({
 }) {
   return (
     <div className="flex h-14 items-center gap-1.5 border-b border-divider px-4">
-      <button
-        type="button"
-        aria-label={baseTime ? `출발 시각 지금 ${formatShortClock(baseTime)}` : "출발 시각 지금"}
-        className="inline-flex h-11 shrink-0 cursor-pointer items-center gap-1 rounded-md bg-transparent px-2.5 text-sm whitespace-nowrap text-fg-secondary hover:bg-action-secondary"
-      >
+      <p className="inline-flex h-11 shrink-0 items-center gap-1 px-2.5 text-sm whitespace-nowrap text-fg-secondary">
         <span className="font-bold text-fg">지금</span>
-        <span className="font-medium tabular">{baseTime ? `${formatShortClock(baseTime)} 출발` : "출발"}</span>
-        <ChevronDownIcon size={16} className="text-fg-muted" />
-      </button>
+        <span className="font-medium tabular">{baseTime ? `${formatShortClock(baseTime)} 기준` : "기준"}</span>
+      </p>
       <label className="relative inline-flex h-11 shrink-0 items-center">
         <span className="sr-only">정렬</span>
         <select

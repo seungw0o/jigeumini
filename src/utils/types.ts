@@ -110,16 +110,6 @@ export interface TransitRoute {
   realtime?: RealtimeState;
 }
 
-export interface RouteSearch {
-  origin: Place;
-  destination: Place;
-  /** 조회 기준 시각 */
-  baseTime: string;
-  /** 실시간 정보 갱신 후 경과 초 */
-  updatedSecondsAgo: number;
-  routes: TransitRoute[];
-}
-
 export type NotifyState = "idle" | "on" | "denied";
 
 /** 경로 목록 정렬 기준 */

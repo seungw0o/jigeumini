@@ -36,7 +36,7 @@ function readEnv(): PushEnv {
 const subscribeNoop = () => () => {};
 const serverEnv = (): PushEnv => "unknown";
 
-export interface DepartureAlerts {
+interface DepartureAlerts {
   stateOf: (routeId: string) => NotifyState;
   toggle: (routeId: string, next: NotifyState) => void;
   denied: boolean;

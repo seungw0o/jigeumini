@@ -1,23 +1,23 @@
 import { nearestRank } from "./db";
 import { kstIso } from "./kst";
 
-export const WINDOW_DAYS = 28;
+const WINDOW_DAYS = 28;
 
 // src/apis/margins/types.ts 와 같은 모양 (워커는 앱 코드를 import할 수 없다)
-export interface MarginBucket {
+interface MarginBucket {
   leadMin: 3 | 5 | 10;
   n: number;
   p10Sec: number;
 }
 
-export interface StopMargin {
+interface StopMargin {
   nodeId: string;
   n: number;
   p10Sec: number;
   byLead: MarginBucket[];
 }
 
-export interface MarginsResponse {
+interface MarginsResponse {
   windowDays: number;
   generatedAt: string;
   stops: StopMargin[];

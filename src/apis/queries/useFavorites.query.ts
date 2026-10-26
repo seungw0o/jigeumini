@@ -3,7 +3,7 @@ import { useAuth } from "@/components/AuthProvider";
 import type { Place } from "@/utils/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export type FavoritesStatus = "disabled" | "loading" | "ready" | "error";
+type FavoritesStatus = "disabled" | "loading" | "ready" | "error";
 
 export function useFavorites(): {
   favorites: Place[];

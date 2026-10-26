@@ -1,12 +1,5 @@
 import type { BusType, TransitRoute } from "./types";
 
-export function formatClock(hhmm: string): string {
-  const [h, m] = hhmm.split(":").map(Number);
-  const period = h < 12 ? "오전" : "오후";
-  const hour12 = h % 12 === 0 ? 12 : h % 12;
-  return `${period} ${hour12}:${String(m).padStart(2, "0")}`;
-}
-
 export function formatFare(won: number): string {
   return `${won.toLocaleString("ko-KR")}원`;
 }
@@ -15,7 +8,7 @@ export function formatDistance(m: number): string {
   return m < 1000 ? `${m}m` : `${(m / 1000).toFixed(1)}km`;
 }
 
-export function formatDuration(minutes: number): string {
+function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes}분`;
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;

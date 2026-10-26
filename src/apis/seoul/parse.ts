@@ -8,7 +8,7 @@ import type { ApproachPhase, ArrivalState, BusRouteType, DaejeonArrival } from "
 import { ApiError, isApiError } from "../errors";
 import { requestJson, type RequestOptions } from "../http";
 
-export const SEOUL_BASE_URL = "http://ws.bus.go.kr/api/rest/stationinfo";
+const SEOUL_BASE_URL = "http://ws.bus.go.kr/api/rest/stationinfo";
 
 export interface SeoulStation {
   arsId: string;
@@ -18,7 +18,7 @@ export interface SeoulStation {
 }
 
 // routeType 1 공항 2 마을 3 간선 4 지선 5 순환 6 광역 7 인천 8 경기 0 공용. 실호출에서 심야(N번)는 15로 왔다(문서에 없음)
-export const SEOUL_ROUTE_TYPES: Record<string, BusRouteType> = {
+const SEOUL_ROUTE_TYPES: Record<string, BusRouteType> = {
   "2": "village",
   "3": "trunk",
   "4": "branch",
@@ -29,7 +29,7 @@ export const SEOUL_ROUTE_TYPES: Record<string, BusRouteType> = {
 
 type Item = Record<string, unknown>;
 
-export function seoulUrl(operation: string, serviceKey: string, params: Record<string, string>): URL {
+function seoulUrl(operation: string, serviceKey: string, params: Record<string, string>): URL {
   const url = new URL(`${SEOUL_BASE_URL}/${operation}`);
   url.searchParams.set("serviceKey", serviceKey);
   url.searchParams.set("resultType", "json");

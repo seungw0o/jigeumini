@@ -39,7 +39,7 @@ export function MapLayout({
   );
 }
 
-export function MapControlButton({
+function MapControlButton({
   label,
   pressed,
   onClick,

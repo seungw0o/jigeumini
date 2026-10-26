@@ -5,8 +5,8 @@ import { json } from "./json";
 import { isStopId } from "../../../src/shared/region";
 
 export const ALERTS_PENDING_LIMIT = 5;
-export const SUBSCRIPTION_MAX_BODY_BYTES = 2048;
-export const ALERT_MAX_BODY_BYTES = 16384;
+const SUBSCRIPTION_MAX_BODY_BYTES = 2048;
+const ALERT_MAX_BODY_BYTES = 16384;
 
 /** 알림 하나를 맡는 Durable Object 조작. 테스트에서는 대역을 넣는다 */
 export interface AlertScheduler {
@@ -14,9 +14,9 @@ export interface AlertScheduler {
   cancel(alertId: string): Promise<void>;
 }
 
-export type AlertStatus = "pending" | "sent" | "cancelled" | "failed";
+type AlertStatus = "pending" | "sent" | "cancelled" | "failed";
 
-export interface Alert {
+interface Alert {
   id: string;
   routeId: string;
   pairQuery: string;
@@ -202,15 +202,15 @@ function parsePlan(value: unknown): PlannedRoute | null {
   return { id: value.id, fare, transferCount: transferCount as number, totalSeconds, legs: parsed as PlannedLeg[] };
 }
 
-export interface AlertInput {
+interface AlertInput {
   routeId: string;
   pairQuery: string;
   plan: PlannedRoute;
 }
 
-export type AlertInputError = "invalid body" | "no live stop";
+type AlertInputError = "invalid body" | "no live stop";
 
-export function parseAlertInput(body: unknown): AlertInput | AlertInputError {
+function parseAlertInput(body: unknown): AlertInput | AlertInputError {
   if (!isRecord(body)) return "invalid body";
   const { routeId, pairQuery } = body;
   if (typeof routeId !== "string" || !ROUTE_ID_RE.test(routeId)) return "invalid body";

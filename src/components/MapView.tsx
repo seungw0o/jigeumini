@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { LatLng, MapMarker, MapPath, MarkerTone } from "@/utils/types";
 
-export type { MapMarker, MapPath, MarkerTone };
+export type { MapMarker };
 
 interface MapViewProps {
   paths?: MapPath[];
@@ -145,7 +145,8 @@ function PlaceholderMap({
   onMarkerClick,
   selectedId,
   focus,
-}: MapViewProps) {
+  notice = "지도 미리보기 · 카카오맵 키 없음",
+}: MapViewProps & { notice?: string }) {
   const [ref, size] = useSize<HTMLDivElement>();
 
   const pts = focus ? focusBox(focus) : fitPoints(paths, markers);
@@ -286,7 +287,7 @@ function PlaceholderMap({
       )}
 
       <p className="absolute bottom-2 left-2 rounded-sm bg-surface/90 px-2 py-0.5 text-2xs text-fg-muted shadow-card lg:bottom-3 lg:left-3">
-        지도 미리보기 · 카카오맵 키 없음
+        {notice}
       </p>
     </div>
   );
@@ -464,6 +465,7 @@ function KakaoMap({
         selectedId={selectedId}
         focus={focus}
         label="지도"
+        notice="지도를 불러오지 못했어요"
       />
     );
   }
