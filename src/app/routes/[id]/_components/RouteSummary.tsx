@@ -33,12 +33,12 @@ export function BusSequence({ route, size = "md" }: { route: TransitRoute; size?
 export function RouteSummary({
   route,
   now,
-  secondsAgo,
+  fetchedAtMs,
   onRefresh,
 }: {
   route: TransitRoute;
   now: string;
-  secondsAgo: number;
+  fetchedAtMs: number;
   onRefresh: () => void;
 }) {
   const note = realtimeNote(route);
@@ -47,7 +47,7 @@ export function RouteSummary({
     <section aria-labelledby="route-summary-title" className="border-b border-divider px-gutter pt-3 pb-6 lg:pt-6">
       <div className="flex min-h-6 items-center justify-between gap-3">
         <BusSequence route={route} />
-        <StaleBadge secondsAgo={secondsAgo} onRefresh={onRefresh} />
+        <StaleBadge fetchedAtMs={fetchedAtMs} onRefresh={onRefresh} />
       </div>
       <div className="mt-4 flex items-center justify-between gap-3">
         <h1 id="route-summary-title" className="min-w-0 truncate text-lg font-bold text-fg tabular">

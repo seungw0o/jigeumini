@@ -17,8 +17,8 @@ interface LiveRoutesResult {
   routes: TransitRoute[];
   /** 현재 시각 "HH:MM" (KST) */
   baseTime: string;
-  /** 도착 정보를 받은 뒤 지난 초 */
-  secondsAgo: number;
+  /** 도착 정보를 받은 시각(epoch ms). 아직 없으면 0. 지난 초는 StaleBadge가 1초마다 센다 */
+  fetchedAtMs: number;
   /** 도착 정보를 다시 받고, 끝나면 풀리는 Promise */
   refresh: () => Promise<unknown>;
   isRefreshing: boolean;
@@ -80,7 +80,7 @@ export function useLiveRoutes(
     plan,
     routes,
     baseTime: kstClock(nowMs),
-    secondsAgo: dataUpdatedAt ? Math.max(0, Math.floor((nowMs - dataUpdatedAt) / 1000)) : 0,
+    fetchedAtMs: dataUpdatedAt,
     refresh: () => {
       if (planFailed) void refetchPlan();
       return refetchArrivals();

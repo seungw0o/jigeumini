@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { AlertIcon, LocationOffIcon, MapOffIcon } from "@/assets/icons";
 import { LogoMark } from "@/assets/Logo";
+import { RetryButton } from "./RetryButton";
 
 const pulse = "bg-skeleton animate-pulse motion-reduce:animate-none";
 const line = `rounded-sm ${pulse}`;
@@ -130,7 +131,7 @@ export function ErrorState({
 }: {
   title?: string;
   message?: string;
-  onRetry?: () => void;
+  onRetry?: () => unknown;
 }) {
   return (
     <MessageState
@@ -142,7 +143,7 @@ export function ErrorState({
       }
       title={title}
       message={message}
-      actions={onRetry && <StateButton onClick={onRetry}>다시 시도</StateButton>}
+      actions={onRetry && <RetryButton variant="state" onRetry={onRetry} />}
     />
   );
 }
@@ -190,7 +191,7 @@ export function LocationDeniedState({
         onSearchInstead ? (
           <StateButton onClick={onSearchInstead}>출발지 검색</StateButton>
         ) : (
-          onRetry && <StateButton onClick={onRetry}>다시 시도</StateButton>
+          onRetry && <RetryButton variant="state" onRetry={onRetry} />
         )
       }
     />

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Alert } from "@/apis/push/client";
 import { BellIcon } from "@/assets/icons";
+import { RetryButton } from "@/components/RetryButton";
 import { showToast } from "@/components/Toast";
 import { ALERT_OFF_FAILED_MESSAGE, usePendingAlerts } from "@/hooks/useDepartureAlerts";
 import { kstClock } from "@/shared/estimate";
@@ -32,13 +33,7 @@ export function AlertsList({ onOpen }: { onOpen: (href: string) => void }) {
     return (
       <div className="flex items-center justify-between gap-3 px-gutter py-4">
         <p className="text-sm text-fg-muted">알림을 불러오지 못했어요</p>
-        <button
-          type="button"
-          onClick={() => void query.refetch()}
-          className="h-11 shrink-0 rounded-md bg-action-secondary px-4 text-sm font-semibold text-action-secondary-fg hover:bg-action-secondary-pressed"
-        >
-          다시 시도
-        </button>
+        <RetryButton onRetry={() => query.refetch()} />
       </div>
     );
   }
