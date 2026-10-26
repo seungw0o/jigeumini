@@ -121,7 +121,7 @@ function PairedRouteDetail({ routeId, pair, fail }: { routeId: string; pair: Rou
       <RouteDetailSections
         route={route}
         now={live.baseTime}
-        secondsAgo={live.secondsAgo}
+        fetchedAtMs={live.fetchedAtMs}
         onRefresh={live.refresh}
         originName={live.origin?.name ?? pair.origin.name}
         destinationName={live.destination?.name ?? pair.destination.name}

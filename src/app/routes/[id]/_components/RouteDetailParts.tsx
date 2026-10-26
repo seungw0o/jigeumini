@@ -78,25 +78,25 @@ export function RouteFooterBar({
 export function RouteDetailSections({
   route,
   now,
-  secondsAgo,
+  fetchedAtMs,
   onRefresh,
   originName,
   destinationName,
 }: {
   route: TransitRoute;
   now: string;
-  secondsAgo: number;
+  fetchedAtMs: number;
   onRefresh: () => void;
   originName: string;
   destinationName: string;
 }) {
   return (
     <>
-      <RouteSummary route={route} now={now} secondsAgo={secondsAgo} onRefresh={onRefresh} />
+      <RouteSummary route={route} now={now} fetchedAtMs={fetchedAtMs} onRefresh={onRefresh} />
       <StepTimeline route={route} now={now} originName={originName} destinationName={destinationName} />
       {route.transferCount > 0 && (
         <div className="flex flex-col gap-3 border-t border-divider px-gutter pt-5 pb-8">
-          <TransferPanel route={route} secondsAgo={secondsAgo} onRefresh={onRefresh} />
+          <TransferPanel route={route} fetchedAtMs={fetchedAtMs} onRefresh={onRefresh} />
         </div>
       )}
     </>

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { BusGlyph, ClockIcon, RefreshIcon } from "@/assets/icons";
+import { useNow } from "@/hooks/useNow";
+import { usePendingAction } from "@/hooks/usePendingAction";
 import { BUS_TYPE_LABEL, legBusColor } from "@/utils/format";
 import { formatShortClock } from "@/utils/ribbon";
 import type { BusArrival, BusLeg, LegLiveIssue } from "@/utils/types";
@@ -97,17 +98,17 @@ export function MissedBusNotice({
   );
 }
 
-// 응답이 빨라도 눌렀다는 게 보이도록 한 바퀴는 돈다
-const MIN_SPIN_MS = 600;
-
 export function StaleBadge({
-  secondsAgo,
+  fetchedAtMs,
   onRefresh,
 }: {
-  secondsAgo: number;
+  fetchedAtMs: number;
   onRefresh?: () => unknown;
 }) {
-  const [spinning, setSpinning] = useState(false);
+  const { pending: spinning, run } = usePendingAction(onRefresh);
+  // 이 배지만 1초마다 다시 그린다 (경로 계산은 useLiveRoutes의 10초 간격 그대로)
+  const nowMs = useNow(1000);
+  const secondsAgo = fetchedAtMs ? Math.max(0, Math.floor((nowMs - fetchedAtMs) / 1000)) : 0;
   const stale = secondsAgo >= 60;
   const label = secondsAgo < 60 ? `${secondsAgo}초 전 정보` : `${Math.floor(secondsAgo / 60)}분 전 정보`;
   return (
@@ -116,11 +117,7 @@ export function StaleBadge({
       {onRefresh && (
         <button
           type="button"
-          onClick={() => {
-            setSpinning(true);
-            const minSpin = new Promise((resolve) => setTimeout(resolve, MIN_SPIN_MS));
-            void Promise.allSettled([Promise.resolve(onRefresh()), minSpin]).then(() => setSpinning(false));
-          }}
+          onClick={run}
           disabled={spinning}
           aria-label="실시간 정보 새로고침"
           aria-busy={spinning}

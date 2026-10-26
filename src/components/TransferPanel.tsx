@@ -17,11 +17,11 @@ function arrivalText(leg: BusLeg, prefix: string, route: TransitRoute): string {
 
 export function TransferPanel({
   route,
-  secondsAgo,
+  fetchedAtMs,
   onRefresh,
 }: {
   route: TransitRoute;
-  secondsAgo: number;
+  fetchedAtMs: number;
   onRefresh?: () => void;
 }) {
   if (route.transferCount === 0) return null;
@@ -37,7 +37,7 @@ export function TransferPanel({
         <h2 id="transfer-panel-title" className="truncate text-sm font-bold text-fg">
           환승 실시간
         </h2>
-        <StaleBadge secondsAgo={secondsAgo} onRefresh={onRefresh} />
+        <StaleBadge fetchedAtMs={fetchedAtMs} onRefresh={onRefresh} />
       </div>
       <ul className="mt-1 divide-y divide-divider">
         {transfers.map(({ prev, next }) => (
