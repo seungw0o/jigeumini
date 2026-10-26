@@ -14,6 +14,15 @@ describe("computeErrors", () => {
     ]);
   });
 
+  test("also records 20 and 15 min leads for far predictions (transfer buses)", () => {
+    const predictions = [at(1260, 1200), at(1200, 1150), at(900, 930), at(600, 600)];
+    expect(computeErrors(T0, predictions)).toEqual([
+      { leadBucketMin: 20, predictedAt: T0 - 1_200_000, errorSec: 50 },
+      { leadBucketMin: 15, predictedAt: T0 - 900_000, errorSec: -30 },
+      { leadBucketMin: 10, predictedAt: T0 - 600_000, errorSec: 0 },
+    ]);
+  });
+
   test("a bucket with no observation inside its tolerance is skipped", () => {
     expect(computeErrors(T0, [at(420, 400)])).toEqual([]);
     expect(computeErrors(T0, [])).toEqual([]);

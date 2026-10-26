@@ -91,6 +91,29 @@ describe("stopMargins", () => {
     ]);
   });
 
+  it("15/20 min buckets are listed in byLead but kept out of the stop-wide n and p10", async () => {
+    const db = createTestD1();
+    await seed(db, [
+      { lead: 5, err: -20 },
+      { lead: 15, err: -300 },
+      { lead: 20, err: -400 },
+      { node: "8000001", lead: 20, err: -100 },
+    ]);
+    const { stops } = await stopMargins(db, T0);
+    expect(stops).toEqual([
+      {
+        nodeId: "8001318",
+        n: 1,
+        p10Sec: -20,
+        byLead: [
+          { leadMin: 5, n: 1, p10Sec: -20 },
+          { leadMin: 15, n: 1, p10Sec: -300 },
+          { leadMin: 20, n: 1, p10Sec: -400 },
+        ],
+      },
+    ]);
+  });
+
   it("serialized output never contains plate or route values", async () => {
     const db = createTestD1();
     await seed(db, [{ lead: 5, err: -10 }]);
