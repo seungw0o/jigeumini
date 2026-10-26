@@ -325,7 +325,7 @@ export function HomeScreen() {
         map={
           <MapView
             key={mapKey}
-            label="대전 지도"
+            label="지도"
             center={livePosition ?? DAEJEON_CENTER}
             markers={markers}
             obscuredTop={HEADER_HEIGHT_PX}
@@ -348,7 +348,7 @@ export function HomeScreen() {
         }
         header={
           <div ref={headerRef}>
-            <h1 className="sr-only">지금이니? 대전 버스 길찾기</h1>
+            <h1 className="sr-only">지금이니? 버스 길찾기</h1>
             <div className="mb-4 hidden h-8 items-center lg:flex">
               <button
                 type="button"

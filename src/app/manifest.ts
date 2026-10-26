@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     id: "/",
     name: "지금이니?",
     short_name: "지금이니?",
-    description: "기다림까지 더한 도착 예상 시간과, 언제까지 나서면 되는지 알려주는 대전 버스 길찾기",
+    description: "기다림까지 더한 도착 예상 시간과, 언제까지 나서면 되는지 알려주는 버스 길찾기",
     lang: "ko",
     start_url: "/",
     scope: "/",
