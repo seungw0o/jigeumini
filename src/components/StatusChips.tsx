@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { BusGlyph, ClockIcon, RefreshIcon } from "@/assets/icons";
 import { BUS_TYPE_LABEL, legBusColor } from "@/utils/format";
 import { formatShortClock } from "@/utils/ribbon";
@@ -94,13 +97,17 @@ export function MissedBusNotice({
   );
 }
 
+// 응답이 빨라도 눌렀다는 게 보이도록 한 바퀴는 돈다
+const MIN_SPIN_MS = 600;
+
 export function StaleBadge({
   secondsAgo,
   onRefresh,
 }: {
   secondsAgo: number;
-  onRefresh?: () => void;
+  onRefresh?: () => unknown;
 }) {
+  const [spinning, setSpinning] = useState(false);
   const stale = secondsAgo >= 60;
   const label = secondsAgo < 60 ? `${secondsAgo}초 전 정보` : `${Math.floor(secondsAgo / 60)}분 전 정보`;
   return (
@@ -109,11 +116,17 @@ export function StaleBadge({
       {onRefresh && (
         <button
           type="button"
-          onClick={onRefresh}
+          onClick={() => {
+            setSpinning(true);
+            const minSpin = new Promise((resolve) => setTimeout(resolve, MIN_SPIN_MS));
+            void Promise.allSettled([Promise.resolve(onRefresh()), minSpin]).then(() => setSpinning(false));
+          }}
+          disabled={spinning}
           aria-label="실시간 정보 새로고침"
-          className="-my-3 -mr-2 inline-flex size-11 items-center justify-center rounded-full text-fg-muted hover:bg-action-secondary"
+          aria-busy={spinning}
+          className="-my-3 -mr-2 inline-flex size-11 items-center justify-center rounded-full text-fg-muted hover:bg-action-secondary disabled:hover:bg-transparent"
         >
-          <RefreshIcon size={15} />
+          <RefreshIcon size={15} className={spinning ? "motion-safe:animate-spin" : undefined} />
         </button>
       )}
     </span>
