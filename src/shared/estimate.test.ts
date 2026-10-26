@@ -180,10 +180,11 @@ describe("estimateRoutes", () => {
 
 describe("data-based margin", () => {
   // 도보 420초(7분) -> 리드 5분 버킷, P10 -250초 -> 여유 5분
+  const zeros = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   const marginsOf = (n: number): MarginsResponse => ({
     windowDays: 14,
     generatedAt: "2026-10-22T00:00:00+09:00",
-    stops: [{ nodeId: "S1", n, p10Sec: -250, byLead: [{ leadMin: 5, n, p10Sec: -250 }] }],
+    stops: [{ nodeId: "S1", n, p10Sec: -250, earlyRate: zeros, byLead: [{ leadMin: 5, n, p10Sec: -250, earlyRate: zeros }] }],
   });
   const stops = { S1: ok(eta("318", 1140)) };
 
