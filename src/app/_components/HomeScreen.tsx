@@ -211,9 +211,14 @@ export function HomeScreen() {
     setView((v) => (v === key ? null : key));
   }
 
-  function focusOriginInput() {
+  // 길찾기 입력 화면을 열고 비어 있는 칸에 커서를 둔다
+  function openRouteInput(label: "출발지" | "도착지") {
     flushSync(() => setRouteMode(true));
-    headerRef.current?.querySelector<HTMLInputElement>('input[aria-label="출발지"]')?.focus();
+    headerRef.current?.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)?.focus();
+  }
+
+  function focusOriginInput() {
+    openRouteInput("출발지");
   }
 
   function selectTab(key: TabKey) {
@@ -251,12 +256,18 @@ export function HomeScreen() {
         onSetOrigin={(p) => {
           setSelected(null);
           setLastPlace(null);
-          update({ origin: p, destination: destination?.id === p.id ? null : destination });
+          const nextDestination = destination?.id === p.id ? null : destination;
+          update({ origin: p, destination: nextDestination });
+          // 목적지가 아직 없으면 길찾기 입력 화면에서 마저 고르게 한다
+          if (!nextDestination) openRouteInput("도착지");
         }}
         onSetDestination={(p) => {
           setSelected(null);
           setLastPlace(null);
-          update({ origin: origin?.id === p.id ? null : origin, destination: p });
+          const nextOrigin = origin?.id === p.id ? null : origin;
+          update({ origin: nextOrigin, destination: p });
+          // 현재 위치를 모르면 출발지가 비어 있다: 조용히 저장만 하지 말고 출발지를 고르게 한다
+          if (!nextOrigin) openRouteInput("출발지");
         }}
         onClose={() => setSelected(null)}
       />
