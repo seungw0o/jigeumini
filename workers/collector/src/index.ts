@@ -30,7 +30,7 @@ async function isAdmin(request: Request, env: Env): Promise<boolean> {
 }
 
 /**
- * 05:20 KST Cron (수집 창 23:30 마감 뒤): 어제 쌓인 오차를 히스토그램에 접고, 오늘 잴 정류소 60곳을 고른 뒤 모니터를 켠다.
+ * 05:20 KST Cron (수집 창 23:30 마감 뒤): 어제 쌓인 오차를 히스토그램에 접고, 오늘 잴 정류소 12곳(고정 4 + 순환 8)을 고른 뒤 모니터를 켠다.
  * 접기가 실패해도 오늘 수집은 해야 하므로 순환과 시작은 이어간다. 순환이 실패하면 어제 켜 둔 정류소로 시작한다.
  */
 export async function runMorningCron(env: Env, nowMs: number): Promise<void> {

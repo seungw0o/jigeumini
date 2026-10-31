@@ -1,14 +1,14 @@
 import { kstDate, kstIso } from "./kst";
 
-// 하루에 한 구씩 돌아가며 정류소를 잰다. 오너 결정(2026-10-26): 하루 60곳 = 고정 4곳 + 순환 56곳.
+// 하루에 한 구씩 돌아가며 정류소를 잰다. 오너 결정(2026-10-31): 하루 12곳 = 고정 4곳 + 순환 8곳 (DO duration 무료 한도 13,000 GB-s 때문).
 export const ROTATION_DISTRICTS = ["유성구", "서구", "중구", "대덕구", "동구"] as const;
-export const MAX_DAILY_STOPS = 60;
+export const MAX_DAILY_STOPS = 12;
 export const D1_DAILY_ROWS_WRITTEN_LIMIT = 100_000;
 /** 전날 쓴 행이 한도의 80%를 넘으면 오늘 정류소 수를 줄인다 */
 const VALVE_TRIGGER_RATIO = 0.8;
 /** 줄일 때는 정류소당 행 수로 나눠 한도의 70%에 맞춘다 */
 const VALVE_TARGET_RATIO = 0.7;
-/** 줄인 뒤에는 하루에 이만큼씩만 다시 늘린다 (60을 넘지 않는다) */
+/** 줄인 뒤에는 하루에 이만큼씩만 다시 늘린다 (MAX_DAILY_STOPS를 넘지 않는다) */
 const RECOVERY_STEP = 8;
 
 interface PreviousDay {
@@ -17,7 +17,7 @@ interface PreviousDay {
   rowsWritten: number | null;
 }
 
-/** 오늘 잴 정류소 수(고정 포함). 안전 밸브는 줄이기만 하고, 자동으로 60을 넘기지 않는다 */
+/** 오늘 잴 정류소 수(고정 포함). 안전 밸브는 줄이기만 하고, 자동으로 MAX_DAILY_STOPS를 넘기지 않는다 */
 export function dailyStopCount(previous: PreviousDay | null, pinnedCount: number): number {
   const floor = Math.min(pinnedCount, MAX_DAILY_STOPS);
   if (previous === null || previous.rowsWritten === null) return MAX_DAILY_STOPS;
@@ -25,7 +25,8 @@ export function dailyStopCount(previous: PreviousDay | null, pinnedCount: number
   if (rowsWritten > D1_DAILY_ROWS_WRITTEN_LIMIT * VALVE_TRIGGER_RATIO && stopCount > 0) {
     const perStop = rowsWritten / stopCount;
     const target = Math.floor((D1_DAILY_ROWS_WRITTEN_LIMIT * VALVE_TARGET_RATIO) / perStop);
-    return Math.max(floor, Math.min(stopCount - 1, target));
+    // 한도를 낮춘 날에는 전날 수가 새 한도보다 많을 수 있다
+    return Math.max(floor, Math.min(MAX_DAILY_STOPS, stopCount - 1, target));
   }
   return Math.max(floor, Math.min(MAX_DAILY_STOPS, stopCount + RECOVERY_STEP));
 }

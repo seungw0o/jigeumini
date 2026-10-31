@@ -39,20 +39,26 @@ async function districtOf(db: DB, ids: string[]): Promise<Record<string, number>
 }
 
 describe("dailyStopCount", () => {
-  it("first day or unknown rows -> 60", () => {
+  it("first day or unknown rows -> 12", () => {
     expect(dailyStopCount(null, 4)).toBe(MAX_DAILY_STOPS);
-    expect(dailyStopCount({ stopCount: 30, rowsWritten: null }, 4)).toBe(60);
+    expect(dailyStopCount({ stopCount: 30, rowsWritten: null }, 4)).toBe(12);
   });
 
   it("over 80% of the 100k rows limit shrinks to 70% of the limit", () => {
-    // 60곳이 90,000행 -> 곳당 1,500행 -> 70,000 / 1,500 = 46곳
-    expect(dailyStopCount({ stopCount: 60, rowsWritten: 90_000 }, 4)).toBe(46);
+    // 12곳이 90,000행 -> 곳당 7,500행 -> 70,000 / 7,500 = 9곳
+    expect(dailyStopCount({ stopCount: 12, rowsWritten: 90_000 }, 4)).toBe(9);
   });
 
-  it("recovers by 8 a day and never exceeds 60", () => {
-    expect(dailyStopCount({ stopCount: 46, rowsWritten: 50_000 }, 4)).toBe(54);
-    expect(dailyStopCount({ stopCount: 58, rowsWritten: 50_000 }, 4)).toBe(60);
-    expect(dailyStopCount({ stopCount: 60, rowsWritten: 80_000 }, 4)).toBe(60);
+  it("never exceeds 12 even when yesterday ran 60 stops", () => {
+    // 60곳이 90,000행 -> 밸브 목표 46곳이지만 한도 12곳에서 멈춘다
+    expect(dailyStopCount({ stopCount: 60, rowsWritten: 90_000 }, 4)).toBe(12);
+    expect(dailyStopCount({ stopCount: 60, rowsWritten: 50_000 }, 4)).toBe(12);
+  });
+
+  it("recovers by 8 a day and never exceeds 12", () => {
+    expect(dailyStopCount({ stopCount: 3, rowsWritten: 5_000 }, 4)).toBe(11);
+    expect(dailyStopCount({ stopCount: 9, rowsWritten: 10_000 }, 4)).toBe(12);
+    expect(dailyStopCount({ stopCount: 12, rowsWritten: 80_000 }, 4)).toBe(12);
   });
 
   it("never drops below the pinned stops", () => {
@@ -70,19 +76,19 @@ describe("nextDistrict", () => {
 });
 
 describe("chooseDailyStops", () => {
-  it("day 1 enables 4 pinned + 56 stops from 유성구 and records the day", async () => {
+  it("day 1 enables 4 pinned + 8 stops from 유성구 and records the day", async () => {
     const db = createTestD1();
     await seedCatalog(db, { 유성구: 70, 서구: 10 });
     const res = await chooseDailyStops(db, T0);
 
-    expect(res).toMatchObject({ day: "2026-10-23", district: "유성구", stopCount: 60, pinned: PINNED, reused: false, rowsWrittenPrev: null });
-    expect(res.rotating).toHaveLength(56);
+    expect(res).toMatchObject({ day: "2026-10-23", district: "유성구", stopCount: 12, pinned: PINNED, reused: false, rowsWrittenPrev: null });
+    expect(res.rotating).toHaveLength(8);
     const on = await enabled(db);
-    expect(on).toHaveLength(60);
+    expect(on).toHaveLength(12);
     expect(on).toEqual(expect.arrayContaining(PINNED));
-    expect(await districtOf(db, res.rotating)).toEqual({ 유성구: 56 });
+    expect(await districtOf(db, res.rotating)).toEqual({ 유성구: 8 });
     const day = await db.prepare("SELECT district, stop_count, rotating_count FROM rotation_days WHERE day = ?").bind("2026-10-23").first();
-    expect(day).toEqual({ district: "유성구", stop_count: 60, rotating_count: 56 });
+    expect(day).toEqual({ district: "유성구", stop_count: 12, rotating_count: 8 });
   });
 
   it("a second call on the same KST day keeps the same stops", async () => {
@@ -92,22 +98,22 @@ describe("chooseDailyStops", () => {
     const again = await chooseDailyStops(db, T0 + 60 * 60 * 1000);
     expect(again.reused).toBe(true);
     expect(again.rotating).toEqual(first.rotating);
-    expect(await enabled(db)).toHaveLength(60);
+    expect(await enabled(db)).toHaveLength(12);
   });
 
   it("day 2 moves to 서구, fills the shortfall from later districts, and disables yesterday's stops", async () => {
     const db = createTestD1();
-    await seedCatalog(db, { 유성구: 70, 서구: 10, 중구: 20 });
+    await seedCatalog(db, { 유성구: 9, 서구: 3, 중구: 2 });
     const day1 = await chooseDailyStops(db, T0);
     const day2 = await chooseDailyStops(db, T0 + DAY);
 
     expect(day2.district).toBe("서구");
-    // 서구 10 + 중구 20 + 대덕구·동구 0 + 유성구는 안 잰 14곳 먼저, 나머지 12곳은 가장 오래전에 잰 곳
-    expect(await districtOf(db, day2.rotating)).toEqual({ 서구: 10, 중구: 20, 유성구: 26 });
+    // 서구 3 + 중구 2 + 대덕구·동구 0 + 유성구는 안 잰 1곳 먼저, 나머지 2곳은 가장 오래전에 잰 곳
+    expect(await districtOf(db, day2.rotating)).toEqual({ 서구: 3, 중구: 2, 유성구: 3 });
     const reused = day2.rotating.filter((id) => day1.rotating.includes(id));
-    expect(reused).toHaveLength(12);
+    expect(reused).toHaveLength(2);
     const on = await enabled(db);
-    expect(on).toHaveLength(60);
+    expect(on).toHaveLength(12);
     for (const id of day1.rotating.filter((id) => !day2.rotating.includes(id))) expect(on).not.toContain(id);
   });
 
@@ -124,14 +130,14 @@ describe("chooseDailyStops", () => {
       .run();
     const day2 = await chooseDailyStops(db, T0 + DAY);
     expect(day2.rowsWrittenPrev).toBe(85_000);
-    // 곳당 85,000 / 60 행 -> 70,000 / 1,416.7 = 49곳
-    expect(day2.stopCount).toBe(49);
-    expect(await enabled(db)).toHaveLength(49);
+    // 곳당 85,000 / 12 행 -> 70,000 / 7,083.3 = 9곳
+    expect(day2.stopCount).toBe(9);
+    expect(await enabled(db)).toHaveLength(9);
   });
 });
 
 describe("runMorningCron", () => {
-  it("folds errors, picks 60 stops and starts a monitor for each enabled stop", async () => {
+  it("folds errors, picks 12 stops and starts a monitor for each enabled stop", async () => {
     const db = createTestD1();
     await seedCatalog(db, { 유성구: 70 });
     await db
@@ -152,7 +158,7 @@ describe("runMorningCron", () => {
     await runMorningCron(env, T0);
 
     expect(started.sort()).toEqual(await enabled(db));
-    expect(started).toHaveLength(60);
+    expect(started).toHaveLength(12);
     expect(await db.prepare("SELECT node_id, lead_bucket_min, n FROM margin_hist").all()).toMatchObject({
       results: [{ node_id: "8001318", lead_bucket_min: 5, n: 1 }],
     });
