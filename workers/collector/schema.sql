@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS stop_catalog (
   measure_count INTEGER NOT NULL DEFAULT 0
 );
 
--- 순환과 상관없이 매일 켜 두는 정류소 (오너가 쓰는 4곳).
+-- 예전에 순환과 상관없이 매일 켜 두던 정류소. 2026-10-31부터 아무 코드도 읽지 않는다 (모두 순환).
 CREATE TABLE IF NOT EXISTS pinned_stops (
   node_id TEXT PRIMARY KEY,
   name TEXT NOT NULL
